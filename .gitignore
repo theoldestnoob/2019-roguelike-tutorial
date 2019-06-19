@@ -1,0 +1,6 @@
+Include
+Lib
+Scripts
+pyvenv.cfg
+.spyproject
+__pycache__
