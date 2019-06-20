@@ -7,7 +7,7 @@ Created on Tue Jun 18 20:28:25 2019
 
 import tcod
 import tcod.event
-from input_handlers import handle_input
+from input_handlers import InputHandler
 
 
 def main():
@@ -23,6 +23,8 @@ def main():
             )
 
     action = {}
+
+    in_handle = InputHandler()
 
     with tcod.console_init_root(
             screen_width, screen_height,
@@ -42,10 +44,13 @@ def main():
                                   " ", tcod.BKGND_NONE)
 
             for event in tcod.event.get():
-                action = handle_input(event)
-                # debug output
-                if(action):
-                    print(action)
+                in_handle.dispatch(event)
+
+            action = in_handle.get_action()
+
+            # debug output
+            if(action):
+                print(action)
 
             move = action.get("move")
             want_exit = action.get("exit")
