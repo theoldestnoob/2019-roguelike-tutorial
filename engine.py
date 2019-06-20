@@ -68,8 +68,6 @@ def main():
             if fullscreen:
                 tcod.console_set_fullscreen(not tcod.console_is_fullscreen())
 
-            action = {}
-
 
 if __name__ == "__main__":
     main()

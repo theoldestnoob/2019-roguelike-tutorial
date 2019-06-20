@@ -14,7 +14,7 @@ class InputHandler(tcod.event.EventDispatch):
         self._actionq = []
 
     def ev_quit(self, event):
-        self._actionq.append({"exit": True})
+        raise SystemExit()
 
     def ev_keydown(self, event):
         # first check for mapped modified keys
