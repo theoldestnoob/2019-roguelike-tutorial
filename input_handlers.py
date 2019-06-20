@@ -21,7 +21,7 @@ class InputHandler(tcod.event.EventDispatch):
         if (event.mod & tcod.event.KMOD_LALT
                 and event.sym in in_keymap_lalt.keys()):
             self._actionq.append(in_keymap_lalt[event.sym])
-        # if no meaningful modified keys, push the mapped action to our queue
+        # if no mapped modified keys, push the nomod mapped action to our queue
         elif event.sym in in_keymap_nomod.keys():
             self._actionq.append(in_keymap_nomod[event.sym])
 
