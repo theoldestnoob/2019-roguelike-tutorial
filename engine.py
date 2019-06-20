@@ -2,7 +2,7 @@
 """
 Created on Tue Jun 18 20:28:25 2019
 
-@author: willh
+@author: theoldestnoob
 """
 
 import tcod

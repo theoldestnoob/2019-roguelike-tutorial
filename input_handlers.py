@@ -2,7 +2,7 @@
 """
 Created on Tue Jun 18 21:35:02 2019
 
-@author: willh
+@author: theoldestnoob
 """
 
 import tcod.event
