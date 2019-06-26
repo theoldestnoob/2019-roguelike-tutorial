@@ -20,13 +20,19 @@ def main():
     map_width = 80
     map_height = 45
 
+    room_max_size = 10
+    room_min_size = 6
+    max_rooms = 30
+
     colors = {
             "dark_wall": tcod.Color(0, 0, 100),
             "dark_ground": tcod.Color(50, 50, 150)
     }
 
-    player = Entity(int(screen_width / 2), int(screen_height / 2), "@", tcod.white)
-    npc = Entity(int(screen_width / 2 - 5), int(screen_height / 2), "@", tcod.yellow)
+    player = Entity(int(screen_width / 2), int(screen_height / 2), "@",
+                    tcod.white)
+    npc = Entity(int(screen_width / 2 - 5), int(screen_height / 2), "@",
+                 tcod.yellow)
     entities = [player, npc]
 
     tcod.console_set_custom_font(
@@ -35,6 +41,8 @@ def main():
             )
 
     game_map = GameMap(map_width, map_height)
+    game_map.make_map(max_rooms, room_min_size, room_max_size, map_width,
+                      map_height, player)
 
     action = {}
 
@@ -49,7 +57,8 @@ def main():
 
         while True:
 
-            render_all(con, entities, game_map, screen_width, screen_height, colors)
+            render_all(con, entities, game_map, screen_width, screen_height,
+                       colors)
 
             tcod.console_flush()
 
