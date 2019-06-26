@@ -7,20 +7,34 @@ Created on Tue Jun 18 20:28:25 2019
 
 import tcod
 import tcod.event
+
+from entity import Entity
 from input_handlers import InputHandler
+from render_functions import clear_all, render_all
+from map_objects.game_map import GameMap
 
 
 def main():
     screen_width = 80
     screen_height = 50
+    map_width = 80
+    map_height = 45
 
-    player_x = int(screen_width / 2)
-    player_y = int(screen_height / 2)
+    colors = {
+            "dark_wall": tcod.Color(0, 0, 100),
+            "dark_ground": tcod.Color(50, 50, 150)
+    }
+
+    player = Entity(int(screen_width / 2), int(screen_height / 2), "@", tcod.white)
+    npc = Entity(int(screen_width / 2 - 5), int(screen_height / 2), "@", tcod.yellow)
+    entities = [player, npc]
 
     tcod.console_set_custom_font(
             "arial10x10.png",
             tcod.FONT_TYPE_GREYSCALE | tcod.FONT_LAYOUT_TCOD
             )
+
+    game_map = GameMap(map_width, map_height)
 
     action = {}
 
@@ -35,13 +49,11 @@ def main():
 
         while True:
 
-            tcod.console_put_char(con, player_x, player_y,
-                                  "@", tcod.BKGND_NONE)
-            con.blit(con)
+            render_all(con, entities, game_map, screen_width, screen_height, colors)
+
             tcod.console_flush()
 
-            tcod.console_put_char(con, player_x, player_y,
-                                  " ", tcod.BKGND_NONE)
+            clear_all(con, entities)
 
             for event in tcod.event.get():
                 in_handle.dispatch(event)
@@ -58,8 +70,8 @@ def main():
 
             if move:
                 dx, dy = move
-                player_x += dx
-                player_y += dy
+                if not game_map.is_blocked(player.x + dx, player.y + dy):
+                    player.move(dx, dy)
 
             if want_exit:
                 return True
