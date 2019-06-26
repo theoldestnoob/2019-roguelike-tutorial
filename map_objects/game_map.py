@@ -7,7 +7,8 @@ Created on Tue Jun 25 20:47:16 2019
 
 from random import randint
 
-from map_objects.rectangle import Rect
+from map_objects.geometry import Rect
+from map_objects.geometry import orthogonal_line
 from map_objects.tile import Tile
 
 
@@ -39,7 +40,7 @@ class GameMap:
             # "Rect" class makes rectangles easier to work with
             new_room = Rect(x, y, w, h)
 
-            # run through the other rooms and see if they intersect with this one
+            # see if any other rooms intersect with this one
             for other_room in rooms:
                 if new_room.intersect(other_room):
                     break
@@ -63,7 +64,11 @@ class GameMap:
                     # center coordinates of previous room
                     (prev_x, prev_y) = rooms[num_rooms - 1].center()
 
-                    # flip a cooin
+                    # draw diagonal hallways
+                    self.create_d_tunnel(prev_x, prev_y, new_x, new_y)
+
+                    # flip a coin
+                    '''
                     if randint(0, 1) == 1:
                         # first move horizontally, then vertically
                         self.create_h_tunnel(prev_x, new_x, prev_y)
@@ -72,6 +77,7 @@ class GameMap:
                         # first move vertically, then horizontally
                         self.create_v_tunnel(prev_y, new_y, prev_x)
                         self.create_h_tunnel(prev_x, new_x, new_y)
+                    '''
 
                 # finally, append the new room to the list
                 rooms.append(new_room)
@@ -91,6 +97,12 @@ class GameMap:
 
     def create_v_tunnel(self, y1, y2, x):
         for y in range(min(y1, y2), max(y1, y2) + 1):
+            self.tiles[x][y].blocked = False
+            self.tiles[x][y].block_sight = False
+
+    def create_d_tunnel(self, x1, y1, x2, y2):
+        points = orthogonal_line(x1, y1, x2, y2)
+        for x, y in points:
             self.tiles[x][y].blocked = False
             self.tiles[x][y].block_sight = False
 
