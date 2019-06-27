@@ -25,7 +25,8 @@ class Rect:
 
 def line_lerp_orthogonal(x1, y1, x2, y2):
     '''
-    Draw a line using orthogonal steps.
+    Generate a series of (x, y) tuples along a line from (x1, y1) to (x2, y2)
+    using orthogonal steps.
     Algorithm from redblobgames.com/grids/line-drawing.html.
     '''
     dx = x2 - x1
@@ -43,7 +44,6 @@ def line_lerp_orthogonal(x1, y1, x2, y2):
     else:
         sign_y = -1
     px, py = x1, y1
-    points = [(px, py)]
     while ix < nx or iy < ny:
         if (0.5 + ix) / nx < (0.5 + iy) / ny:
             # horizontal step
@@ -53,5 +53,4 @@ def line_lerp_orthogonal(x1, y1, x2, y2):
             # vertical step
             py += sign_y
             iy += 1
-        points.append((px, py))
-    return points
+        yield (px, py)
