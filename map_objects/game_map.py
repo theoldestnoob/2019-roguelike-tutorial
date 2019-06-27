@@ -26,13 +26,17 @@ class GameMap:
 
         return tiles
 
-    def make_map(self, max_rooms, room_min_size, room_max_size,
-                 map_width, map_height, player,
-                 ratio_hv=1, ratio_vh=1, ratio_d=0):
+    def make_map(self, player, *args,
+                 max_rooms=30, room_min_size=6, room_max_size=10,
+                 ratio_vh=1, ratio_hv=1, ratio_d=0, **kwargs):
+        # setup
+        map_width = self.width
+        map_height = self.height
+        randseed(self.seed)
+
         # create a map of randomly placed rooms
         rooms = []
         num_rooms = 0
-        randseed(self.seed)
 
         for r in range(max_rooms):
             # random width and height

@@ -7,6 +7,7 @@ Created on Tue Jun 18 20:28:25 2019
 
 import tcod
 import tcod.event
+from random import randint
 
 from entity import Entity
 from input_handlers import InputHandler
@@ -21,9 +22,15 @@ def main():
     map_height = 45
     seed = "testseed"
 
-    room_max_size = 10
-    room_min_size = 6
-    max_rooms = 30
+    mapset = {
+            "room_max_size": 10,
+            "room_min_size": 6,
+            "max_rooms": 30,
+            "ratio_vh": 1,
+            "ratio_hv": 1,
+            "ratio_d": 1,
+            "unused": True
+    }
 
     colors = {
             "dark_wall": tcod.Color(0, 0, 100),
@@ -42,8 +49,7 @@ def main():
             )
 
     game_map = GameMap(map_width, map_height, seed)
-    game_map.make_map(max_rooms, room_min_size, room_max_size, map_width,
-                      map_height, player, ratio_vh=1, ratio_hv=1, ratio_d=1)
+    game_map.make_map(player, **mapset)
 
     action = {}
 
@@ -77,6 +83,7 @@ def main():
             move = action.get("move")
             want_exit = action.get("exit")
             fullscreen = action.get("fullscreen")
+            map_gen = action.get("map_gen")
 
             if move:
                 dx, dy = move
@@ -89,6 +96,11 @@ def main():
 
             if fullscreen:
                 tcod.console_set_fullscreen(not tcod.console_is_fullscreen())
+
+            if map_gen:
+                game_map.seed = randint(0, 99999)
+                game_map.tiles = game_map.initialize_tiles()
+                game_map.make_map(player, **mapset)
 
 
 if __name__ == "__main__":
