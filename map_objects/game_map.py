@@ -26,6 +26,12 @@ class GameMap:
 
         return tiles
 
+    def is_blocked(self, x, y):
+        if self.tiles[x][y].blocked:
+            return True
+
+        return False
+
     def make_map(self, player, *args,
                  max_rooms=30, room_min_size=6, room_max_size=10,
                  ratio_vh=1, ratio_hv=1, ratio_d=0, **kwargs):
@@ -96,7 +102,7 @@ class GameMap:
                 num_rooms += 1
 
     def create_room(self, room):
-        # go through the tiles int he rectangle and make them passable
+        # go through the tiles in the rectangle and make them passable
         for x in range(room.x1 + 1, room.x2):
             for y in range(room.y1 + 1, room.y2):
                 self.tiles[x][y].blocked = False
@@ -117,9 +123,3 @@ class GameMap:
         for x, y in points:
             self.tiles[x][y].blocked = False
             self.tiles[x][y].block_sight = False
-
-    def is_blocked(self, x, y):
-        if self.tiles[x][y].blocked:
-            return True
-
-        return False
