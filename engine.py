@@ -66,7 +66,7 @@ def main():
             renderer=tcod.RENDERER_SDL2,
             vsync=False) as con:
 
-        game_map = GameMapRandomRooms(map_width, map_height, seed, con)
+        game_map = GameMapRandomRooms(map_width, map_height, seed, con, True)
         game_map.make_map(player, **mapset)
 
         while True:

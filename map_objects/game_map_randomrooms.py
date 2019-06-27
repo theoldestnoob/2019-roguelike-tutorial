@@ -18,7 +18,7 @@ from render_functions import draw_map
 
 
 class GameMapRandomRooms:
-    def __init__(self, width, height, seed, con):
+    def __init__(self, width, height, seed, con, debug=False):
         self.width = width
         self.height = height
         self.seed = seed
@@ -26,6 +26,7 @@ class GameMapRandomRooms:
         self.rooms = []
         self.nodes = []
         self.con = con
+        self.debug = debug
 
     def initialize_tiles(self):
         tiles = [[Tile(True) for y in range(self.height)] for x in range (self.width)]
@@ -116,21 +117,26 @@ class GameMapRandomRooms:
             node = RoomNode(room)
             room_x, room_y = room.center()
             others = [k for k in self.rooms if k is not room]
-            searched = [[False for y in range(self.height)] for x in range(self.width)]
-            draw_map(self.con, self, self.width, self.height,
-                     {"dark_wall": tcod.Color(0, 0, 100),
-                      "dark_ground": tcod.Color(50, 50, 150)})
-            tcod.console_flush()
-            self.flood_search(room, others, room_x, room_y, node.neighbors, searched)
-            print(f"node: {node}")
+            searched = [[False for y in range(self.height)]
+                        for x in range(self.width)]
+            if self.debug:
+                draw_map(self.con, self, self.width, self.height,
+                         {"dark_wall": tcod.Color(0, 0, 100),
+                          "dark_ground": tcod.Color(50, 50, 150)})
+                tcod.console_flush()
+            self.flood_search(room, others, room_x, room_y,
+                              node.neighbors, searched)
+            if self.debug:
+                print(f"node: {node}")
             self.nodes.append(node)
 
     def flood_search(self, room, others, x, y, neighbors, searched):
-        tcod.console_set_char_background(self.con, x, y,
-                                         tcod.red,
-                                         tcod.BKGND_SET)
-        tcod.console_flush()
-        sleep(0.010)
+        if self.debug:
+            tcod.console_set_char_background(self.con, x, y,
+                                             tcod.red,
+                                             tcod.BKGND_SET)
+            tcod.console_flush()
+            sleep(0.010)
         searched[x][y] = True
         for z in others:
             if z.contains(x, y):
