@@ -5,17 +5,20 @@ Created on Tue Jun 25 20:47:16 2019
 @author: theoldestnoob
 """
 
+from random import seed as randseed
 from random import randint
+from random import uniform
 
 from map_objects.geometry import Rect
-from map_objects.geometry import orthogonal_line
+from map_objects.geometry import line_lerp_orthogonal
 from map_objects.tile import Tile
 
 
 class GameMap:
-    def __init__(self, width, height):
+    def __init__(self, width, height, seed):
         self.width = width
         self.height = height
+        self.seed = seed
         self.tiles = self.initialize_tiles()
 
     def initialize_tiles(self):
@@ -23,11 +26,13 @@ class GameMap:
 
         return tiles
 
-    def make_map(self, max_rooms, room_min_size, room_max_size, map_width,
-                 map_height, player):
+    def make_map(self, max_rooms, room_min_size, room_max_size,
+                 map_width, map_height, player,
+                 ratio_hv=1, ratio_vh=1, ratio_d=0):
         # create a map of randomly placed rooms
         rooms = []
         num_rooms = 0
+        randseed(self.seed)
 
         for r in range(max_rooms):
             # random width and height
@@ -64,20 +69,23 @@ class GameMap:
                     # center coordinates of previous room
                     (prev_x, prev_y) = rooms[num_rooms - 1].center()
 
-                    # draw diagonal hallways
-                    self.create_d_tunnel(prev_x, prev_y, new_x, new_y)
-
-                    # flip a coin
-                    '''
-                    if randint(0, 1) == 1:
+                    # generate corridors depending on proportions passed into
+                    #   make_map function
+                    randpool = ratio_hv + ratio_vh + ratio_d
+                    hv = ratio_hv
+                    vh = ratio_hv + ratio_vh
+                    roll = uniform(0, randpool)
+                    if roll < hv:
                         # first move horizontally, then vertically
                         self.create_h_tunnel(prev_x, new_x, prev_y)
                         self.create_v_tunnel(prev_y, new_y, new_x)
-                    else:
+                    elif roll < vh:
                         # first move vertically, then horizontally
                         self.create_v_tunnel(prev_y, new_y, prev_x)
                         self.create_h_tunnel(prev_x, new_x, new_y)
-                    '''
+                    else:
+                        # draw diagonal hallways
+                        self.create_d_tunnel(prev_x, prev_y, new_x, new_y)
 
                 # finally, append the new room to the list
                 rooms.append(new_room)
@@ -101,7 +109,7 @@ class GameMap:
             self.tiles[x][y].block_sight = False
 
     def create_d_tunnel(self, x1, y1, x2, y2):
-        points = orthogonal_line(x1, y1, x2, y2)
+        points = line_lerp_orthogonal(x1, y1, x2, y2)
         for x, y in points:
             self.tiles[x][y].blocked = False
             self.tiles[x][y].block_sight = False
