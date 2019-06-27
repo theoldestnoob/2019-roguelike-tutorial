@@ -5,24 +5,21 @@ Created on Tue Jun 25 20:47:16 2019
 @author: theoldestnoob
 """
 
-from random import seed as randseed
-from random import randint
-from random import uniform
-
 from map_objects.geometry import Rect
 from map_objects.geometry import line_lerp_orthogonal
 from map_objects.tile import Tile
 
 
 class GameMap:
-    def __init__(self, width, height, seed):
+    def __init__(self, width, height, seed, *args):
         self.width = width
         self.height = height
-        self.seed = seed
         self.tiles = self.initialize_tiles()
+        self.seed = seed
 
     def initialize_tiles(self):
-        tiles = [[Tile(True) for y in range(self.height)] for x in range (self.width)]
+        tiles = [[Tile(True) for y in range(self.height)]
+                 for x in range(self.width)]
 
         return tiles
 
@@ -32,79 +29,17 @@ class GameMap:
 
         return False
 
-    def make_map(self, player, *args,
-                 max_rooms=30, room_min_size=6, room_max_size=10,
-                 ratio_vh=1, ratio_hv=1, ratio_d=0, **kwargs):
-        # setup
-        map_width = self.width
-        map_height = self.height
-        randseed(self.seed)
-
-        # create a map of randomly placed rooms
-        rooms = []
-        num_rooms = 0
-
-        for r in range(max_rooms):
-            # random width and height
-            w = randint(room_min_size, room_max_size)
-            h = randint(room_min_size, room_max_size)
-            # random position inside map bounds
-            x = randint(0, map_width - w - 1)
-            y = randint(0, map_height - h - 1)
-
-            # "Rect" class makes rectangles easier to work with
-            new_room = Rect(x, y, w, h)
-
-            # see if any other rooms intersect with this one
-            for other_room in rooms:
-                if new_room.intersect(other_room):
-                    break
-            else:
-                # no intersections, so this room is valid
-
-                # "paint" it to the map's tiles
-                self.create_room(new_room)
-
-                # center coordinates of new room, will be useful later
-                (new_x, new_y) = new_room.center()
-
-                if num_rooms == 0:
-                    # this is the first room, player starts here
-                    player.x = new_x
-                    player.y = new_y
-                else:
-                    # all rooms after the first:
-                    #  connect it to the previous room with a tunnel
-
-                    # center coordinates of previous room
-                    (prev_x, prev_y) = rooms[num_rooms - 1].center()
-
-                    # generate corridors depending on proportions passed into
-                    #   make_map function
-                    randpool = ratio_hv + ratio_vh + ratio_d
-                    hv = ratio_hv
-                    vh = ratio_hv + ratio_vh
-                    roll = uniform(0, randpool)
-                    if roll < hv:
-                        # first move horizontally, then vertically
-                        self.create_h_tunnel(prev_x, new_x, prev_y)
-                        self.create_v_tunnel(prev_y, new_y, new_x)
-                    elif roll < vh:
-                        # first move vertically, then horizontally
-                        self.create_v_tunnel(prev_y, new_y, prev_x)
-                        self.create_h_tunnel(prev_x, new_x, new_y)
-                    else:
-                        # draw diagonal hallways
-                        self.create_d_tunnel(prev_x, prev_y, new_x, new_y)
-
-                # finally, append the new room to the list
-                rooms.append(new_room)
-                num_rooms += 1
+    def make_map(self, player, *args, **kwargs):
+        # create a big empty map with a wall around the edges
+        room = Rect(0, 0, self.width, self.height)
+        self.create_room(room)
+        player.x, player.y = room.center()
 
     def create_room(self, room):
         # go through the tiles in the rectangle and make them passable
-        for x in range(room.x1 + 1, room.x2):
-            for y in range(room.y1 + 1, room.y2):
+        #   leaving a 1-tile wide border around the edge
+        for x in range(room.x1 + 1, room.x2 - 1):
+            for y in range(room.y1 + 1, room.y2 - 1):
                 self.tiles[x][y].blocked = False
                 self.tiles[x][y].block_sight = False
 

@@ -11,33 +11,18 @@ from random import uniform
 from time import sleep
 import tcod
 
+from map_objects.game_map import GameMap
 from map_objects.geometry import Rect
-from map_objects.geometry import line_lerp_orthogonal
-from map_objects.tile import Tile
 from render_functions import draw_map
 
 
-class GameMapRandomRooms:
-    def __init__(self, width, height, seed, con, debug=False):
-        self.width = width
-        self.height = height
-        self.seed = seed
-        self.tiles = self.initialize_tiles()
-        self.rooms = []
-        self.nodes = []
+class GameMapRandomRooms(GameMap):
+    def __init__(self, *args, con=None, debug=False):
+        super().__init__(*args)
         self.con = con
         self.debug = debug
-
-    def initialize_tiles(self):
-        tiles = [[Tile(True) for y in range(self.height)] for x in range (self.width)]
-
-        return tiles
-
-    def is_blocked(self, x, y):
-        if self.tiles[x][y].blocked:
-            return True
-
-        return False
+        self.rooms = []
+        self.nodes = []
 
     def make_map(self, player, *args,
                  max_rooms=30, room_min_size=6, room_max_size=10,
@@ -110,6 +95,7 @@ class GameMapRandomRooms:
 
         # save our list of rooms for later
         self.rooms = rooms
+        # self.make_graph()
 
     def make_graph(self):
         # flood fill from each room to find its neighbors
@@ -150,29 +136,6 @@ class GameMapRandomRooms:
             self.flood_search(room, others, x, y + 1, neighbors, searched)
         if not searched[x][y - 1] and not self.tiles[x][y - 1].blocked:
             self.flood_search(room, others, x, y - 1, neighbors, searched)
-
-    def create_room(self, room):
-        # go through the tiles in the rectangle and make them passable
-        for x in range(room.x1 + 1, room.x2):
-            for y in range(room.y1 + 1, room.y2):
-                self.tiles[x][y].blocked = False
-                self.tiles[x][y].block_sight = False
-
-    def create_h_tunnel(self, x1, x2, y):
-        for x in range(min(x1, x2), max(x1, x2) + 1):
-            self.tiles[x][y].blocked = False
-            self.tiles[x][y].block_sight = False
-
-    def create_v_tunnel(self, y1, y2, x):
-        for y in range(min(y1, y2), max(y1, y2) + 1):
-            self.tiles[x][y].blocked = False
-            self.tiles[x][y].block_sight = False
-
-    def create_d_tunnel(self, x1, y1, x2, y2):
-        points = line_lerp_orthogonal(x1, y1, x2, y2)
-        for x, y in points:
-            self.tiles[x][y].blocked = False
-            self.tiles[x][y].block_sight = False
 
 
 class RoomNode():
