@@ -23,7 +23,7 @@ class Rect:
                 self.y1 <= other.y2 and self.y2 >= other.y1)
 
 
-def orthogonal_line(x1, y1, x2, y2):
+def line_lerp_orthogonal(x1, y1, x2, y2):
     '''
     Draw a line using orthogonal steps.
     Algorithm from redblobgames.com/grids/line-drawing.html.

@@ -19,6 +19,7 @@ def main():
     screen_height = 50
     map_width = 80
     map_height = 45
+    seed = "testseed"
 
     room_max_size = 10
     room_min_size = 6
@@ -40,9 +41,9 @@ def main():
             tcod.FONT_TYPE_GREYSCALE | tcod.FONT_LAYOUT_TCOD
             )
 
-    game_map = GameMap(map_width, map_height)
+    game_map = GameMap(map_width, map_height, seed)
     game_map.make_map(max_rooms, room_min_size, room_max_size, map_width,
-                      map_height, player)
+                      map_height, player, ratio_vh=1, ratio_hv=1, ratio_d=1)
 
     action = {}
 
