@@ -11,7 +11,6 @@ from random import uniform
 
 from map_objects.geometry import Rect
 from map_objects.geometry import line_lerp_orthogonal
-from map_objects.tile import Tile
 from map_objects.game_map import GameMap
 
 
