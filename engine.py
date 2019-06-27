@@ -14,6 +14,7 @@ from input_handlers import InputHandler
 from render_functions import clear_all, render_all
 from map_objects.game_map import GameMap
 from map_objects.game_map_bsp import GameMapBSP
+from map_objects.game_map_randomrooms import GameMapRandomRooms
 
 
 def main():
@@ -51,8 +52,8 @@ def main():
             tcod.FONT_TYPE_GREYSCALE | tcod.FONT_LAYOUT_TCOD
             )
 
-    game_map = GameMap(map_width, map_height, seed)
-    game_map.make_map(player, **mapset)
+    # game_map = GameMapRandomRooms(map_width, map_height, seed, con)
+    # game_map.make_map(player, **mapset)
 
     action = {}
 
@@ -64,6 +65,9 @@ def main():
             fullscreen=False,
             renderer=tcod.RENDERER_SDL2,
             vsync=False) as con:
+
+        game_map = GameMapRandomRooms(map_width, map_height, seed, con)
+        game_map.make_map(player, **mapset)
 
         while True:
 
@@ -87,6 +91,7 @@ def main():
             want_exit = action.get("exit")
             fullscreen = action.get("fullscreen")
             map_gen = action.get("map_gen")
+            node_search = action.get("node_search")
 
             if move:
                 dx, dy = move
@@ -104,6 +109,9 @@ def main():
                 game_map.seed = randint(0, 99999)
                 game_map.tiles = game_map.initialize_tiles()
                 game_map.make_map(player, **mapset)
+
+            if node_search:
+                game_map.make_graph()
 
 
 if __name__ == "__main__":

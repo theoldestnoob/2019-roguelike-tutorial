@@ -24,6 +24,10 @@ class Rect:
         return (self.x1 <= other.x2 and self.x2 >= other.x1 and
                 self.y1 <= other.y2 and self.y2 >= other.y1)
 
+    def contains(self, x, y):
+        return (self.x1 <= x and self.x2 >= x
+                and self.y1 <= y and self.y2 >= y)
+
     def __repr__(self):
         return f"Rect({self.x1}, {self.y1}, {self.w}, {self.h})"
 
