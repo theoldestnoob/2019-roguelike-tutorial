@@ -13,6 +13,7 @@ from entity import Entity
 from input_handlers import InputHandler
 from render_functions import clear_all, render_all
 from map_objects.game_map import GameMap
+from map_objects.game_map_bsp import GameMapBSP
 
 
 def main():
@@ -29,7 +30,9 @@ def main():
             "ratio_vh": 1,
             "ratio_hv": 1,
             "ratio_d": 1,
-            "unused": True
+            "unused": True,
+            "bsp_min": 0.45,
+            "bsp_max": 0.55
     }
 
     colors = {
