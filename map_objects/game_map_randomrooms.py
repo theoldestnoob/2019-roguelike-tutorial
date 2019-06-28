@@ -31,8 +31,8 @@ class GameMapRandomRooms(GameMap):
             w = randint(room_min_size, room_max_size)
             h = randint(room_min_size, room_max_size)
             # random position inside map bounds
-            x = randint(0, map_width - w - 1)
-            y = randint(0, map_height - h - 1)
+            x = randint(1, map_width - w - 2)
+            y = randint(1, map_height - h - 2)
 
             # "Rect" class makes rectangles easier to work with
             new_room = Rect(x, y, w, h)
