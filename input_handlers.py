@@ -41,7 +41,8 @@ in_keymap_nomod = {
         tcod.event.K_LEFT: {"move": (-1, 0)},
         tcod.event.K_RIGHT: {"move": (1, 0)},
         tcod.event.K_m: {"map_gen": True},
-        tcod.event.K_n: {"node_search": True},
+        tcod.event.K_n: {"show_vertices": True},
+        tcod.event.K_b: {"show_edges": True},
         tcod.event.K_g: {"graph_gen": True},
         tcod.event.K_ESCAPE: {"exit": True}
         }
