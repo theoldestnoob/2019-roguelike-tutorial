@@ -94,6 +94,8 @@ def main():
             fullscreen = action.get("fullscreen")
             map_gen = action.get("map_gen")
             graph_gen = action.get("graph_gen")
+            show_vertices = action.get("show_vertices")
+            show_edges = action.get("show_edges")
 
             if move:
                 dx, dy = move
@@ -114,6 +116,13 @@ def main():
 
             if graph_gen:
                 game_map.make_graph()
+                print(game_map.graph)
+
+            if show_edges and game_map.graph is not None:
+                game_map.graph.show_edges()
+
+            if show_vertices and game_map.graph is not None:
+                game_map.graph.show_vertices()
 
 
 if __name__ == "__main__":
