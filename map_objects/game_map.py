@@ -40,7 +40,8 @@ class GameMap:
 
     def make_map(self, player, *args, **kwargs):
         # create a big empty map with a wall around the edges
-        room = Rect(0, 0, self.width, self.height)
+        room = Rect(1, 1, self.width - 3, self.height - 3)
+        print(room)
         self.create_room(room)
         self.rooms.append(room)
         player.x, player.y = room.center()
@@ -48,8 +49,8 @@ class GameMap:
     def create_room(self, room):
         # go through the tiles in the rectangle and make them passable
         #   leaving a 1-tile wide border around the edge
-        for x in range(room.x1 + 1, room.x2 - 1):
-            for y in range(room.y1 + 1, room.y2 - 1):
+        for x in range(room.x1, room.x2 + 1):
+            for y in range(room.y1, room.y2 + 1):
                 self.tiles[x][y].blocked = False
                 self.tiles[x][y].block_sight = False
 
@@ -75,8 +76,8 @@ class GameMap:
             node = RoomNode(room)
             room_x, room_y = room.center()
             others = [k for k in self.rooms if k is not room]
-            searched = [[False for y in range(self.height)]
-                        for x in range(self.width)]
+            # searched = [[False for y in range(self.height)]
+            #             for x in range(self.width)]
             if self.debug:
                 draw_map(self.con, self, self.width, self.height,
                          {"dark_wall": tcod.Color(0, 0, 100),
@@ -131,7 +132,9 @@ class GameMap:
                 tcod.console_set_char_background(self.con, x, y,
                                                  tcod.red,
                                                  tcod.BKGND_SET)
-                sleep(0.010)
+                tcod.console_blit(self.con, 0, 0, self.width, self.height,
+                                  0, 0, 0)
+                sleep(0.001)
                 tcod.console_flush()
 
             for z in others:

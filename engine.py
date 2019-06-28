@@ -114,6 +114,8 @@ def main():
 
             if node_search:
                 game_map.find_room_neighbors()
+                for node in game_map.nodes:
+                    print(node)
 
 
 if __name__ == "__main__":
