@@ -10,7 +10,7 @@ import tcod
 
 def render_all(con, entities, game_map, screen_width, screen_height, colors):
     # draw all the tiles in the game map
-    draw_map(con, game_map, screen_width, screen_height, colors)
+    draw_map(con, game_map.tiles, game_map.width, game_map.height, colors)
 
     # draw all the entities in the list
     for entity in entities:
@@ -24,10 +24,10 @@ def clear_all(con, entities):
         clear_entity(con, entity)
 
 
-def draw_map(con, game_map, screen_width, screen_height, colors):
-    for y in range(game_map.height):
-        for x in range(game_map.width):
-            wall = game_map.tiles[x][y].block_sight
+def draw_map(con, tiles, width, height, colors):
+    for y in range(height):
+        for x in range(width):
+            wall = tiles[x][y].block_sight
 
             if wall:
                 tcod.console_set_char_background(con, x, y,

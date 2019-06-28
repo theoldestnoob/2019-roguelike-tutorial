@@ -93,7 +93,7 @@ def main():
             want_exit = action.get("exit")
             fullscreen = action.get("fullscreen")
             map_gen = action.get("map_gen")
-            node_search = action.get("node_search")
+            graph_gen = action.get("graph_gen")
 
             if move:
                 dx, dy = move
@@ -112,10 +112,8 @@ def main():
                 game_map.tiles = game_map.initialize_tiles()
                 game_map.make_map(player, **mapset)
 
-            if node_search:
-                game_map.find_room_neighbors()
-                for node in game_map.nodes:
-                    print(node)
+            if graph_gen:
+                game_map.make_graph()
 
 
 if __name__ == "__main__":
