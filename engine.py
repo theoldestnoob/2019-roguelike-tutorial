@@ -66,9 +66,9 @@ def main():
             renderer=tcod.RENDERER_SDL2,
             vsync=False) as con:
 
-        # game_map = GameMap(map_width, map_height, seed)
+        # game_map = GameMap(map_width, map_height, seed, con=con, debug=True)
         game_map = GameMapRandomRooms(map_width, map_height, seed, con=con, debug=True)
-        # game_map = GameMapBSP(map_width, map_height, seed)
+        # game_map = GameMapBSP(map_width, map_height, seed, con=con, debug=True)
         game_map.make_map(player, **mapset)
 
         while True:
@@ -113,7 +113,7 @@ def main():
                 game_map.make_map(player, **mapset)
 
             if node_search:
-                game_map.make_graph()
+                game_map.find_room_neighbors()
 
 
 if __name__ == "__main__":
