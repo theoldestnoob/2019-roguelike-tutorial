@@ -63,6 +63,16 @@ class MapGraph():
                                                     width, height)
             vertex.neighbors = list(set(neighbors))
 
+    def vertex_neighbors_from_edges(self):
+        for vertex in self.vertices:
+            nlist = []
+            for edge in self.edges:
+                if vertex in edge.vertices:
+                    nlist.extend(edge.vertices)
+            nlist = list(set(nlist))
+            nlist.remove(vertex)
+            vertex.neighbors = nlist
+
     def find_vertex_neigh_iter(self, vertex, others, width, height):
         # vertex: vertex to find neighbors of
         # others: other vertices that may be neighbors
@@ -147,7 +157,7 @@ class MapGraph():
                                                          tcod.red,
                                                          tcod.BKGND_SET)
             tcod.console_flush()
-            sleep(1)
+            sleep(0.5)
         # flood fill all edge tiles to find vertices they connect
         captured = [[False for y in range(height)]
                     for x in range(width)]
