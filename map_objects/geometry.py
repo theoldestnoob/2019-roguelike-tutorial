@@ -28,6 +28,28 @@ class Rect:
         return (self.x1 <= x and self.x2 >= x
                 and self.y1 <= y and self.y2 >= y)
 
+    def adjacent(self, other):
+        # left adjacency
+        if (self.x1 == other.x2 + 1
+                and self.y1 <= other.y2 and self.y2 >= other.y1):
+            adjacent = True
+        # right adjacency
+        elif (self.x2 == other.x1 - 1
+                and self.y1 <= other.y2 and self.y2 >= other.y1):
+            adjacent = True
+        # top adjacency
+        elif (self.y1 == other.y2 + 1
+                and self.x1 <= other.x2 and self.x2 >= other.x1):
+            adjacent = True
+        # bottom adjacency
+        elif (self.y2 == other.y1 - 1
+                and self.x1 <= other.x2 and self.x2 >= other.x1):
+            adjacent = True
+        else:
+            adjacent = False
+
+        return adjacent
+
     def __repr__(self):
         return f"Rect({self.x1}, {self.y1}, {self.w}, {self.h})"
 

@@ -39,7 +39,8 @@ class GameMapRandomRooms(GameMap):
 
             # see if any other rooms intersect with this one
             for other_room in rooms:
-                if new_room.intersect(other_room):
+                if (new_room.intersect(other_room)
+                        or new_room.adjacent(other_room)):
                     break
             else:
                 # no intersections, so this room is valid
