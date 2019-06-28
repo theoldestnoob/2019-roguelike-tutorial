@@ -45,6 +45,80 @@ class MapGraph():
             vertices.append(vertex)
         return vertices
 
+    def find_vertex_neighbors(self):
+        # flood fill from each room to find its neighbors
+        if self.debug:
+            print("Finding Vertex Neighbors...")
+        for vertex in self.vertices:
+            room_x, room_y = vertex.space.center()
+            others = [k for k in self.vertices if k is not vertex]
+            width = len(self.tiles)
+            height = len(self.tiles[0])
+            if self.debug:
+                draw_map(self.con, self.tiles, width, height,
+                         {"dark_wall": tcod.Color(0, 0, 100),
+                          "dark_ground": tcod.Color(50, 50, 150)})
+                tcod.console_flush()
+            neighbors = self.find_vertex_neigh_iter(vertex, others,
+                                                    width, height)
+            vertex.neighbors = list(set(neighbors))
+
+    def find_vertex_neigh_iter(self, vertex, others, width, height):
+        # vertex: vertex to find neighbors of
+        # others: other vertices that may be neighbors
+        # we assume no overlapping vertices on graph
+        x0, y0 = vertex.space.center()
+        searched = [[False for y in range(height)]
+                    for x in range(width)]
+        neighbors = []
+        searchq = deque([(x0, y0)])
+
+        while searchq:
+            x, y = searchq.popleft()
+            searched[x][y] = True
+            if self.debug:
+                tcod.console_set_char_background(self.con, x, y,
+                                                 tcod.red,
+                                                 tcod.BKGND_SET)
+                # tcod.console_blit(self.con, 0, 0, width, height,
+                #                   0, 0, 0)
+                sleep(0.001)
+                tcod.console_flush()
+
+            for z in others:
+                if z.space.contains(x, y):
+                    neighbors.append(z)
+                    break
+            else:
+                if (not searched[x + 1][y]
+                        and not self.tiles[x + 1][y].blocked
+                        and not (x + 1, y) in searchq):
+                    searchq.append((x + 1, y))
+                if (not searched[x - 1][y]
+                        and not self.tiles[x - 1][y].blocked
+                        and not (x - 1, y) in searchq):
+                    searchq.append((x - 1, y))
+                if (not searched[x][y + 1]
+                        and not self.tiles[x][y + 1].blocked
+                        and not (x, y + 1) in searchq):
+                    searchq.append((x, y + 1))
+                if (not searched[x][y - 1]
+                        and not self.tiles[x][y - 1].blocked
+                        and not (x, y - 1) in searchq):
+                    searchq.append((x, y - 1))
+
+        return neighbors
+
+    def show_vertices(self):
+        for vertex in self.vertices:
+            for x in range(vertex.space.x1, vertex.space.x2 + 1):
+                for y in range(vertex.space.y1, vertex.space.y2 + 1):
+                    tcod.console_set_char_background(self.con, x, y,
+                                                     tcod.red,
+                                                     tcod.BKGND_SET)
+        tcod.console_flush()
+        sleep(1)
+
     def find_edges(self):
         if self.debug:
             print("Finding Edges...")
@@ -144,80 +218,6 @@ class MapGraph():
                 tcod.console_set_char_background(self.con, x, y,
                                                  tcod.green,
                                                  tcod.BKGND_SET)
-        tcod.console_flush()
-        sleep(1)
-
-    def find_vertex_neighbors(self):
-        # flood fill from each room to find its neighbors
-        if self.debug:
-            print("Finding Vertex Neighbors...")
-        for vertex in self.vertices:
-            room_x, room_y = vertex.space.center()
-            others = [k for k in self.vertices if k is not vertex]
-            width = len(self.tiles)
-            height = len(self.tiles[0])
-            if self.debug:
-                draw_map(self.con, self.tiles, width, height,
-                         {"dark_wall": tcod.Color(0, 0, 100),
-                          "dark_ground": tcod.Color(50, 50, 150)})
-                tcod.console_flush()
-            neighbors = self.find_vertex_neigh_iter(vertex, others,
-                                                    width, height)
-            vertex.neighbors = list(set(neighbors))
-
-    def find_vertex_neigh_iter(self, vertex, others, width, height):
-        # vertex: vertex to find neighbors of
-        # others: other vertices that may be neighbors
-        # we assume no overlapping vertices on graph
-        x0, y0 = vertex.space.center()
-        searched = [[False for y in range(height)]
-                    for x in range(width)]
-        neighbors = []
-        searchq = deque([(x0, y0)])
-
-        while searchq:
-            x, y = searchq.popleft()
-            searched[x][y] = True
-            if self.debug:
-                tcod.console_set_char_background(self.con, x, y,
-                                                 tcod.red,
-                                                 tcod.BKGND_SET)
-                # tcod.console_blit(self.con, 0, 0, width, height,
-                #                   0, 0, 0)
-                sleep(0.001)
-                tcod.console_flush()
-
-            for z in others:
-                if z.space.contains(x, y):
-                    neighbors.append(z)
-                    break
-            else:
-                if (not searched[x + 1][y]
-                        and not self.tiles[x + 1][y].blocked
-                        and not (x + 1, y) in searchq):
-                    searchq.append((x + 1, y))
-                if (not searched[x - 1][y]
-                        and not self.tiles[x - 1][y].blocked
-                        and not (x - 1, y) in searchq):
-                    searchq.append((x - 1, y))
-                if (not searched[x][y + 1]
-                        and not self.tiles[x][y + 1].blocked
-                        and not (x, y + 1) in searchq):
-                    searchq.append((x, y + 1))
-                if (not searched[x][y - 1]
-                        and not self.tiles[x][y - 1].blocked
-                        and not (x, y - 1) in searchq):
-                    searchq.append((x, y - 1))
-
-        return neighbors
-
-    def show_vertices(self):
-        for vertex in self.vertices:
-            for x in range(vertex.space.x1, vertex.space.x2 + 1):
-                for y in range(vertex.space.y1, vertex.space.y2 + 1):
-                    tcod.console_set_char_background(self.con, x, y,
-                                                     tcod.red,
-                                                     tcod.BKGND_SET)
         tcod.console_flush()
         sleep(1)
 
