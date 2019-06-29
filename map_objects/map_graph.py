@@ -22,6 +22,12 @@ class MapGraph():
         self.con = con
         self.debug = debug
         self.vertices = self.create_vertices(rooms)
+        # self.graph.find_vertex_neighbors()
+        self.find_hyperedges()
+        self.find_edges_from_hyperedges()
+        self.vertex_neighbors_from_hyperedges()
+        self.find_vertex_hyperedges()
+        self.find_vertex_edges()
 
     def __repr__(self):
         return f"MapGraph({self.tiles}, {self.vertices}"
@@ -335,7 +341,7 @@ class MapEdge():
             self.ident += "".join(sorted(list(set(vlist))))
         else:
             self.ident = ident
-        self.weight = len(self.space)
+        self.cost = len(self.space)
 
     def __repr__(self):
         return f"MapEdge({self.space}, {self.ident}, {self.vertices})"
@@ -347,6 +353,6 @@ class MapEdge():
         for vertex in self.vertices:
             vids.append(f"{vertex.ident}")
         outstr += ", ".join(vids)
-        outstr += f"\nWeight: {self.weight}\n"
+        outstr += f"\nCost: {self.cost}\n"
         outstr += f"Space: {self.space}\n"
         return outstr
