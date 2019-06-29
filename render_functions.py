@@ -47,3 +47,8 @@ def draw_entity(con, entity):
 def clear_entity(con, entity):
     # erase the character that represents this object
     con.put_char(entity.x, entity.y, ord(" "))
+
+
+def display_space(con, space, color):
+    for x, y in space:
+        tcod.console_set_char_background(con, x, y, color, tcod.BKGND_SET)

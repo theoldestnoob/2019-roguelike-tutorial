@@ -8,10 +8,11 @@ Created on Tue Jun 18 20:28:25 2019
 import tcod
 import tcod.event
 from random import randint
+from time import sleep
 
 from entity import Entity
 from input_handlers import InputHandler
-from render_functions import clear_all, render_all
+from render_functions import clear_all, render_all, display_space
 from map_objects.game_map import GameMap
 from map_objects.game_map_bsp import GameMapBSP
 from map_objects.game_map_randomrooms import GameMapRandomRooms
@@ -94,7 +95,6 @@ def main():
             fullscreen = action.get("fullscreen")
             map_gen = action.get("map_gen")
             graph_gen = action.get("graph_gen")
-            flood_neigh = action.get("flood_neigh")
             show_vertices = action.get("show_vertices")
             show_hyperedges = action.get("show_hyperedges")
             show_edges = action.get("show_edges")
@@ -120,15 +120,31 @@ def main():
                 game_map.make_graph()
                 print(game_map.graph)
 
-            if flood_neigh and game_map.graph is not None:
-                game_map.graph.find_vertex_neighbors()
-
             if show_hyperedges and game_map.graph is not None:
-                game_map.graph.show_hyperedges()
+                for edge in game_map.graph.hyperedges:
+                    display_space(con, edge.space, tcod.green)
+                    tcod.console_flush()
+                    print(f"***Hyperedge: {edge}")
+                    while True:
+                        for event in tcod.event.get():
+                            in_handle.dispatch(event)
+                        action = in_handle.get_action()
+                        show_hyperedges = action.get("show_hyperedges")
+                        want_exit = action.get("exit")
+                        if want_exit:
+                            return True
+                        if show_hyperedges:
+                            break
+                    render_all(con, entities, game_map, screen_width,
+                               screen_height, colors)
+                    tcod.console_flush()
+
 
             if show_edges and game_map.graph is not None:
                 for edge in game_map.graph.edges:
-                    game_map.graph.show_edge(edge)
+                    display_space(con, edge.space, tcod.green)
+                    tcod.console_flush()
+                    print(f"***Edge: {edge}")
                     while True:
                         for event in tcod.event.get():
                             in_handle.dispatch(event)
@@ -144,7 +160,23 @@ def main():
                     tcod.console_flush()
 
             if show_vertices and game_map.graph is not None:
-                game_map.graph.show_vertices()
+                for vertex in game_map.graph.vertices:
+                    display_space(con, vertex.space, tcod.green)
+                    tcod.console_flush()
+                    print(f"***Vertex: {vertex}")
+                    while True:
+                        for event in tcod.event.get():
+                            in_handle.dispatch(event)
+                        action = in_handle.get_action()
+                        show_vertices = action.get("show_vertices")
+                        want_exit = action.get("exit")
+                        if want_exit:
+                            return True
+                        if show_vertices:
+                            break
+                    render_all(con, entities, game_map, screen_width,
+                               screen_height, colors)
+                    tcod.console_flush()
 
 
 if __name__ == "__main__":
