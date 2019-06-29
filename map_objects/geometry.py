@@ -5,10 +5,41 @@ Created on Tue Jun 25 22:11:50 2019
 @author: theoldestnoob
 """
 
+
 # TODO: add generic "space" class that's a collection of coordinates with
 #       intersect, contains, adjacent functions, that other shapes inherit
 #       to allow me to deal with arbitrary shaped vertices in map_graph
-class Rect:
+class Space:
+    def __init__(self, coords):
+        self.coords = coords
+
+    def intersect(self, other):
+        for coord in self.coords:
+            if coord in other:
+                return True
+        return False
+
+    def contains(self, x, y):
+        if (x, y) in self.coords:
+            return True
+        return False
+
+    def adjacent(self, other):
+        # return true if any of Space's coordinates
+        # is adjacent to any of other's coordinates
+        pass
+
+    def __iter__(self):
+        return (c for c in self.coords)
+
+    def __len__(self):
+        return len(self.coords)
+
+    def __repr__(self):
+        return f"Space({self.coords})"
+
+
+class Rect(Space):
     def __init__(self, x, y, w, h):
         self.x1 = x
         self.y1 = y
@@ -30,6 +61,7 @@ class Rect:
         return (self.x1 <= x and self.x2 >= x
                 and self.y1 <= y and self.y2 >= y)
 
+# TODO: rewrite to check adjacency against arbitrary Spaces
     def adjacent(self, other):
         # left adjacency
         if (self.x1 == other.x2 + 1
@@ -57,6 +89,10 @@ class Rect:
         for x in range(self.x1, self.x2 + 1):
             for y in range(self.y1, self.y2 + 1):
                 yield (x, y)
+
+    def __len__(self):
+        # "length" of Rect is the number of coordinates in it
+        return (self.x2 - self.x1) * (self.y2 - self.y1)
 
     def __repr__(self):
         return f"Rect({self.x1}, {self.y1}, {self.w}, {self.h})"

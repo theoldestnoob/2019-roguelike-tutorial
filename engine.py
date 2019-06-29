@@ -164,6 +164,7 @@ def main():
                     display_space(con, vertex.space, tcod.green)
                     tcod.console_flush()
                     print(f"***Vertex: {vertex}")
+                    print(f"Size: {len(vertex.space)}")
                     while True:
                         for event in tcod.event.get():
                             in_handle.dispatch(event)
