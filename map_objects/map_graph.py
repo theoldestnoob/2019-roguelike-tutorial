@@ -116,13 +116,23 @@ class MapGraph():
 
     def find_vertex_hyperedges(self):
         if self.debug:
-            print("Finding Vertex Hyperdges...")
+            print("Finding Vertex Hyperedges...")
         for vertex in self.vertices:
             elist = []
             for edge in self.hyperedges:
                 if vertex in edge.vertices:
                     elist.append(edge)
             vertex.hyperedges = elist
+
+    def find_vertex_edges(self):
+        if self.debug:
+            print("Finding Vertex Edges...")
+        for vertex in self.vertices:
+            elist = []
+            for edge in self.edges:
+                if vertex in edge.vertices:
+                    elist.append(edge)
+            vertex.edges = elist
 
     def find_hyperedges(self):
         if self.debug:
@@ -153,7 +163,7 @@ class MapGraph():
                         for ex, ey in edge.space:
                             captured[ex][ey] = True
                         elist.append(edge)
-        # assign identifiers to all edges
+        # assign identifiers to all hyperedges
         alphabet = "abcdefghijklmnopqrstuvwxyz"
         rnum = len(elist) // len(alphabet) + 1
         for edge, idtuple in zip(elist, product(alphabet, repeat=rnum)):
@@ -216,6 +226,13 @@ class MapGraph():
                 v0, v1 = pair
                 s = self.find_spath_in_coords(hyperedge.space, v0, v1)
                 elist.append(MapEdge(Space(s), [v0, v1]))
+        # assign identifiers to all edges
+        alphabet = "abcdefghijklmnopqrstuvwxyz"
+        rnum = len(elist) // len(alphabet) + 1
+        for edge, idtuple in zip(elist, product(alphabet, repeat=rnum)):
+            ident = "".join(idtuple)
+            edge.ident = ident
+
         self.edges = elist
 
 # TODO:  rewrite to use arbitrary shaped vertices instead of just Rects
@@ -225,6 +242,7 @@ class MapGraph():
         searched = []
         stack = deque()
         for x, y in coord_list:
+            # check adjacency against a fake Rect for speed
             if v0.space.adjacent_ortho(Rect(x, y, 0, 0)):
                 distance.append((x, y, 1))
                 stack.append((x, y, 1))
@@ -232,7 +250,6 @@ class MapGraph():
         count = 0
         while stack:
             x, y, z = stack.popleft()
-            # print(f"current: {x}, {y}, {z}")
             if (x + 1, y) in coord_list and (x + 1, y) not in searched:
                 distance.append((x + 1, y, z + 1))
                 stack.append((x + 1, y, z + 1))
@@ -259,6 +276,7 @@ class MapGraph():
         distance.sort(key=lambda z: z[2], reverse=True)
         x_end, y_end, z_end = distance[0]
         for x, y, z in distance:
+            # check adjacency against a fake Rect for speed
             if v1.space.adjacent_ortho(Rect(x, y, 0, 0)):
                 if z < z_end:
                     x_end = x
@@ -274,10 +292,12 @@ class MapGraph():
 
 
 class MapVertex():
-    def __init__(self, space=None, ident=None, hyperedges=[], neighbors=[]):
+    def __init__(self, space=None, ident=None, hyperedges=[], edges=[],
+                 neighbors=[]):
         self.space = space
         self.ident = ident
         self.hyperedges = hyperedges
+        self.edges = edges
         self.neighbors = neighbors
 
     def __repr__(self):
@@ -294,6 +314,12 @@ class MapVertex():
         for edge in self.hyperedges:
             eids.append(edge.ident)
         outstr += ", ".join(eids)
+        outstr += "\nEdges: "
+        eids = []
+        for edge in self.edges:
+            eids.append(edge.ident)
+        outstr += ", ".join(eids)
+        outstr += "\n"
         return outstr
 
 
