@@ -5,7 +5,9 @@ Created on Tue Jun 25 22:11:50 2019
 @author: theoldestnoob
 """
 
-
+# TODO: add generic "space" class that's a collection of coordinates with
+#       intersect, contains, adjacent functions, that other shapes inherit
+#       to allow me to deal with arbitrary shaped vertices in map_graph
 class Rect:
     def __init__(self, x, y, w, h):
         self.x1 = x
@@ -49,6 +51,12 @@ class Rect:
             adjacent = False
 
         return adjacent
+
+    def __iter__(self):
+        # iterate by returning a list of coorinates contained in Rect
+        for x in range(self.x1, self.x2 + 1):
+            for y in range(self.y1, self.y2 + 1):
+                yield (x, y)
 
     def __repr__(self):
         return f"Rect({self.x1}, {self.y1}, {self.w}, {self.h})"

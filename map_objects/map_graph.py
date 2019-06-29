@@ -8,10 +8,7 @@ Created on Thu Jun 27 21:00:50 2019
 from itertools import product
 from itertools import combinations
 from collections import deque
-from time import sleep
-import tcod
 
-from render_functions import draw_map
 from map_objects.geometry import coords_ortho_adjacent
 from map_objects.geometry import Rect
 
@@ -61,11 +58,6 @@ class MapGraph():
             others = [k for k in self.vertices if k is not vertex]
             width = len(self.tiles)
             height = len(self.tiles[0])
-            if self.debug:
-                draw_map(self.con, self.tiles, width, height,
-                         {"dark_wall": tcod.Color(0, 0, 100),
-                          "dark_ground": tcod.Color(50, 50, 150)})
-                tcod.console_flush()
             neighbors = self.find_vertex_neigh_iter(vertex, others,
                                                     width, height)
             vertex.neighbors = list(set(neighbors))
@@ -77,13 +69,11 @@ class MapGraph():
             vlist = []
             nlist = []
             for edge in self.hyperedges:
-                for v, c in edge.vertices:
-                    if vertex == v:
-                        vlist.extend(edge.vertices)
-            for v, c in vlist:
-                if v is not vertex:
-                    nlist.append(v)
-            vertex.neighbors = list(set(nlist))
+                if vertex in edge.vertices:
+                    vlist.extend(edge.vertices)
+            nlist = list(set(vlist))
+            nlist.remove(vertex)
+            vertex.neighbors = nlist
 
     def find_vertex_neigh_iter(self, vertex, others, width, height):
         # vertex: vertex to find neighbors of
@@ -98,14 +88,6 @@ class MapGraph():
         while searchq:
             x, y = searchq.popleft()
             searched[x][y] = True
-            if self.debug:
-                tcod.console_set_char_background(self.con, x, y,
-                                                 tcod.red,
-                                                 tcod.BKGND_SET)
-                # tcod.console_blit(self.con, 0, 0, width, height,
-                #                   0, 0, 0)
-                sleep(0.001)
-                tcod.console_flush()
 
             for z in others:
                 if z.space.contains(x, y):
@@ -137,20 +119,9 @@ class MapGraph():
         for vertex in self.vertices:
             elist = []
             for edge in self.hyperedges:
-                for v, c in edge.vertices:
-                    if v == vertex:
-                        elist.append(edge)
+                if vertex in edge.vertices:
+                    elist.append(edge)
             vertex.hyperedges = elist
-
-    def show_vertices(self):
-        for vertex in self.vertices:
-            for x in range(vertex.space.x1, vertex.space.x2 + 1):
-                for y in range(vertex.space.y1, vertex.space.y2 + 1):
-                    tcod.console_set_char_background(self.con, x, y,
-                                                     tcod.red,
-                                                     tcod.BKGND_SET)
-        tcod.console_flush()
-        sleep(1)
 
     def find_hyperedges(self):
         if self.debug:
@@ -168,19 +139,6 @@ class MapGraph():
                     if vertex.space.contains(x, y):
                         edgetiles[x][y] = False
                         break
-        if self.debug:
-            draw_map(self.con, self.tiles, width, height,
-                     {"dark_wall": tcod.Color(0, 0, 100),
-                      "dark_ground": tcod.Color(50, 50, 150)})
-            tcod.console_flush()
-            for y in range(height):
-                for x in range(width):
-                    if edgetiles[x][y]:
-                        tcod.console_set_char_background(self.con, x, y,
-                                                         tcod.red,
-                                                         tcod.BKGND_SET)
-            tcod.console_flush()
-            sleep(0.5)
         # flood fill all edge tiles to find vertices they connect
         captured = [[False for y in range(height)]
                     for x in range(width)]
@@ -209,24 +167,16 @@ class MapGraph():
         searched = [[False for y in range(height)]
                     for x in range(width)]
         neighbors = []
-        n_coords = []
         tiles = []
         searchq = deque([(x0, y0)])
 
         while searchq:
             x, y = searchq.popleft()
             searched[x][y] = True
-            if self.debug:
-                tcod.console_set_char_background(self.con, x, y,
-                                                 tcod.green,
-                                                 tcod.BKGND_SET)
-                sleep(0.010)
-                tcod.console_flush()
 
             for z in self.vertices:
                 if z.space.contains(x, y):
                     neighbors.append(z)
-                    n_coords.append((x, y))
                     break
             else:
                 if (not searched[x + 1][y]
@@ -246,24 +196,10 @@ class MapGraph():
                         and not (x, y - 1) in searchq):
                     searchq.append((x, y - 1))
                 tiles.append((x, y))
-        # hyperedges store their vertices as (vertex, coord) tuples
-        #  where coord is the coordinates of one tile in the vertex adjacent
-        #  to the hyperedge
-        ndict = {}
-        for n, c in zip(neighbors, n_coords):
-            ndict[n] = c
-        nlist = ndict.items()
+
+        nlist = list(set(neighbors))
         edge = MapEdge(tiles, nlist)
         return edge
-
-    def show_hyperedges(self):
-        for edge in self.hyperedges:
-            for x, y in edge.space:
-                tcod.console_set_char_background(self.con, x, y,
-                                                 tcod.green,
-                                                 tcod.BKGND_SET)
-        tcod.console_flush()
-        sleep(1)
 
 # TODO:  rewrite to use arbitrary shaped vertices instead of just Rects
     def find_edges_from_hyperedges(self):
@@ -271,27 +207,25 @@ class MapGraph():
             print("Finding Edges from Hyperedges...\n")
         elist = []
         for hyperedge in self.hyperedges:
-            print(f"\nhyper: {hyperedge.ident}")
+            # print(f"\nhyper: {hyperedge.ident}")
             vids = []
             for vertex in hyperedge.vertices:
-                vids.append(vertex[0].ident)
-            print(f"vertices: {vids}")
+                vids.append(vertex.ident)
+            # print(f"vertices: {vids}")
             for pair in combinations(hyperedge.vertices, 2):
                 v0, v1 = pair
-                print(f"pair: {v0[0].ident}, {v1[0].ident}")
+                # print(f"pair: {v0[0].ident}, {v1[0].ident}")
                 # MapEdge(space, vertices, ident)
                 # find shortest path between v1[1] and v2[1] in vertex.space
                 # new Edge is MapEdge(space, [v0, v1], ident)
-                x1, y1 = v0[1]
-                x2, y2 = v1[1]
-                s = self.find_spath_in_coords(hyperedge.space, v0[0], v1[0])
+                s = self.find_spath_in_coords(hyperedge.space, v0, v1)
                 elist.append(MapEdge(s, [v0, v1]))
         self.edges = elist
 
 # TODO:  rewrite to use arbitrary shaped vertices instead of just Rects
     def find_spath_in_coords(self, coord_list, v0, v1):
-        print(f"start: {v0.ident}, end: {v1.ident}")
-        print(f"coord_list:   {coord_list}")
+        # print(f"start: {v0.ident}, end: {v1.ident}")
+        # print(f"coord_list:   {coord_list}")
         # build a list of coordinates with distance from v0
         # list of tuples (x, y, distance)
         distance = []
@@ -301,12 +235,13 @@ class MapGraph():
             if v0.space.adjacent(Rect(x, y, 0, 0)):
                 distance.append((x, y, 1))
                 stack.append((x, y, 1))
+                searched.append((x, y))
         count = 0
-        print(f"v0: {v0.space}")
-        print(f"start stack: {stack}")
+        # print(f"v0: {v0.space}")
+        # print(f"start stack: {stack}")
         while stack:
             x, y, z = stack.popleft()
-            #print(f"current: {x}, {y}, {z}")
+            # print(f"current: {x}, {y}, {z}")
             if (x + 1, y) in coord_list and (x + 1, y) not in searched:
                 distance.append((x + 1, y, z + 1))
                 stack.append((x + 1, y, z + 1))
@@ -323,18 +258,18 @@ class MapGraph():
                 distance.append((x, y - 1, z + 1))
                 stack.append((x, y - 1, z + 1))
                 searched.append((x, y - 1))
-            print(f"stack: {stack}")
+            # print(f"stack: {stack}")
             # exit if we've searched 5000 spaces
             # because we're probably in an infinite loop
             count += 1
             if count > 5000:
                 break
-        #print(f"distance: {distance}")
-        print(f"searched: {searched}")
+        # print(f"distance: {distance}")
+        # print(f"searched: {searched}")
         # find the shortest path from v1 back to v0
         # start at v1 and always pick the tile with the lowest distance
         distance.sort(key=lambda z: z[2], reverse=True)
-        print(f"sorted distance: {distance}")
+        # print(f"sorted distance: {distance}")
         x_end, y_end, z_end = distance[0]
         for x, y, z in distance:
             if v1.space.adjacent(Rect(x, y, 0, 0)):
@@ -347,31 +282,8 @@ class MapGraph():
             if z < z_end and coords_ortho_adjacent(x, y, x_end, y_end):
                 spath.append((x, y))
                 x_end, y_end, z_end = x, y, z
-        print(f"shortest path: {spath}")
+        # print(f"shortest path: {spath}")
         return spath
-
-    def show_edge(self, edge):
-        print(f"***Edge: {edge}")
-        for x, y in edge.space:
-            tcod.console_set_char_background(self.con, x, y,
-                                             tcod.green,
-                                             tcod.BKGND_SET)
-            tcod.console_flush()
-
-    def show_edges(self):
-        width = len(self.tiles)
-        height = len(self.tiles[0])
-        for edge in self.edges:
-            for x, y in edge.space:
-                tcod.console_set_char_background(self.con, x, y,
-                                                 tcod.green,
-                                                 tcod.BKGND_SET)
-                tcod.console_flush()
-            sleep(0.3)
-            draw_map(self.con, self.tiles, width, height,
-                     {"dark_wall": tcod.Color(0, 0, 100),
-                      "dark_ground": tcod.Color(50, 50, 150)})
-            tcod.console_flush()
 
 
 class MapVertex():
@@ -404,22 +316,24 @@ class MapEdge():
         self.vertices = vertices
         if ident is None:
             vlist = []
-            for vertex, coord in vertices:
+            for vertex in vertices:
                 vlist.append(vertex.ident)
             self.ident = ""
             self.ident += "".join(sorted(list(set(vlist))))
         else:
-            ident = ident
+            self.ident = ident
+        self.weight = len(self.space)
 
     def __repr__(self):
         return f"MapEdge({self.space}, {self.ident}, {self.vertices})"
 
     def __str__(self):
         outstr = f"Edge '{self.ident}'\n"
-        outstr += f"Space: {self.space}\n"
         outstr += f"Vertices: "
         vids = []
-        for vertex, coord in self.vertices:
-            vids.append(f"{vertex.ident} {coord}")
+        for vertex in self.vertices:
+            vids.append(f"{vertex.ident}")
         outstr += ", ".join(vids)
+        outstr += f"\nWeight: {self.weight}\n"
+        outstr += f"Space: {self.space}\n"
         return outstr
