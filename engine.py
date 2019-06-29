@@ -8,7 +8,6 @@ Created on Tue Jun 18 20:28:25 2019
 import tcod
 import tcod.event
 from random import randint
-from time import sleep
 
 from entity import Entity
 from input_handlers import InputHandler
@@ -98,6 +97,7 @@ def main():
             show_vertices = action.get("show_vertices")
             show_hyperedges = action.get("show_hyperedges")
             show_edges = action.get("show_edges")
+            test = action.get("test")
 
             if move:
                 dx, dy = move
@@ -162,7 +162,6 @@ def main():
                     display_space(con, vertex.space, tcod.green)
                     tcod.console_flush()
                     print(f"***Vertex: {vertex}")
-                    print(f"Size: {len(vertex.space)}")
                     while True:
                         for event in tcod.event.get():
                             in_handle.dispatch(event)
@@ -176,6 +175,9 @@ def main():
                     render_all(con, entities, game_map, screen_width,
                                screen_height, colors)
                     tcod.console_flush()
+
+            if test:
+                pass
 
 
 if __name__ == "__main__":

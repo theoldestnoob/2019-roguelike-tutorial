@@ -6,12 +6,21 @@ Created on Tue Jun 25 22:11:50 2019
 """
 
 
-# TODO: add generic "space" class that's a collection of coordinates with
-#       intersect, contains, adjacent functions, that other shapes inherit
-#       to allow me to deal with arbitrary shaped vertices in map_graph
 class Space:
     def __init__(self, coords):
         self.coords = coords
+
+    def __iter__(self):
+        return (c for c in self.coords)
+
+    def __getitem__(self, index):
+        return self.coords[index]
+
+    def __len__(self):
+        return len(self.coords)
+
+    def __repr__(self):
+        return f"Space({self.coords})"
 
     def intersect(self, other):
         for coord in self.coords:
@@ -26,18 +35,14 @@ class Space:
 
     # check for orthogonal adjacency
     def adjacent_ortho(self, other):
-        # return true if any of Space's coordinates
-        # is adjacent to any of other's coordinates
-        pass
-
-    def __iter__(self):
-        return (c for c in self.coords)
-
-    def __len__(self):
-        return len(self.coords)
-
-    def __repr__(self):
-        return f"Space({self.coords})"
+        if not self.intersect(other):
+            for coord in self.coords:
+                for other_c in other:
+                    (x1, y1) = coord
+                    (x2, y2) = other_c
+                    if coords_ortho_adjacent(x1, y1, x2, y2):
+                        return True
+        return False
 
 
 class Rect(Space):
@@ -48,21 +53,27 @@ class Rect(Space):
         self.y2 = y + h
         self.w = w
         self.h = h
+        self.coords = self.gen_coords()
 
-    def center(self):
-        center_x = int((self.x1 + self.x2) / 2)
-        center_y = int((self.y1 + self.y2) / 2)
-        return (center_x, center_y)
+    def __iter__(self):
+        return (c for c in self.coords)
 
-    def intersect(self, other):
-        return (self.x1 <= other.x2 and self.x2 >= other.x1 and
-                self.y1 <= other.y2 and self.y2 >= other.y1)
+    def __repr__(self):
+        return f"Rect({self.x1}, {self.y1}, {self.w}, {self.h})"
 
     def contains(self, x, y):
         return (self.x1 <= x and self.x2 >= x
                 and self.y1 <= y and self.y2 >= y)
 
-# TODO: rewrite to check adjacency against arbitrary Spaces
+    def intersect(self, other):
+        # if other is also a Rect, we can do this pretty fast
+        if isinstance(other, Rect):
+            return (self.x1 <= other.x2 and self.x2 >= other.x1 and
+                    self.y1 <= other.y2 and self.y2 >= other.y1)
+        # fall back to checking intersection of all coordinate pairs
+        else:
+            return super().intersect(other)
+
     # check for orthogonal adjacency
     def adjacent_ortho(self, other):
         # if other is also a Rect, we can do this pretty fast
@@ -87,34 +98,36 @@ class Rect(Space):
                 adjacent = False
         # fall back to checking adjacency of all coordinate pairs
         else:
-            for (other_x, other_y) in other:
-                for x in range(self.x1, self.x2 + 1):
-                    for y in range(self.y1, self.y2 + 1):
-                        if coords_ortho_adjacent(x, y, other_x, other_y):
-                            return True
-            return False
+            adjacent = super().adjacent_ortho(other)
 
         return adjacent
 
-    def __iter__(self):
-        # iterate by returning a list of coorinates contained in Rect
+    def gen_coords(self):
+        coords = []
         for x in range(self.x1, self.x2 + 1):
             for y in range(self.y1, self.y2 + 1):
-                yield (x, y)
+                coords.append((x, y))
+        return coords
 
-    def __len__(self):
-        # "length" of Rect is the number of coordinates in it
-        return self.h * self.w
-
-    def __repr__(self):
-        return f"Rect({self.x1}, {self.y1}, {self.w}, {self.h})"
+    def center(self):
+        center_x = int((self.x1 + self.x2) / 2)
+        center_y = int((self.y1 + self.y2) / 2)
+        return (center_x, center_y)
 
 
 def line_lerp_orthogonal(x1, y1, x2, y2):
     '''
-    Generate a series of (x, y) tuples along a line from (x1, y1) to (x2, y2)
-    using orthogonal steps.
+    Return a generator that generates a series of (x, y) tuples along a line
+    from (x1, y1) to (x2, y2) using orthogonal steps.
     Algorithm from redblobgames.com/grids/line-drawing.html.
+
+    >>> g = line_lerp_orthogonal(0, 0, 0, 3)
+    >>> list(g)
+    [(0, 1), (0, 2), (0, 3)]
+
+    >>> g = line_lerp_orthogonal(-1, 0, 3, -2)
+    >>> list(g)
+    [(0, 0), (0, -1), (1, -1), (2, -1), (2, -2), (3, -2)]
     '''
     dx = x2 - x1
     dy = y2 - y1
@@ -144,6 +157,21 @@ def line_lerp_orthogonal(x1, y1, x2, y2):
 
 
 def coords_ortho_adjacent(x1, y1, x2, y2):
+    '''Return True if (x1, y1) is orthogonally adjacent to (x2, y2).
+
+    >>> coords_ortho_adjacent(0, 0, 1, 0)
+    True
+    >>> coords_ortho_adjacent(0, 0, -1, 0)
+    True
+    >>> coords_ortho_adjacent(0, 0, 0, 1)
+    True
+    >>> coords_ortho_adjacent(0, 0, 0, -1)
+    True
+    >>> coords_ortho_adjacent(0, 0, 0, 0)
+    False
+    >>> coords_ortho_adjacent(0, 0, 1, 1)
+    False
+    '''
     if (x1 + 1, y1) == (x2, y2):
         return True
     if (x1 - 1, y1) == (x2, y2):
@@ -153,3 +181,8 @@ def coords_ortho_adjacent(x1, y1, x2, y2):
     if (x1, y1 - 1) == (x2, y2):
         return True
     return False
+
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
