@@ -6,18 +6,20 @@ Created on Thu Jun 27 21:00:50 2019
 """
 
 from itertools import product
-from itertools import repeat
+from itertools import combinations
 from collections import deque
 from time import sleep
 import tcod
 
 from render_functions import draw_map
+from map_objects.geometry import coords_ortho_adjacent
 
 
 class MapGraph():
     def __init__(self, tiles, rooms=[], con=None, debug=False):
         self.tiles = tiles
         self.hyperedges = []
+        self.edges = []
         self.con = con
         self.debug = debug
         self.vertices = self.create_vertices(rooms)
@@ -32,6 +34,9 @@ class MapGraph():
         outstr += "===Hyperedges===:\n"
         for h_edge in self.hyperedges:
             outstr += f"{h_edge}\n"
+        outstr += "===Edges===:\n"
+        for edge in self.edges:
+            outstr += f"{edge}\n"
         return outstr
 
     def create_vertices(self, rooms):
@@ -245,11 +250,8 @@ class MapGraph():
         #  to the hyperedge
         ndict = {}
         for n, c in zip(neighbors, n_coords):
-            print(f"\nn: {n.ident}, c: {c}\n")
             ndict[n] = c
-        print(f"\nndict:\n{ndict}\n")
         nlist = ndict.items()
-        print(f"nlist:\n{nlist}\n")
         edge = MapEdge(tiles, nlist)
         return edge
 
@@ -261,6 +263,107 @@ class MapGraph():
                                                  tcod.BKGND_SET)
         tcod.console_flush()
         sleep(1)
+
+# TODO: rewrite to start and end at any coordinates adjacent to its vertices
+#       this currently doesn't produce shortest paths between vertices
+#       and I think it's because I've given it wonky constraints
+#       see for example, map 2 Edge JH, map 2 Edge GK, map 4 Edge BF
+    def find_edges_from_hyperedges(self):
+        if self.debug:
+            print("Finding Edges from Hyperedges...\n")
+        elist = []
+        for hyperedge in self.hyperedges:
+            print(f"\nhyper: {hyperedge.ident}")
+            vids = []
+            for vertex in hyperedge.vertices:
+                vids.append(vertex[0].ident)
+            print(f"vertices: {vids}")
+            for pair in combinations(hyperedge.vertices, 2):
+                v0, v1 = pair
+                print(f"pair: {v0[0].ident}, {v1[0].ident}")
+                # MapEdge(space, vertices, ident)
+                # find shortest path between v1[1] and v2[1] in vertex.space
+                # new Edge is MapEdge(space, [v0, v1], ident)
+                x1, y1 = v0[1]
+                x2, y2 = v1[1]
+                s = self.find_spath_in_coords(hyperedge.space, x1, y1, x2, y2)
+                elist.append(MapEdge(s, [v0, v1]))
+        self.edges = elist
+
+    def find_spath_in_coords(self, coord_list, x1, y1, x2, y2):
+        print(f"start: ({x1}, {y1}), end: ({x2}, {y2})")
+        print(f"coord_list:   {coord_list}")
+        # build a list of coordinates with distance from x1, y1
+        # list of tuples (x, y, distance)
+        distance = []
+        searched = []
+        stack = deque([(x1, y1, 0)])
+        count = 0
+        while stack:
+            x, y, z = stack.pop()
+            #print(f"current: {x}, {y}, {z}")
+            if (x + 1, y) in coord_list and (x + 1, y) not in searched:
+                distance.append((x + 1, y, z + 1))
+                stack.append((x + 1, y, z + 1))
+                searched.append((x + 1, y))
+            if (x - 1, y) in coord_list and (x - 1, y) not in searched:
+                distance.append((x - 1, y, z + 1))
+                stack.append((x - 1, y, z + 1))
+                searched.append((x - 1, y))
+            if (x, y + 1) in coord_list and (x, y + 1) not in searched:
+                distance.append((x, y + 1, z + 1))
+                stack.append((x, y + 1, z + 1))
+                searched.append((x, y + 1))
+            if (x, y - 1) in coord_list and (x, y - 1) not in searched:
+                distance.append((x, y - 1, z + 1))
+                stack.append((x, y - 1, z + 1))
+                searched.append((x, y - 1))
+            #print(f"stack: {stack}")
+            # exit if we've searched 5000 spaces
+            # because we're probably in an infinite loop
+            count += 1
+            if count > 5000:
+                break
+        #print(f"distance: {distance}")
+        #print(f"searched: {searched}")
+        # find the shortest path from x2, y2 back to x1, y1
+        # start at x2, y2 and always pick the tile with the lowest distance
+        distance.sort(key=lambda z: z[2], reverse=True)
+        print(f"sorted distance: {distance}")
+        x, y, z = distance[0]
+        z_end = z + 1
+        x_end = x2
+        y_end = y2
+        spath = []
+        for (x, y, z) in distance:
+            if z < z_end and coords_ortho_adjacent(x, y, x_end, y_end):
+                spath.append((x, y))
+                x_end, y_end, z_end = x, y, z
+        print(f"shortest path: {spath}")
+        return spath
+
+    def show_edge(self, edge):
+        print(f"***Edge: {edge}")
+        for x, y in edge.space:
+            tcod.console_set_char_background(self.con, x, y,
+                                             tcod.green,
+                                             tcod.BKGND_SET)
+            tcod.console_flush()
+
+    def show_edges(self):
+        width = len(self.tiles)
+        height = len(self.tiles[0])
+        for edge in self.edges:
+            for x, y in edge.space:
+                tcod.console_set_char_background(self.con, x, y,
+                                                 tcod.green,
+                                                 tcod.BKGND_SET)
+                tcod.console_flush()
+            sleep(0.3)
+            draw_map(self.con, self.tiles, width, height,
+                     {"dark_wall": tcod.Color(0, 0, 100),
+                      "dark_ground": tcod.Color(50, 50, 150)})
+            tcod.console_flush()
 
 
 class MapVertex():
@@ -295,8 +398,8 @@ class MapEdge():
             vlist = []
             for vertex, coord in vertices:
                 vlist.append(vertex.ident)
-            self.ident = "#"
-            self.ident += ".".join(sorted(list(set(vlist))))
+            self.ident = ""
+            self.ident += "".join(sorted(list(set(vlist))))
         else:
             ident = ident
 

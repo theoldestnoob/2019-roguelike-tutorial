@@ -85,3 +85,15 @@ def line_lerp_orthogonal(x1, y1, x2, y2):
             py += sign_y
             iy += 1
         yield (px, py)
+
+
+def coords_ortho_adjacent(x1, y1, x2, y2):
+    if (x1 + 1, y1) == (x2, y2):
+        return True
+    if (x1 - 1, y1) == (x2, y2):
+        return True
+    if (x1, y1 + 1) == (x2, y2):
+        return True
+    if (x1, y1 - 1) == (x2, y2):
+        return True
+    return False

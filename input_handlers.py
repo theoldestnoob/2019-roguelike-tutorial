@@ -45,6 +45,7 @@ in_keymap_nomod = {
         tcod.event.K_COMMA: {"flood_neigh": True},
         tcod.event.K_n: {"show_vertices": True},
         tcod.event.K_h: {"show_hyperedges": True},
+        tcod.event.K_b: {"show_edges": True},
         tcod.event.K_ESCAPE: {"exit": True}
         }
 

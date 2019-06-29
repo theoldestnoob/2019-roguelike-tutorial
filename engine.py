@@ -67,7 +67,7 @@ def main():
             vsync=False) as con:
 
         # game_map = GameMap(map_width, map_height, seed, con=con, debug=True)
-        game_map = GameMapRandomRooms(map_width, map_height, seed, con=con, debug=True)
+        game_map = GameMapRandomRooms(map_width, map_height, seed, con=con, debug=False)
         # game_map = GameMapBSP(map_width, map_height, seed, con=con, debug=True)
         game_map.make_map(player, **mapset)
 
@@ -97,6 +97,7 @@ def main():
             flood_neigh = action.get("flood_neigh")
             show_vertices = action.get("show_vertices")
             show_hyperedges = action.get("show_hyperedges")
+            show_edges = action.get("show_edges")
 
             if move:
                 dx, dy = move
@@ -124,6 +125,23 @@ def main():
 
             if show_hyperedges and game_map.graph is not None:
                 game_map.graph.show_hyperedges()
+
+            if show_edges and game_map.graph is not None:
+                for edge in game_map.graph.edges:
+                    game_map.graph.show_edge(edge)
+                    while True:
+                        for event in tcod.event.get():
+                            in_handle.dispatch(event)
+                        action = in_handle.get_action()
+                        show_edges = action.get("show_edges")
+                        want_exit = action.get("exit")
+                        if want_exit:
+                            return True
+                        if show_edges:
+                            break
+                    render_all(con, entities, game_map, screen_width,
+                               screen_height, colors)
+                    tcod.console_flush()
 
             if show_vertices and game_map.graph is not None:
                 game_map.graph.show_vertices()

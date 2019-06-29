@@ -51,6 +51,7 @@ class GameMap:
         print(self.graph.hyperedges)
         self.graph.vertex_neighbors_from_hyperedges()
         self.graph.find_vertex_hyperedges()
+        self.graph.find_edges_from_hyperedges()
         if self.debug:
             print(self.graph)
 
