@@ -6,6 +6,7 @@ Created on Thu Jun 27 21:00:50 2019
 """
 
 from itertools import product
+from itertools import repeat
 from collections import deque
 from time import sleep
 import tcod
@@ -25,10 +26,10 @@ class MapGraph():
         return f"MapGraph({self.tiles}, {self.vertices}, {self.edges})"
 
     def __str__(self):
-        outstr = "MapGraph\nVertices:\n"
+        outstr = "=====MapGraph=====\n===Vertices===:\n"
         for vertex in self.vertices:
             outstr += f"{vertex}\n"
-        outstr += "Edges:\n"
+        outstr += "===Edges===:\n"
         for edge in self.edges:
             outstr += f"{edge}\n"
         return outstr
@@ -64,6 +65,8 @@ class MapGraph():
             vertex.neighbors = list(set(neighbors))
 
     def vertex_neighbors_from_edges(self):
+        if self.debug:
+            print("Finding Vertex Neighbors from Edges...")
         for vertex in self.vertices:
             nlist = []
             for edge in self.edges:
@@ -119,6 +122,16 @@ class MapGraph():
 
         return neighbors
 
+    def find_vertex_edges(self):
+        if self.debug:
+            print("Finding Vertex Edges...")
+        for vertex in self.vertices:
+            elist = []
+            for edge in self.edges:
+                if vertex in edge.vertices:
+                    elist.append(edge)
+            vertex.edges = elist
+
     def show_vertices(self):
         for vertex in self.vertices:
             for x in range(vertex.space.x1, vertex.space.x2 + 1):
@@ -170,10 +183,12 @@ class MapGraph():
                         for ex, ey in edge.space:
                             captured[ex][ey] = True
                         elist.append(edge)
+        # assign identifiers to all edges
         alphabet = "abcdefghijklmnopqrstuvwxyz"
         rnum = len(elist) // len(alphabet) + 1
         for edge, idtuple in zip(elist, product(alphabet, repeat=rnum)):
             edge.ident = "".join(idtuple)
+
         self.edges = elist
 
     def find_edge_iter(self, x0, y0, captured, width, height):
@@ -192,7 +207,7 @@ class MapGraph():
                 tcod.console_set_char_background(self.con, x, y,
                                                  tcod.green,
                                                  tcod.BKGND_SET)
-                sleep(0.001)
+                sleep(0.010)
                 tcod.console_flush()
 
             for z in self.vertices:
@@ -248,6 +263,11 @@ class MapVertex():
         for neighbor in self.neighbors:
             nids.append(neighbor.ident)
         outstr += ", ".join(nids)
+        outstr += "\nEdges: "
+        eids = []
+        for edge in self.edges:
+            eids.append(edge.ident)
+        outstr += ", ".join(eids)
         return outstr
 
 
