@@ -300,7 +300,7 @@ class MapGraph():
         stack = deque([(x1, y1, 0)])
         count = 0
         while stack:
-            x, y, z = stack.pop()
+            x, y, z = stack.popleft()
             #print(f"current: {x}, {y}, {z}")
             if (x + 1, y) in coord_list and (x + 1, y) not in searched:
                 distance.append((x + 1, y, z + 1))
