@@ -96,7 +96,7 @@ def main():
             graph_gen = action.get("graph_gen")
             flood_neigh = action.get("flood_neigh")
             show_vertices = action.get("show_vertices")
-            show_edges = action.get("show_edges")
+            show_hyperedges = action.get("show_hyperedges")
 
             if move:
                 dx, dy = move
@@ -122,8 +122,8 @@ def main():
             if flood_neigh and game_map.graph is not None:
                 game_map.graph.find_vertex_neighbors()
 
-            if show_edges and game_map.graph is not None:
-                game_map.graph.show_edges()
+            if show_hyperedges and game_map.graph is not None:
+                game_map.graph.show_hyperedges()
 
             if show_vertices and game_map.graph is not None:
                 game_map.graph.show_vertices()

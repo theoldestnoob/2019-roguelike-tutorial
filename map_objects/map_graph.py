@@ -15,23 +15,23 @@ from render_functions import draw_map
 
 
 class MapGraph():
-    def __init__(self, tiles, rooms=[], edges=[], con=None, debug=False):
+    def __init__(self, tiles, rooms=[], con=None, debug=False):
         self.tiles = tiles
-        self.edges = edges
+        self.hyperedges = []
         self.con = con
         self.debug = debug
         self.vertices = self.create_vertices(rooms)
 
     def __repr__(self):
-        return f"MapGraph({self.tiles}, {self.vertices}, {self.edges})"
+        return f"MapGraph({self.tiles}, {self.vertices}"
 
     def __str__(self):
         outstr = "=====MapGraph=====\n===Vertices===:\n"
         for vertex in self.vertices:
             outstr += f"{vertex}\n"
-        outstr += "===Edges===:\n"
-        for edge in self.edges:
-            outstr += f"{edge}\n"
+        outstr += "===Hyperedges===:\n"
+        for h_edge in self.hyperedges:
+            outstr += f"{h_edge}\n"
         return outstr
 
     def create_vertices(self, rooms):
@@ -64,12 +64,12 @@ class MapGraph():
                                                     width, height)
             vertex.neighbors = list(set(neighbors))
 
-    def vertex_neighbors_from_edges(self):
+    def vertex_neighbors_from_hyperedges(self):
         if self.debug:
-            print("Finding Vertex Neighbors from Edges...")
+            print("Finding Vertex Neighbors from Hyperedges...")
         for vertex in self.vertices:
             nlist = []
-            for edge in self.edges:
+            for edge in self.hyperedges:
                 if vertex in edge.vertices:
                     nlist.extend(edge.vertices)
             nlist = list(set(nlist))
@@ -122,15 +122,15 @@ class MapGraph():
 
         return neighbors
 
-    def find_vertex_edges(self):
+    def find_vertex_hyperedges(self):
         if self.debug:
             print("Finding Vertex Edges...")
         for vertex in self.vertices:
             elist = []
-            for edge in self.edges:
+            for edge in self.hyperedges:
                 if vertex in edge.vertices:
                     elist.append(edge)
-            vertex.edges = elist
+            vertex.hyperedges = elist
 
     def show_vertices(self):
         for vertex in self.vertices:
@@ -142,9 +142,9 @@ class MapGraph():
         tcod.console_flush()
         sleep(1)
 
-    def find_edges(self):
+    def find_hyperedges(self):
         if self.debug:
-            print("Finding Edges...")
+            print("Finding Hyperedges...")
         # find tiles that aren't walls and aren't in a vertex
         width = len(self.tiles)
         height = len(self.tiles[0])
@@ -178,7 +178,8 @@ class MapGraph():
         for y in range(height):
             for x in range(width):
                 if edgetiles[x][y]:
-                    edge = self.find_edge_iter(x, y, captured, width, height)
+                    edge = self.find_hyperedge_iter(x, y, captured, 
+                                                    width, height)
                     if edge:
                         for ex, ey in edge.space:
                             captured[ex][ey] = True
@@ -189,9 +190,9 @@ class MapGraph():
         for edge, idtuple in zip(elist, product(alphabet, repeat=rnum)):
             edge.ident = "".join(idtuple)
 
-        self.edges = elist
+        self.hyperedges = elist
 
-    def find_edge_iter(self, x0, y0, captured, width, height):
+    def find_hyperedge_iter(self, x0, y0, captured, width, height):
         if captured[x0][y0]:
             return []
         searched = [[False for y in range(height)]
@@ -234,11 +235,11 @@ class MapGraph():
                 tiles.append((x, y))
 
         nlist = list(set(neighbors))
-        edge = MapEdge(tiles, nlist)
+        edge = MapHyperedge(tiles, nlist)
         return edge
 
-    def show_edges(self):
-        for edge in self.edges:
+    def show_hyperedges(self):
+        for edge in self.hyperedges:
             for x, y in edge.space:
                 tcod.console_set_char_background(self.con, x, y,
                                                  tcod.green,
@@ -248,10 +249,10 @@ class MapGraph():
 
 
 class MapVertex():
-    def __init__(self, space=None, ident=None, edges=[], neighbors=[]):
+    def __init__(self, space=None, ident=None, hyperedges=[], neighbors=[]):
         self.space = space
         self.ident = ident
-        self.edges = edges
+        self.hyperedges = hyperedges
         self.neighbors = neighbors
 
     def __repr__(self):
@@ -263,15 +264,15 @@ class MapVertex():
         for neighbor in self.neighbors:
             nids.append(neighbor.ident)
         outstr += ", ".join(nids)
-        outstr += "\nEdges: "
+        outstr += "\nHyperedges: "
         eids = []
-        for edge in self.edges:
+        for edge in self.hyperedges:
             eids.append(edge.ident)
         outstr += ", ".join(eids)
         return outstr
 
 
-class MapEdge():
+class MapHyperedge():
     def __init__(self, space, vertices, ident=None):
         self.space = space
         self.vertices = vertices
@@ -284,10 +285,10 @@ class MapEdge():
             ident = ident
 
     def __repr__(self):
-        return f"MapEdge({self.space}, {self.ident}, {self.vertices})"
+        return f"MapHyperedge({self.space}, {self.ident}, {self.vertices})"
 
     def __str__(self):
-        outstr = f"Edge '{self.ident}'\n"
+        outstr = f"Hyperedge '{self.ident}'\n"
         outstr += f"Space: {self.space}\n"
         outstr += f"Vertices: "
         vids = []

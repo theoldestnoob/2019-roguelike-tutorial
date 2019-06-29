@@ -47,9 +47,9 @@ class GameMap:
         self.graph = MapGraph(self.tiles, self.rooms,
                               con=self.con, debug=self.debug)
         # self.graph.find_vertex_neighbors()
-        self.graph.find_edges()
-        self.graph.vertex_neighbors_from_edges()
-        self.graph.find_vertex_edges()
+        self.graph.find_hyperedges()
+        self.graph.vertex_neighbors_from_hyperedges()
+        self.graph.find_vertex_hyperedges()
         if self.debug:
             print(self.graph)
 
