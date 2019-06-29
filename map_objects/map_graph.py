@@ -68,13 +68,16 @@ class MapGraph():
         if self.debug:
             print("Finding Vertex Neighbors from Hyperedges...")
         for vertex in self.vertices:
+            vlist = []
             nlist = []
             for edge in self.hyperedges:
-                if vertex in edge.vertices:
-                    nlist.extend(edge.vertices)
-            nlist = list(set(nlist))
-            nlist.remove(vertex)
-            vertex.neighbors = nlist
+                for v, c in edge.vertices:
+                    if vertex == v:
+                        vlist.extend(edge.vertices)
+            for v, c in vlist:
+                if v is not vertex:
+                    nlist.append(v)
+            vertex.neighbors = list(set(nlist))
 
     def find_vertex_neigh_iter(self, vertex, others, width, height):
         # vertex: vertex to find neighbors of
@@ -124,12 +127,13 @@ class MapGraph():
 
     def find_vertex_hyperedges(self):
         if self.debug:
-            print("Finding Vertex Edges...")
+            print("Finding Vertex Hyperdges...")
         for vertex in self.vertices:
             elist = []
             for edge in self.hyperedges:
-                if vertex in edge.vertices:
-                    elist.append(edge)
+                for v, c in edge.vertices:
+                    if v == vertex:
+                        elist.append(edge)
             vertex.hyperedges = elist
 
     def show_vertices(self):
@@ -178,7 +182,7 @@ class MapGraph():
         for y in range(height):
             for x in range(width):
                 if edgetiles[x][y]:
-                    edge = self.find_hyperedge_iter(x, y, captured, 
+                    edge = self.find_hyperedge_iter(x, y, captured,
                                                     width, height)
                     if edge:
                         for ex, ey in edge.space:
@@ -188,7 +192,8 @@ class MapGraph():
         alphabet = "abcdefghijklmnopqrstuvwxyz"
         rnum = len(elist) // len(alphabet) + 1
         for edge, idtuple in zip(elist, product(alphabet, repeat=rnum)):
-            edge.ident = "".join(idtuple)
+            edge.ident = "#"
+            edge.ident += "".join(idtuple)
 
         self.hyperedges = elist
 
@@ -198,6 +203,7 @@ class MapGraph():
         searched = [[False for y in range(height)]
                     for x in range(width)]
         neighbors = []
+        n_coords = []
         tiles = []
         searchq = deque([(x0, y0)])
 
@@ -214,6 +220,7 @@ class MapGraph():
             for z in self.vertices:
                 if z.space.contains(x, y):
                     neighbors.append(z)
+                    n_coords.append((x, y))
                     break
             else:
                 if (not searched[x + 1][y]
@@ -233,8 +240,16 @@ class MapGraph():
                         and not (x, y - 1) in searchq):
                     searchq.append((x, y - 1))
                 tiles.append((x, y))
-
-        nlist = list(set(neighbors))
+        # hyperedges store their vertices as (vertex, coord) tuples
+        #  where coord is the coordinates of one tile in the vertex adjacent
+        #  to the hyperedge
+        ndict = {}
+        for n, c in zip(neighbors, n_coords):
+            print(f"\nn: {n.ident}, c: {c}\n")
+            ndict[n] = c
+        print(f"\nndict:\n{ndict}\n")
+        nlist = ndict.items()
+        print(f"nlist:\n{nlist}\n")
         edge = MapHyperedge(tiles, nlist)
         return edge
 
@@ -256,7 +271,7 @@ class MapVertex():
         self.neighbors = neighbors
 
     def __repr__(self):
-        return f"MapVertex({self.space}, {self.ident}, {self.edges}, {self.neighbors})"
+        return f"MapVertex({self.space}, {self.ident}, {self.hyperedges}, {self.neighbors})"
 
     def __str__(self):
         outstr = f"Vertex '{self.ident}': {self.space}\nNeighbors: "
@@ -278,9 +293,10 @@ class MapHyperedge():
         self.vertices = vertices
         if ident is None:
             vlist = []
-            for vertex in vertices:
+            for vertex, coord in vertices:
                 vlist.append(vertex.ident)
-            self.ident = ".".join(sorted(list(set(vlist))))
+            self.ident = "#"
+            self.ident += ".".join(sorted(list(set(vlist))))
         else:
             ident = ident
 
@@ -292,7 +308,7 @@ class MapHyperedge():
         outstr += f"Space: {self.space}\n"
         outstr += f"Vertices: "
         vids = []
-        for vertex in self.vertices:
-            vids.append(vertex.ident)
+        for vertex, coord in self.vertices:
+            vids.append(f"{vertex.ident} {coord}")
         outstr += ", ".join(vids)
         return outstr
