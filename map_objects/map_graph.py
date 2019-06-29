@@ -13,6 +13,7 @@ import tcod
 
 from render_functions import draw_map
 from map_objects.geometry import coords_ortho_adjacent
+from map_objects.geometry import Rect
 
 
 class MapGraph():
@@ -264,10 +265,7 @@ class MapGraph():
         tcod.console_flush()
         sleep(1)
 
-# TODO: rewrite to start and end at any coordinates adjacent to its vertices
-#       this currently doesn't produce shortest paths between vertices
-#       and I think it's because I've given it wonky constraints
-#       see for example, map 2 Edge JH, map 2 Edge GK, map 4 Edge BF
+# TODO:  rewrite to use arbitrary shaped vertices instead of just Rects
     def find_edges_from_hyperedges(self):
         if self.debug:
             print("Finding Edges from Hyperedges...\n")
@@ -286,19 +284,26 @@ class MapGraph():
                 # new Edge is MapEdge(space, [v0, v1], ident)
                 x1, y1 = v0[1]
                 x2, y2 = v1[1]
-                s = self.find_spath_in_coords(hyperedge.space, x1, y1, x2, y2)
+                s = self.find_spath_in_coords(hyperedge.space, v0[0], v1[0])
                 elist.append(MapEdge(s, [v0, v1]))
         self.edges = elist
 
-    def find_spath_in_coords(self, coord_list, x1, y1, x2, y2):
-        print(f"start: ({x1}, {y1}), end: ({x2}, {y2})")
+# TODO:  rewrite to use arbitrary shaped vertices instead of just Rects
+    def find_spath_in_coords(self, coord_list, v0, v1):
+        print(f"start: {v0.ident}, end: {v1.ident}")
         print(f"coord_list:   {coord_list}")
-        # build a list of coordinates with distance from x1, y1
+        # build a list of coordinates with distance from v0
         # list of tuples (x, y, distance)
         distance = []
         searched = []
-        stack = deque([(x1, y1, 0)])
+        stack = deque()
+        for x, y in coord_list:
+            if v0.space.adjacent(Rect(x, y, 0, 0)):
+                distance.append((x, y, 1))
+                stack.append((x, y, 1))
         count = 0
+        print(f"v0: {v0.space}")
+        print(f"start stack: {stack}")
         while stack:
             x, y, z = stack.popleft()
             #print(f"current: {x}, {y}, {z}")
@@ -318,23 +323,26 @@ class MapGraph():
                 distance.append((x, y - 1, z + 1))
                 stack.append((x, y - 1, z + 1))
                 searched.append((x, y - 1))
-            #print(f"stack: {stack}")
+            print(f"stack: {stack}")
             # exit if we've searched 5000 spaces
             # because we're probably in an infinite loop
             count += 1
             if count > 5000:
                 break
         #print(f"distance: {distance}")
-        #print(f"searched: {searched}")
-        # find the shortest path from x2, y2 back to x1, y1
-        # start at x2, y2 and always pick the tile with the lowest distance
+        print(f"searched: {searched}")
+        # find the shortest path from v1 back to v0
+        # start at v1 and always pick the tile with the lowest distance
         distance.sort(key=lambda z: z[2], reverse=True)
         print(f"sorted distance: {distance}")
-        x, y, z = distance[0]
-        z_end = z + 1
-        x_end = x2
-        y_end = y2
-        spath = []
+        x_end, y_end, z_end = distance[0]
+        for x, y, z in distance:
+            if v1.space.adjacent(Rect(x, y, 0, 0)):
+                if z < z_end:
+                    x_end = x
+                    y_end = y
+                    z_end = z
+        spath = [(x_end, y_end)]
         for (x, y, z) in distance:
             if z < z_end and coords_ortho_adjacent(x, y, x_end, y_end):
                 spath.append((x, y))
