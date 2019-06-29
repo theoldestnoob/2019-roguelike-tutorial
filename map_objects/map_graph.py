@@ -225,7 +225,7 @@ class MapGraph():
         searched = []
         stack = deque()
         for x, y in coord_list:
-            if v0.space.adjacent(Rect(x, y, 0, 0)):
+            if v0.space.adjacent_ortho(Rect(x, y, 0, 0)):
                 distance.append((x, y, 1))
                 stack.append((x, y, 1))
                 searched.append((x, y))
@@ -259,7 +259,7 @@ class MapGraph():
         distance.sort(key=lambda z: z[2], reverse=True)
         x_end, y_end, z_end = distance[0]
         for x, y, z in distance:
-            if v1.space.adjacent(Rect(x, y, 0, 0)):
+            if v1.space.adjacent_ortho(Rect(x, y, 0, 0)):
                 if z < z_end:
                     x_end = x
                     y_end = y

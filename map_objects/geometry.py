@@ -24,7 +24,8 @@ class Space:
             return True
         return False
 
-    def adjacent(self, other):
+    # check for orthogonal adjacency
+    def adjacent_ortho(self, other):
         # return true if any of Space's coordinates
         # is adjacent to any of other's coordinates
         pass
@@ -62,25 +63,33 @@ class Rect(Space):
                 and self.y1 <= y and self.y2 >= y)
 
 # TODO: rewrite to check adjacency against arbitrary Spaces
-    def adjacent(self, other):
-        # left adjacency
-        if (self.x1 == other.x2 + 1
-                and self.y1 <= other.y2 and self.y2 >= other.y1):
-            adjacent = True
-        # right adjacency
-        elif (self.x2 == other.x1 - 1
-                and self.y1 <= other.y2 and self.y2 >= other.y1):
-            adjacent = True
-        # top adjacency
-        elif (self.y1 == other.y2 + 1
-                and self.x1 <= other.x2 and self.x2 >= other.x1):
-            adjacent = True
-        # bottom adjacency
-        elif (self.y2 == other.y1 - 1
-                and self.x1 <= other.x2 and self.x2 >= other.x1):
-            adjacent = True
+    # check for orthogonal adjacency
+    def adjacent_ortho(self, other):
+        # if other is also a Rect, we can do this pretty fast
+        if isinstance(other, Rect):
+            print(f"Rect Adjacent!")
+            # left adjacency
+            if (self.x1 == other.x2 + 1
+                    and self.y1 <= other.y2 and self.y2 >= other.y1):
+                adjacent = True
+            # right adjacency
+            elif (self.x2 == other.x1 - 1
+                    and self.y1 <= other.y2 and self.y2 >= other.y1):
+                adjacent = True
+            # top adjacency
+            elif (self.y1 == other.y2 + 1
+                    and self.x1 <= other.x2 and self.x2 >= other.x1):
+                adjacent = True
+            # bottom adjacency
+            elif (self.y2 == other.y1 - 1
+                    and self.x1 <= other.x2 and self.x2 >= other.x1):
+                adjacent = True
+            else:
+                adjacent = False
+        # fall back to checking adjacency of all coordinate pairs
         else:
-            adjacent = False
+            print("Other Adjacent!")
+            pass
 
         return adjacent
 
@@ -92,7 +101,7 @@ class Rect(Space):
 
     def __len__(self):
         # "length" of Rect is the number of coordinates in it
-        return (self.x2 - self.x1) * (self.y2 - self.y1)
+        return self.h * self.w
 
     def __repr__(self):
         return f"Rect({self.x1}, {self.y1}, {self.w}, {self.h})"
