@@ -68,7 +68,7 @@ def main():
             vsync=False) as con:
 
         # game_map = GameMap(map_width, map_height, seed, con=con, debug=True)
-        game_map = GameMapRandomRooms(map_width, map_height, seed, con=con, debug=False)
+        game_map = GameMapRandomRooms(map_width, map_height, seed, con=con, debug=True)
         # game_map = GameMapBSP(map_width, map_height, seed, con=con, debug=True)
         game_map.make_map(player, **mapset)
 
@@ -118,7 +118,6 @@ def main():
 
             if graph_gen:
                 game_map.make_graph()
-                print(game_map.graph)
 
             if show_hyperedges and game_map.graph is not None:
                 for edge in game_map.graph.hyperedges:
@@ -138,7 +137,6 @@ def main():
                     render_all(con, entities, game_map, screen_width,
                                screen_height, colors)
                     tcod.console_flush()
-
 
             if show_edges and game_map.graph is not None:
                 for edge in game_map.graph.edges:

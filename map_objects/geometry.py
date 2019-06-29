@@ -67,7 +67,6 @@ class Rect(Space):
     def adjacent_ortho(self, other):
         # if other is also a Rect, we can do this pretty fast
         if isinstance(other, Rect):
-            print(f"Rect Adjacent!")
             # left adjacency
             if (self.x1 == other.x2 + 1
                     and self.y1 <= other.y2 and self.y2 >= other.y1):
@@ -88,8 +87,12 @@ class Rect(Space):
                 adjacent = False
         # fall back to checking adjacency of all coordinate pairs
         else:
-            print("Other Adjacent!")
-            pass
+            for (other_x, other_y) in other:
+                for x in range(self.x1, self.x2 + 1):
+                    for y in range(self.y1, self.y2 + 1):
+                        if coords_ortho_adjacent(x, y, other_x, other_y):
+                            return True
+            return False
 
         return adjacent
 
