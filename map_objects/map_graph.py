@@ -250,7 +250,7 @@ class MapGraph():
         print(f"\nndict:\n{ndict}\n")
         nlist = ndict.items()
         print(f"nlist:\n{nlist}\n")
-        edge = MapHyperedge(tiles, nlist)
+        edge = MapEdge(tiles, nlist)
         return edge
 
     def show_hyperedges(self):
@@ -287,7 +287,7 @@ class MapVertex():
         return outstr
 
 
-class MapHyperedge():
+class MapEdge():
     def __init__(self, space, vertices, ident=None):
         self.space = space
         self.vertices = vertices
@@ -301,10 +301,10 @@ class MapHyperedge():
             ident = ident
 
     def __repr__(self):
-        return f"MapHyperedge({self.space}, {self.ident}, {self.vertices})"
+        return f"MapEdge({self.space}, {self.ident}, {self.vertices})"
 
     def __str__(self):
-        outstr = f"Hyperedge '{self.ident}'\n"
+        outstr = f"Edge '{self.ident}'\n"
         outstr += f"Space: {self.space}\n"
         outstr += f"Vertices: "
         vids = []
