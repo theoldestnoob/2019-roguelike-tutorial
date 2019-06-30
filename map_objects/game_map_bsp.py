@@ -8,20 +8,24 @@ Created on Wed Jun 26 23:04:23 2019
 from random import seed as randseed
 from random import randint
 from random import uniform
+from random import choice
 
 from map_objects.geometry import Rect
-from map_objects.geometry import line_lerp_orthogonal
+from map_objects.geometry import Circle
 from map_objects.game_map import GameMap
 
 
 class GameMapBSP(GameMap):
     def make_map(self, player, *args,
-                 room_min_size=6, room_max_size=10, min_rooms=8, max_rooms=30,
-                 bsp_depth=4, bsp_min=0.45, bsp_max=0.55,
-                 ratio_vh=1, ratio_hv=1, ratio_d=0, **kwargs):
+                 room_min_size=8, room_max_size=15, min_rooms=8, max_rooms=30,
+                 bsp_depth=4, bsp_min=0.35, bsp_max=0.65,
+                 ratio_vh=1, ratio_hv=1, ratio_d=0, hall_rand=False,
+                 circ_rooms=0, rect_rooms=1, **kwargs):
         map_width = self.width - 1
         map_height = self.height - 1
         randseed(self.seed)
+        self.rect_rooms = rect_rooms
+        self.circ_rooms = circ_rooms
 
         space = Rect(1, 1, map_width - 2, map_height - 2)
         while True:
@@ -32,8 +36,10 @@ class GameMapBSP(GameMap):
             numrooms = len(self.rooms)
             if min_rooms < numrooms < max_rooms:
                 break
-
-        self.make_halls(space, player, ratio_vh, ratio_hv, ratio_d)
+        if hall_rand:
+            self.make_halls_random(space, player, ratio_vh, ratio_hv, ratio_d)
+        else:
+            self.make_halls(space, player, ratio_vh, ratio_hv, ratio_d)
 
     def partition(self, space, bsp_depth, bsp_min, bsp_max,
                   room_min_size, room_max_size):
@@ -58,9 +64,19 @@ class GameMapBSP(GameMap):
             else:
                 roomy = randint(bounds.y1, bounds.y1 + (bounds.h - roomh))
             room = Rect(roomx, roomy, roomw, roomh)
-            # print(f"Bounds: {bounds}, Room: {room}")
-            self.create_room(room)
-            self.rooms.append(room)
+
+            randpool = self.circ_rooms + self.rect_rooms
+            roll = uniform(0, randpool)
+            if roll < self.circ_rooms:
+                (c_x, c_y) = room.center()
+                r = room.w // 2
+                circ = Circle(c_x, c_y, r)
+                self.create_room_circle(circ)
+                self.rooms.append(circ)
+            else:
+                self.create_room(room)
+                self.rooms.append(room)
+
             return True
         bsp_depth -= 1
         xy = randint(0, 1)
@@ -130,3 +146,41 @@ class GameMapBSP(GameMap):
                     # draw diagonal hallways
                     self.create_d_tunnel(prev_x, prev_y, new_x, new_y)
                 old_room = room
+
+    def make_halls_random(self, space, player, ratio_vh, ratio_hv, ratio_d):
+        old_room = None
+        rooms = list(self.rooms)
+        while rooms:
+            room = choice(rooms)
+            rooms.remove(room)
+            if old_room is None:
+                (x, y) = room.center()
+                player.x = x
+                player.y = y
+                old_room = room
+            else:
+                # generate corridors depending on proportions passed into
+                #   make_map function
+                (new_x, new_y) = room.center()
+                (prev_x, prev_y) = old_room.center()
+                randpool = ratio_hv + ratio_vh + ratio_d
+                hv = ratio_hv
+                vh = ratio_hv + ratio_vh
+                roll = uniform(0, randpool)
+                if roll < hv:
+                    # first move horizontally, then vertically
+                    self.create_h_tunnel(prev_x, new_x, prev_y)
+                    self.create_v_tunnel(prev_y, new_y, new_x)
+                elif roll < vh:
+                    # first move vertically, then horizontally
+                    self.create_v_tunnel(prev_y, new_y, prev_x)
+                    self.create_h_tunnel(prev_x, new_x, new_y)
+                else:
+                    # draw diagonal hallways
+                    self.create_d_tunnel(prev_x, prev_y, new_x, new_y)
+                old_room = room
+
+    def create_room_circle(self, room):
+        for (x, y) in room.coords:
+            self.tiles[x][y].blocked = False
+            self.tiles[x][y].block_sight = False

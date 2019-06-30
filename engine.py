@@ -24,19 +24,58 @@ def main():
     map_height = 45
     seed = "testseed"
 
-    mapset = {
-            "room_max_size": 10,
-            "room_min_size": 6,
+    mapset_bsprect = {
+            "room_max_size": 15,
+            "room_min_size": 8,
             "min_rooms": 8,
             "max_rooms": 30,
             "ratio_vh": 1,
             "ratio_hv": 1,
-            "ratio_d": 1,
+            "ratio_d": 0,
+            "hall_rand": False,
+            "circ_rooms": 0,
+            "rect_rooms": 1,
             "unused": True,
             "bsp_min": 0.35,
             "bsp_max": 0.65,
             "bsp_depth": 4
     }
+
+    mapset_bspcirc = {
+            "room_max_size": 15,
+            "room_min_size": 8,
+            "min_rooms": 8,
+            "max_rooms": 30,
+            "ratio_vh": 0,
+            "ratio_hv": 0,
+            "ratio_d": 1,
+            "hall_rand": True,
+            "circ_rooms": 1,
+            "rect_rooms": 0,
+            "unused": True,
+            "bsp_min": 0.35,
+            "bsp_max": 0.65,
+            "bsp_depth": 4
+    }
+
+    mapset_bsprand = {
+            "room_max_size": 15,
+            "room_min_size": 8,
+            "min_rooms": 8,
+            "max_rooms": 30,
+            "ratio_vh": 1,
+            "ratio_hv": 1,
+            "ratio_d": 1,
+            "hall_rand": True,
+            "circ_rooms": 1,
+            "rect_rooms": 1,
+            "unused": True,
+            "bsp_min": 0.35,
+            "bsp_max": 0.65,
+            "bsp_depth": 4
+    }
+
+    mapset = mapset_bspcirc
 
     colors = {
             "dark_wall": tcod.Color(0, 0, 100),

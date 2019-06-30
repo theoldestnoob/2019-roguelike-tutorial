@@ -313,7 +313,9 @@ class MapVertex():
         self.neighbors = neighbors
 
     def __repr__(self):
-        return f"MapVertex({self.space}, {self.ident}, {self.hyperedges}, {self.neighbors})"
+        outstr = f"MapVertex({self.space}, {self.ident}, "
+        outstr += f"{self.hyperedges}, {self.neighbors})"
+        return outstr
 
     def __str__(self):
         outstr = f"Vertex '{self.ident}': {self.space}\nNeighbors: "
