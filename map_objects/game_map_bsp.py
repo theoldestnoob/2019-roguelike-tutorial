@@ -15,56 +15,118 @@ from map_objects.game_map import GameMap
 
 
 class GameMapBSP(GameMap):
-    def make_map(self, player, *args, room_min_size=6, room_max_size=10,
-                 bsp_depth=5, bsp_min=0.45, bsp_max=0.55, **kwargs):
-        map_width = self.width
-        map_height = self.height
+    def make_map(self, player, *args,
+                 room_min_size=6, room_max_size=10, min_rooms=8, max_rooms=30,
+                 bsp_depth=4, bsp_min=0.45, bsp_max=0.55,
+                 ratio_vh=1, ratio_hv=1, ratio_d=0, **kwargs):
+        map_width = self.width - 1
+        map_height = self.height - 1
         randseed(self.seed)
 
-        space = Rect(0, 0, map_width, map_height)
-        self.partition(space, bsp_depth, bsp_min, bsp_max,
-                       room_min_size, room_max_size)
+        space = Rect(1, 1, map_width - 2, map_height - 2)
+        while True:
+            self.rooms = []
+            self.tiles = self.initialize_tiles()
+            self.partition(space, bsp_depth, bsp_min, bsp_max,
+                           room_min_size, room_max_size)
+            numrooms = len(self.rooms)
+            if min_rooms < numrooms < max_rooms:
+                break
+
+        self.make_halls(space, player, ratio_vh, ratio_hv, ratio_d)
 
     def partition(self, space, bsp_depth, bsp_min, bsp_max,
                   room_min_size, room_max_size):
-        if bsp_depth == 0 or space.h < room_min_size or space.w < room_min_size:
-            self.create_room(space)
+        if bsp_depth == 0 or (space.h < room_max_size and space.w < room_max_size):
+            bounds = Rect(space.x1 + 1, space.y1 + 1, space.w - 2, space.h - 2)
+            # self.rooms.append(space)
+            if bounds.h < room_min_size or bounds.w < room_min_size:
+                return True
+            roomw = randint(room_min_size, room_max_size)
+            roomh = randint(room_min_size, room_max_size)
+            if roomw > bounds.w:
+                roomw = bounds.w
+            if roomh > bounds.h:
+                roomh = bounds.h
+            # print(f"Bounds: {bounds}, Roomw: {roomw}, Roomh: {roomh}")
+            if bounds.x1 == bounds.x1 + bounds.w - roomw:
+                roomx = bounds.x1
+            else:
+                roomx = randint(bounds.x1, bounds.x1 + (bounds.w - roomw))
+            if bounds.y1 == bounds.y1 + bounds.h - roomh:
+                roomy = bounds.y1
+            else:
+                roomy = randint(bounds.y1, bounds.y1 + (bounds.h - roomh))
+            room = Rect(roomx, roomy, roomw, roomh)
+            # print(f"Bounds: {bounds}, Room: {room}")
+            self.create_room(room)
+            self.rooms.append(room)
             return True
         bsp_depth -= 1
         xy = randint(0, 1)
         if space.w >= room_min_size and space.w <= room_max_size:
             xy = 0
-            print("Width fit!")
+            # print("Width fit!")
         elif space.h >= room_min_size and space.h <= room_max_size:
             xy = 1
-            print("Height fit!")
+            # print("Height fit!")
         part_ratio = uniform(bsp_min, bsp_max)
-        print(f"space {space}")
-        print(f"ratio {part_ratio}")
+        # print(f"space {space}")
+        # print(f"ratio {part_ratio}")
         # partition space into two smaller Rects
         if xy == 0:
             # horizontal split
-            part_height = int(part_ratio * space.h)
+            part_height = int(part_ratio * space.h) - 1
             part_a_h = part_height
             part_b_h = space.h - part_height - 1
             part_a = Rect(space.x1, space.y1, space.w, part_a_h)
-            part_b = Rect(space.x1, space.y1 + part_a_h, space.w, part_b_h)
-            print(f"part_height {part_height}, part_a_h {part_a_h}, part_b_h {part_b_h}")
+            part_b = Rect(space.x1, space.y1 + part_a_h + 1, space.w, part_b_h)
+            # print(f"part_height {part_height}, part_a_h {part_a_h}, part_b_h {part_b_h}")
         else:
             # vertical split
-            part_width = int(part_ratio * space.w)
+            part_width = int(part_ratio * space.w) - 1
             part_a_w = part_width
             part_b_w = space.w - part_width - 1
             part_a = Rect(space.x1, space.y1, part_a_w, space.h)
-            part_b = Rect(space.x1 + part_a_w, space.y1, part_b_w, space.h)
-            print(f"part_width {part_width}, part_a_w {part_a_w}, part_b_w {part_b_w}")
+            part_b = Rect(space.x1 + part_a_w + 1, space.y1, part_b_w, space.h)
+            # print(f"part_width {part_width}, part_a_w {part_a_w}, part_b_w {part_b_w}")
 
         # recurse, draw a room in the partition if the subfunction creates a room that's too small
-        print(f"part_a {part_a}")
-        print(f"part_b {part_b}")
+        # print(f"part_a {part_a}")
+        # print(f"part_b {part_b}")
         # self.create_room(part_a)
         # self.create_room(part_b)
         self.partition(part_a, bsp_depth, bsp_min, bsp_max,
                        room_min_size, room_max_size)
         self.partition(part_b, bsp_depth, bsp_min, bsp_max,
                        room_min_size, room_max_size)
+
+    def make_halls(self, space, player, ratio_vh, ratio_hv, ratio_d):
+        old_room = None
+        for room in self.rooms:
+            if old_room is None:
+                (x, y) = room.center()
+                player.x = x
+                player.y = y
+                old_room = room
+            else:
+                # generate corridors depending on proportions passed into
+                #   make_map function
+                (new_x, new_y) = room.center()
+                (prev_x, prev_y) = old_room.center()
+                randpool = ratio_hv + ratio_vh + ratio_d
+                hv = ratio_hv
+                vh = ratio_hv + ratio_vh
+                roll = uniform(0, randpool)
+                if roll < hv:
+                    # first move horizontally, then vertically
+                    self.create_h_tunnel(prev_x, new_x, prev_y)
+                    self.create_v_tunnel(prev_y, new_y, new_x)
+                elif roll < vh:
+                    # first move vertically, then horizontally
+                    self.create_v_tunnel(prev_y, new_y, prev_x)
+                    self.create_h_tunnel(prev_x, new_x, new_y)
+                else:
+                    # draw diagonal hallways
+                    self.create_d_tunnel(prev_x, prev_y, new_x, new_y)
+                old_room = room

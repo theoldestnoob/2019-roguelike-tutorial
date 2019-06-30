@@ -84,7 +84,8 @@ class MapGraph():
                 if vertex in edge.vertices:
                     vlist.extend(edge.vertices)
             nlist = sorted(list(set(vlist)), key=lambda x: x.ident)
-            nlist.remove(vertex)
+            if nlist:
+                nlist.remove(vertex)
             vertex.neighbors = nlist
 
     def find_vertex_neigh_iter(self, vertex, others, width, height):

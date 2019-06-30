@@ -27,13 +27,15 @@ def main():
     mapset = {
             "room_max_size": 10,
             "room_min_size": 6,
+            "min_rooms": 8,
             "max_rooms": 30,
             "ratio_vh": 1,
             "ratio_hv": 1,
             "ratio_d": 1,
             "unused": True,
-            "bsp_min": 0.2,
-            "bsp_max": 0.8
+            "bsp_min": 0.35,
+            "bsp_max": 0.65,
+            "bsp_depth": 4
     }
 
     colors = {
@@ -67,8 +69,8 @@ def main():
             vsync=False) as con:
 
         # game_map = GameMap(map_width, map_height, seed, con=con, debug=True)
-        game_map = GameMapRandomRooms(map_width, map_height, seed, con=con, debug=True)
-        # game_map = GameMapBSP(map_width, map_height, seed, con=con, debug=True)
+        # game_map = GameMapRandomRooms(map_width, map_height, seed, con=con, debug=True)
+        game_map = GameMapBSP(map_width, map_height, seed, con=con, debug=True)
         game_map.make_map(player, **mapset)
 
         while True:
