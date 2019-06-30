@@ -114,6 +114,38 @@ class Rect(Space):
         center_y = int((self.y1 + self.y2) / 2)
         return (center_x, center_y)
 
+# TODO: holy crap this is slow, find a better way
+class Circle(Space):
+    def __init__(self, x, y, r):
+        # print("Circle.__init__()")
+        self.x = x
+        self.y = y
+        self.r = r
+        z_coords = []
+        r_sq = r ** 2
+        # print(f"x: {x}, y: {y}, {r}")
+        for c_x in range(-r, r + 1):
+            c_x_sq = c_x ** 2
+            # print(f"c_x: {c_x}, c_x_sq: {c_x_sq}")
+            for c_y in range(-r, r + 1):
+                c_y_sq = c_y ** 2
+                # print(f"c_y: {c_y}, c_y_sq: {c_y_sq}")
+                if c_x_sq + c_y_sq < r_sq:
+                    z_coords.append((c_x, c_y))
+        coords = []
+        for (k_x, k_y) in z_coords:
+            f_x = k_x + self.x
+            f_y = k_y + self.y
+            coords.append((f_x, f_y))
+        print(coords)
+        self.coords = coords
+
+    def __repr__(self):
+        return f"Circle({self.x}, {self.y}, {self.r})"
+
+    def center(self):
+        return (self.x, self.y)
+
 
 def line_lerp_orthogonal(x1, y1, x2, y2):
     '''
