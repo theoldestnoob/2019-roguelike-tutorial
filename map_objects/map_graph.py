@@ -49,6 +49,7 @@ class MapGraph():
         return outstr
 
     def create_vertices(self, rooms):
+        '''Build a set of MapVertex objects from a list of Space objects.'''
         if self.debug:
             print("Creating Vertices...")
         alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -61,7 +62,9 @@ class MapGraph():
         return vertices
 
     def find_vertex_neighbors(self):
-        # flood fill from each room to find its neighbors
+        '''Find all neighbors of a MapVertex using flood fill. Inefficient,
+        do not use unless you can not find hyperedges for some reason.
+        '''
         if self.debug:
             print("Finding Vertex Neighbors...")
         for vertex in self.vertices:
@@ -75,6 +78,11 @@ class MapGraph():
             vertex.neighbors = vneigh
 
     def vertex_neighbors_from_hyperedges(self):
+        '''Find all neighbors of a MapVertex by getting the information from
+        hyperedges, which already know which vertices they connect. Must be
+        called after MapGraph.find_hyperedges() or it will not do anything
+        useful.
+        '''
         if self.debug:
             print("Finding Vertex Neighbors from Hyperedges...")
         for vertex in self.vertices:
@@ -89,6 +97,9 @@ class MapGraph():
             vertex.neighbors = nlist
 
     def find_vertex_neigh_iter(self, vertex, others, width, height):
+        '''Flood Fill helper method to find vertex neighbors. Called by
+        MapGraph.find_vertex_neighbors(). Inefficient, do not use unless
+        you can not find hyperedges for some reason.'''
         # vertex: vertex to find neighbors of
         # others: other vertices that may be neighbors
         # we assume no overlapping vertices on graph
@@ -127,6 +138,7 @@ class MapGraph():
         return neighbors
 
     def find_vertex_hyperedges(self):
+        '''Find all hyperedges connected to a MapVertex.'''
         if self.debug:
             print("Finding Vertex Hyperedges...")
         for vertex in self.vertices:
@@ -137,6 +149,7 @@ class MapGraph():
             vertex.hyperedges = elist
 
     def find_vertex_edges(self):
+        '''Find all edges connected to a MapVertex that are not hyperedges.'''
         if self.debug:
             print("Finding Vertex Edges...")
         for vertex in self.vertices:
@@ -147,6 +160,9 @@ class MapGraph():
             vertex.edges = elist
 
     def find_hyperedges(self):
+        '''Find all hyperedges in graph using floodfill helper method and store
+        as MapEdge objects.
+        '''
         if self.debug:
             print("Finding Hyperedges...")
         # find tiles that aren't walls and aren't in a vertex
@@ -185,6 +201,9 @@ class MapGraph():
         self.hyperedges = elist
 
     def find_hyperedge_iter(self, x0, y0, captured, width, height):
+        '''Flood Fill helper method to find all hyperedges in a graph.Called by
+        MapGraph.find_hyperedges().
+        '''
         if captured[x0][y0]:
             return []
         searched = [[False for y in range(height)]
@@ -224,8 +243,10 @@ class MapGraph():
         edge = MapEdge(Space(tiles), nlist)
         return edge
 
-# TODO:  rewrite to use arbitrary shaped vertices instead of just Rects
     def find_edges_from_hyperedges(self):
+        '''Find all edges on graph that connect 2 vertices. These are contained
+        in hyperedges, so MapGraph.find_hyperedges() must be called first.
+        '''
         if self.debug:
             print("Finding Edges from Hyperedges...")
         elist = []
@@ -247,8 +268,11 @@ class MapGraph():
 
         self.edges = elist
 
-# TODO:  rewrite to use arbitrary shaped vertices instead of just Rects
     def find_spath_in_coords(self, coord_list, v0, v1):
+        '''Find the shortest path between two Space objects v0 and v1 that
+        only traverses the coordinates in coord_list. Used to help find edges
+        from hyperedges.
+        '''
         # build a list of coordinates with distance from v0 as (x, y, distance)
         distance = []
         searched = []
@@ -304,6 +328,9 @@ class MapGraph():
 
 
 class MapVertex():
+    '''Vertex in MapGraph. Contains a Space and identifier and lists of
+    connected hyperedges, connected edges, and neighbor vertices.
+    '''
     def __init__(self, space=None, ident=None, hyperedges=[], edges=[],
                  neighbors=[]):
         self.space = space
@@ -338,6 +365,9 @@ class MapVertex():
 
 
 class MapEdge():
+    '''Edge or Hyperedge in MapGraph. Contains a Space and identifier and lists
+    of connected vertices.
+    '''
     def __init__(self, space, vertices, ident=None):
         self.space = space
         self.vertices = vertices
