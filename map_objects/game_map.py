@@ -45,8 +45,7 @@ class GameMap:
 
     def make_graph(self):
         tiles = self.game_map_to_bool_array()
-        self.graph = MapGraph(tiles, self.rooms,
-                              con=self.con, debug=self.debug)
+        self.graph = MapGraph(tiles, self.rooms, debug=self.debug)
         if self.debug:
             print(self.graph)
 
