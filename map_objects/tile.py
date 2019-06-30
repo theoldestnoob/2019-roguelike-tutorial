@@ -18,3 +18,6 @@ class Tile:
             block_sight = blocked
 
         self.block_sight = block_sight
+
+    def __repr__(self):
+        return f"Tile({self.blocked})"

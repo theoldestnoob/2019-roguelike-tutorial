@@ -44,7 +44,8 @@ class GameMap:
         player.x, player.y = room.center()
 
     def make_graph(self):
-        self.graph = MapGraph(self.tiles, self.rooms,
+        tiles = self.game_map_to_bool_array()
+        self.graph = MapGraph(tiles, self.rooms,
                               con=self.con, debug=self.debug)
         if self.debug:
             print(self.graph)
@@ -72,3 +73,7 @@ class GameMap:
         for x, y in points:
             self.tiles[x][y].blocked = False
             self.tiles[x][y].block_sight = False
+
+    def game_map_to_bool_array(self):
+        return [[self.tiles[x][y].blocked for y in range(self.height)]
+                for x in range(self.width)]

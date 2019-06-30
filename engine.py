@@ -41,9 +41,9 @@ def main():
             "dark_ground": tcod.Color(50, 50, 150)
     }
 
-    player = Entity(int(screen_width / 2), int(screen_height / 2), "@",
+    player = Entity(int(map_width / 2), int(map_height / 2), "@",
                     tcod.white)
-    npc = Entity(int(screen_width / 2 - 5), int(screen_height / 2), "@",
+    npc = Entity(int(map_width / 2 - 5), int(map_height / 2), "@",
                  tcod.yellow)
     entities = [player, npc]
 
@@ -177,6 +177,8 @@ def main():
                     tcod.console_flush()
 
             if test:
+                tiles = game_map.game_map_to_bool_array()
+                print(f"MapGraph({tiles}, {game_map.rooms})")
                 pass
 
 

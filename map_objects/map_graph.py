@@ -15,11 +15,15 @@ from map_objects.geometry import Rect
 
 
 class MapGraph():
-    def __init__(self, tiles, rooms=[], con=None, debug=False):
+    '''
+    Derives a graph structure from:
+        an array of grid tiles (2d list of bools where blocked tiles are True)
+        a list of rooms (instances of map_objects.geometry.Space)
+    '''
+    def __init__(self, tiles, rooms=[], debug=False):
         self.tiles = tiles
         self.hyperedges = []
         self.edges = []
-        self.con = con
         self.debug = debug
         self.vertices = self.create_vertices(rooms)
         # self.graph.find_vertex_neighbors()
@@ -30,7 +34,7 @@ class MapGraph():
         self.find_vertex_edges()
 
     def __repr__(self):
-        return f"MapGraph({self.tiles}, {self.vertices}"
+        return f"MapGraph({self.tiles}, {self.vertices})"
 
     def __str__(self):
         outstr = "=====MapGraph=====\n===Vertices===:\n"
@@ -67,7 +71,8 @@ class MapGraph():
             height = len(self.tiles[0])
             neighbors = self.find_vertex_neigh_iter(vertex, others,
                                                     width, height)
-            vertex.neighbors = list(set(neighbors))
+            vneigh = sorted(list(set(neighbors)), key=lambda x: x.ident)
+            vertex.neighbors = vneigh
 
     def vertex_neighbors_from_hyperedges(self):
         if self.debug:
@@ -78,7 +83,7 @@ class MapGraph():
             for edge in self.hyperedges:
                 if vertex in edge.vertices:
                     vlist.extend(edge.vertices)
-            nlist = list(set(vlist))
+            nlist = sorted(list(set(vlist)), key=lambda x: x.ident)
             nlist.remove(vertex)
             vertex.neighbors = nlist
 
@@ -102,19 +107,19 @@ class MapGraph():
                     break
             else:
                 if (not searched[x + 1][y]
-                        and not self.tiles[x + 1][y].blocked
+                        and not self.tiles[x + 1][y]
                         and not (x + 1, y) in searchq):
                     searchq.append((x + 1, y))
                 if (not searched[x - 1][y]
-                        and not self.tiles[x - 1][y].blocked
+                        and not self.tiles[x - 1][y]
                         and not (x - 1, y) in searchq):
                     searchq.append((x - 1, y))
                 if (not searched[x][y + 1]
-                        and not self.tiles[x][y + 1].blocked
+                        and not self.tiles[x][y + 1]
                         and not (x, y + 1) in searchq):
                     searchq.append((x, y + 1))
                 if (not searched[x][y - 1]
-                        and not self.tiles[x][y - 1].blocked
+                        and not self.tiles[x][y - 1]
                         and not (x, y - 1) in searchq):
                     searchq.append((x, y - 1))
 
@@ -150,7 +155,7 @@ class MapGraph():
                      for x in range(width)]
         for y in range(height):
             for x in range(width):
-                if self.tiles[x][y].blocked:
+                if self.tiles[x][y]:
                     edgetiles[x][y] = False
                 for vertex in self.vertices:
                     if vertex.space.contains(x, y):
@@ -197,31 +202,31 @@ class MapGraph():
                     break
             else:
                 if (not searched[x + 1][y]
-                        and not self.tiles[x + 1][y].blocked
+                        and not self.tiles[x + 1][y]
                         and not (x + 1, y) in searchq):
                     searchq.append((x + 1, y))
                 if (not searched[x - 1][y]
-                        and not self.tiles[x - 1][y].blocked
+                        and not self.tiles[x - 1][y]
                         and not (x - 1, y) in searchq):
                     searchq.append((x - 1, y))
                 if (not searched[x][y + 1]
-                        and not self.tiles[x][y + 1].blocked
+                        and not self.tiles[x][y + 1]
                         and not (x, y + 1) in searchq):
                     searchq.append((x, y + 1))
                 if (not searched[x][y - 1]
-                        and not self.tiles[x][y - 1].blocked
+                        and not self.tiles[x][y - 1]
                         and not (x, y - 1) in searchq):
                     searchq.append((x, y - 1))
                 tiles.append((x, y))
 
-        nlist = list(set(neighbors))
+        nlist = sorted(list(set(neighbors)), key=lambda x: x.ident)
         edge = MapEdge(Space(tiles), nlist)
         return edge
 
 # TODO:  rewrite to use arbitrary shaped vertices instead of just Rects
     def find_edges_from_hyperedges(self):
         if self.debug:
-            print("Finding Edges from Hyperedges...\n")
+            print("Finding Edges from Hyperedges...")
         elist = []
         for hyperedge in self.hyperedges:
             vids = []
@@ -248,7 +253,7 @@ class MapGraph():
         searched = []
         stack = deque()
         for x, y in coord_list:
-            # check adjacency against a fake Rect for speed
+            # check adjacency against a 1x1 Rect for speed
             if v0.space.adjacent_ortho(Rect(x, y, 0, 0)):
                 distance.append((x, y, 1))
                 stack.append((x, y, 1))
@@ -356,3 +361,8 @@ class MapEdge():
         outstr += f"\nCost: {self.cost}\n"
         outstr += f"Space: {self.space}\n"
         return outstr
+
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testfile("tests/map_graph.txt")

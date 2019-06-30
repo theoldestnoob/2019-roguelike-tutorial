@@ -1,0 +1,171 @@
+
+>>> from map_objects.map_graph import *
+
+>>> graph = MapGraph([[True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True], [True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, False, False, False, True], [True, True, True, True, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, True], [True, True, False, False, False, False, True, True, True, True, False, False, False, False, True, True, False, False, False, True], [True, True, False, False, False, False, False, False, False, False, False, False, False, False, True, True, True, True, True, True], [True, True, False, False, False, False, True, True, True, True, False, False, False, False, True, True, True, True, True, True], [True, True, False, False, False, False, True, True, True, True, False, False, False, False, True, False, False, False, False, True], [True, True, True, True, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, True], [True, True, True, True, False, True, True, True, True, True, False, True, False, True, True, False, False, False, False, True], [True, True, True, True, False, True, True, True, True, True, False, True, False, True, True, True, False, True, True, True], [True, True, True, True, False, True, True, True, True, True, False, False, False, False, False, True, False, True, True, True], [True, True, True, False, False, False, False, True, True, True, False, False, False, False, False, True, False, True, True, True], [True, True, True, False, False, False, False, True, True, True, False, False, False, False, False, True, False, True, True, True], [True, True, True, False, False, False, False, True, True, True, False, False, False, False, False, True, False, True, True, True], [True, True, True, False, False, False, False, True, True, True, False, True, True, True, True, True, False, True, True, True], [True, True, True, True, True, True, True, True, True, True, False, True, True, True, True, True, False, True, True, True], [True, True, True, True, True, True, True, True, True, False, False, False, True, True, True, True, False, True, True, True], [True, True, True, True, True, True, True, True, True, False, False, False, False, False, False, False, False, True, True, True], [True, True, True, True, True, True, True, True, True, False, False, False, True, True, True, True, True, True, True, True], [True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True]], [Rect(10, 11, 3, 3), Rect(3, 10, 3, 3), Rect(3, 2, 3, 3), Rect(16, 9, 2, 2), Rect(6, 15, 2, 3), Rect(11, 3, 3, 3), Rect(1, 16, 2, 2)])
+
+>>> for vertex in graph.vertices:
+...     print(vertex)
+...
+Vertex 'A': Rect(10, 11, 3, 3)
+Neighbors: B, C, D, E, F
+Hyperedges: #b
+Edges: d, e, f, g, h
+<BLANKLINE>
+Vertex 'B': Rect(3, 10, 3, 3)
+Neighbors: A, C, D, E, F, G
+Hyperedges: #a, #b, #c
+Edges: a, b, d, i, j, k, l, s
+<BLANKLINE>
+Vertex 'C': Rect(3, 2, 3, 3)
+Neighbors: A, B, D, E, F, G
+Hyperedges: #a, #b, #c
+Edges: a, c, e, i, m, n, o, s
+<BLANKLINE>
+Vertex 'D': Rect(16, 9, 2, 2)
+Neighbors: A, B, C, E, F
+Hyperedges: #b, #d
+Edges: f, j, m, p, q, t
+<BLANKLINE>
+Vertex 'E': Rect(6, 15, 2, 3)
+Neighbors: A, B, C, D, F
+Hyperedges: #b, #d
+Edges: g, k, n, p, r, t
+<BLANKLINE>
+Vertex 'F': Rect(11, 3, 3, 3)
+Neighbors: A, B, C, D, E
+Hyperedges: #b
+Edges: h, l, o, q, r
+<BLANKLINE>
+Vertex 'G': Rect(1, 16, 2, 2)
+Neighbors: B, C
+Hyperedges: #a
+Edges: b, c
+<BLANKLINE>
+
+>>> for hyperedge in graph.hyperedges:
+...	    print(hyperedge)
+...
+Edge '#a'
+Vertices: B, C, G
+Cost: 12
+Space: Space([(2, 4), (2, 5), (2, 6), (2, 7), (2, 8), (2, 9), (2, 10), (2, 11), (2, 12), (2, 13), (2, 14), (2, 15)])
+<BLANKLINE>
+Edge '#b'
+Vertices: A, B, C, D, E, F
+Cost: 24
+Space: Space([(7, 4), (8, 4), (7, 5), (9, 4), (7, 6), (10, 4), (7, 7), (7, 8), (7, 9), (7, 10), (8, 10), (7, 11), (9, 10), (7, 12), (10, 10), (8, 12), (7, 13), (11, 10), (9, 12), (7, 14), (12, 10), (13, 10), (14, 10), (15, 10)])
+<BLANKLINE>
+Edge '#c'
+Vertices: B, C
+Cost: 4
+Space: Space([(4, 6), (4, 7), (4, 8), (4, 9)])
+<BLANKLINE>
+Edge '#d'
+Vertices: D, E
+Cost: 13
+Space: Space([(17, 12), (17, 13), (17, 14), (17, 15), (17, 16), (16, 16), (15, 16), (14, 16), (13, 16), (12, 16), (11, 16), (10, 16), (9, 16)])
+<BLANKLINE>
+
+>>> for edge in graph.edges:
+...     print(edge)
+...
+Edge 'a'
+Vertices: B, C
+Cost: 6
+Space: Space([(2, 5), (2, 6), (2, 7), (2, 8), (2, 9), (2, 10)])
+<BLANKLINE>
+Edge 'b'
+Vertices: B, G
+Cost: 3
+Space: Space([(2, 15), (2, 14), (2, 13)])
+<BLANKLINE>
+Edge 'c'
+Vertices: C, G
+Cost: 11
+Space: Space([(2, 15), (2, 14), (2, 13), (2, 12), (2, 11), (2, 10), (2, 9), (2, 8), (2, 7), (2, 6), (2, 5)])
+<BLANKLINE>
+Edge 'd'
+Vertices: A, B
+Cost: 3
+Space: Space([(7, 12), (8, 12), (9, 12)])
+<BLANKLINE>
+Edge 'e'
+Vertices: A, C
+Cost: 9
+Space: Space([(7, 5), (7, 6), (7, 7), (7, 8), (7, 9), (7, 10), (8, 10), (9, 10), (10, 10)])
+<BLANKLINE>
+Edge 'f'
+Vertices: A, D
+Cost: 3
+Space: Space([(15, 10), (14, 10), (13, 10)])
+<BLANKLINE>
+Edge 'g'
+Vertices: A, E
+Cost: 5
+Space: Space([(7, 14), (7, 13), (7, 12), (8, 12), (9, 12)])
+<BLANKLINE>
+Edge 'h'
+Vertices: A, F
+Cost: 13
+Space: Space([(10, 4), (9, 4), (8, 4), (7, 4), (7, 5), (7, 6), (7, 7), (7, 8), (7, 9), (7, 10), (8, 10), (9, 10), (10, 10)])
+<BLANKLINE>
+Edge 'i'
+Vertices: B, C
+Cost: 6
+Space: Space([(7, 5), (7, 6), (7, 7), (7, 8), (7, 9), (7, 10)])
+<BLANKLINE>
+Edge 'j'
+Vertices: B, D
+Cost: 9
+Space: Space([(15, 10), (14, 10), (13, 10), (12, 10), (11, 10), (10, 10), (9, 10), (8, 10), (7, 10)])
+<BLANKLINE>
+Edge 'k'
+Vertices: B, E
+Cost: 2
+Space: Space([(7, 14), (7, 13)])
+<BLANKLINE>
+Edge 'l'
+Vertices: B, F
+Cost: 10
+Space: Space([(10, 4), (9, 4), (8, 4), (7, 4), (7, 5), (7, 6), (7, 7), (7, 8), (7, 9), (7, 10)])
+<BLANKLINE>
+Edge 'm'
+Vertices: C, D
+Cost: 14
+Space: Space([(15, 10), (14, 10), (13, 10), (12, 10), (11, 10), (10, 10), (9, 10), (8, 10), (7, 10), (7, 9), (7, 8), (7, 7), (7, 6), (7, 5)])
+<BLANKLINE>
+Edge 'n'
+Vertices: C, E
+Cost: 10
+Space: Space([(7, 14), (7, 13), (7, 12), (7, 11), (7, 10), (7, 9), (7, 8), (7, 7), (7, 6), (7, 5)])
+<BLANKLINE>
+Edge 'o'
+Vertices: C, F
+Cost: 4
+Space: Space([(10, 4), (9, 4), (8, 4), (7, 4)])
+<BLANKLINE>
+Edge 'p'
+Vertices: D, E
+Cost: 13
+Space: Space([(7, 14), (7, 13), (7, 12), (7, 11), (7, 10), (8, 10), (9, 10), (10, 10), (11, 10), (12, 10), (13, 10), (14, 10), (15, 10)])
+<BLANKLINE>
+Edge 'q'
+Vertices: D, F
+Cost: 18
+Space: Space([(10, 4), (9, 4), (8, 4), (7, 4), (7, 5), (7, 6), (7, 7), (7, 8), (7, 9), (7, 10), (8, 10), (9, 10), (10, 10), (11, 10), (12, 10), (13, 10), (14, 10), (15, 10)])
+<BLANKLINE>
+Edge 'r'
+Vertices: E, F
+Cost: 14
+Space: Space([(10, 4), (9, 4), (8, 4), (7, 4), (7, 5), (7, 6), (7, 7), (7, 8), (7, 9), (7, 10), (7, 11), (7, 12), (7, 13), (7, 14)])
+<BLANKLINE>
+Edge 's'
+Vertices: B, C
+Cost: 4
+Space: Space([(4, 6), (4, 7), (4, 8), (4, 9)])
+<BLANKLINE>
+Edge 't'
+Vertices: D, E
+Cost: 13
+Space: Space([(9, 16), (10, 16), (11, 16), (12, 16), (13, 16), (14, 16), (15, 16), (16, 16), (17, 16), (17, 15), (17, 14), (17, 13), (17, 12)])
+<BLANKLINE>
