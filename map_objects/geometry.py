@@ -114,6 +114,7 @@ class Rect(Space):
         center_y = int((self.y1 + self.y2) / 2)
         return (center_x, center_y)
 
+
 # TODO: holy crap this is slow, find a better way
 class Circle(Space):
     def __init__(self, x, y, r):

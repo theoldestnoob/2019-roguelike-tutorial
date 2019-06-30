@@ -75,7 +75,7 @@ def main():
             "bsp_depth": 4
     }
 
-    mapset = mapset_bspcirc
+    mapset = mapset_bsprand
 
     colors = {
             "dark_wall": tcod.Color(0, 0, 100),
