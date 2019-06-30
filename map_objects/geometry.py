@@ -50,6 +50,7 @@ class Space:
 
 
 class Rect(Space):
+    '''Rectangular Space, some methods are faster than the generics.'''
     def __init__(self, x, y, w, h):
         self.x1 = x
         self.y1 = y
@@ -121,6 +122,8 @@ class Rect(Space):
 
 # TODO: holy crap this is slow, find a better way
 class Circle(Space):
+    '''Circular Space. Generates a list of coordinates based on center x, y
+    coordinates and radius values passed into class initialization method.'''
     def __init__(self, x, y, r):
         # print("Circle.__init__()")
         self.x = x
@@ -131,10 +134,10 @@ class Circle(Space):
         # print(f"x: {x}, y: {y}, {r}")
         for c_x in range(-r, r + 1):
             c_x_sq = c_x ** 2
-            #print(f"c_x: {c_x}, c_x_sq: {c_x_sq}")
+            # print(f"c_x: {c_x}, c_x_sq: {c_x_sq}")
             for c_y in range(-r, r + 1):
                 c_y_sq = c_y ** 2
-                #print(f"c_y: {c_y}, c_y_sq: {c_y_sq}")
+                # print(f"c_y: {c_y}, c_y_sq: {c_y_sq}")
                 if c_x_sq + c_y_sq < r_sq:
                     z_coords.append((c_x, c_y))
         coords = []

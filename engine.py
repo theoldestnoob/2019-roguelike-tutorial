@@ -23,6 +23,7 @@ def main():
     map_width = 80
     map_height = 45
     seed = "testseed"
+    debug_f = False
 
     mapset_bsprect = {
             "room_max_size": 15,
@@ -72,7 +73,7 @@ def main():
             "bsp_depth": 4
     }
 
-    mapset = mapset_bsprand
+    mapset = mapset_bsprect
 
     colors = {
             "dark_wall": tcod.Color(0, 0, 100),
@@ -104,9 +105,9 @@ def main():
             renderer=tcod.RENDERER_SDL2,
             vsync=False) as con:
 
-        # game_map = GameMap(map_width, map_height, seed, con=con, debug=True)
-        # game_map = GameMapRandomRooms(map_width, map_height, seed, con=con, debug=True)
-        game_map = GameMapBSP(map_width, map_height, seed, con=con, debug=True)
+        # game_map = GameMap(map_width, map_height, seed, con=con, debug=debug_f)
+        # game_map = GameMapRandomRooms(map_width, map_height, seed, con=con, debug=debug_f)
+        game_map = GameMapBSP(map_width, map_height, seed, con=con, debug=debug_f)
         game_map.make_map(player, **mapset)
 
         while True:

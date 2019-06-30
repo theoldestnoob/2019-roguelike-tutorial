@@ -19,7 +19,6 @@ class GameMap:
     used by all GameMap subclasses. By itself just creates one room that fills
     the map with a 1-width wall around the edge.
     '''
-
     def __init__(self, width, height, seed, con=None, debug=False):
         self.width = width
         self.height = height
@@ -32,18 +31,23 @@ class GameMap:
         self.graph = None
 
     def initialize_tiles(self):
+        '''Set all tiles' blocked and block_view attributes to True.'''
         tiles = [[Tile(True) for y in range(self.height)]
                  for x in range(self.width)]
 
         return tiles
 
     def is_blocked(self, x, y):
+        '''Is the tile at (x, y) blocked?'''
         if self.tiles[x][y].blocked:
             return True
 
         return False
 
     def make_map(self, player, *args, **kwargs):
+        '''Make a big empty map with a wall around the edge. Expected to be
+        overloaded by any child classes.
+        '''
         # create a big empty map with a wall around the edges
         room = Rect(1, 1, self.width - 3, self.height - 3)
         print(room)
@@ -52,35 +56,41 @@ class GameMap:
         player.x, player.y = room.center()
 
     def make_graph(self):
+        '''Generate graph data about the map and store it in self.graph.'''
         tiles = self.game_map_to_bool_array()
         self.graph = MapGraph(tiles, self.rooms, debug=self.debug)
         if self.debug:
             print(self.graph)
 
     def create_room(self, room):
+        '''Carve out a room using a list of (x, y) coordinate pairs.'''
         for (x, y) in room.coords:
             self.tiles[x][y].blocked = False
             self.tiles[x][y].block_sight = False
 
     def create_room_rect(self, room):
-        # go through the tiles in the rectangle and make them passable
-        #   leaving a 1-tile wide border around the edge
+        '''Carve out a room based on a Rect, leaving a 1-tile wide border
+        around the edges.
+        '''
         for x in range(room.x1, room.x2 + 1):
             for y in range(room.y1, room.y2 + 1):
                 self.tiles[x][y].blocked = False
                 self.tiles[x][y].block_sight = False
 
     def create_h_tunnel(self, x1, x2, y):
+        '''Carve out a horizontal tunnel between (x1, y) and (x2, y).'''
         for x in range(min(x1, x2), max(x1, x2) + 1):
             self.tiles[x][y].blocked = False
             self.tiles[x][y].block_sight = False
 
     def create_v_tunnel(self, y1, y2, x):
+        '''Carve out a vertical tunnel between (x, y1) and (x, y2)'''
         for y in range(min(y1, y2), max(y1, y2) + 1):
             self.tiles[x][y].blocked = False
             self.tiles[x][y].block_sight = False
 
     def create_d_tunnel(self, x1, y1, x2, y2):
+        '''Carve out a tunnel between (x1, y1) and (x2, y2).'''
         points = line_lerp_orthogonal(x1, y1, x2, y2)
         for x, y in points:
             self.tiles[x][y].blocked = False
@@ -152,5 +162,9 @@ class GameMap:
                 old_room = room
 
     def game_map_to_bool_array(self):
+        '''Get a multidimensional array of bools describing map walkability.
+        Passed into MapGraph to decouple the MapGraph class from specific
+        GameMap implementation detail.
+        '''
         return [[self.tiles[x][y].blocked for y in range(self.height)]
                 for x in range(self.width)]
