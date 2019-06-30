@@ -7,6 +7,10 @@ Created on Tue Jun 25 22:11:50 2019
 
 
 class Space:
+    '''Collection of coordinates with some helpful methods that allow testing
+    for intersection, adjacency, etc. Inherited by all other geometric spaces.
+    Used as GameMap rooms, MapGraph Vertices and Edges, etc.
+    '''
     def __init__(self, coords):
         self.coords = coords
 
@@ -127,10 +131,10 @@ class Circle(Space):
         # print(f"x: {x}, y: {y}, {r}")
         for c_x in range(-r, r + 1):
             c_x_sq = c_x ** 2
-            # print(f"c_x: {c_x}, c_x_sq: {c_x_sq}")
+            #print(f"c_x: {c_x}, c_x_sq: {c_x_sq}")
             for c_y in range(-r, r + 1):
                 c_y_sq = c_y ** 2
-                # print(f"c_y: {c_y}, c_y_sq: {c_y_sq}")
+                #print(f"c_y: {c_y}, c_y_sq: {c_y_sq}")
                 if c_x_sq + c_y_sq < r_sq:
                     z_coords.append((c_x, c_y))
         coords = []
@@ -138,7 +142,7 @@ class Circle(Space):
             f_x = k_x + self.x
             f_y = k_y + self.y
             coords.append((f_x, f_y))
-        print(coords)
+        # print(coords)
         self.coords = coords
 
     def __repr__(self):

@@ -36,15 +36,14 @@ def main():
             "circ_rooms": 0,
             "rect_rooms": 1,
             "unused": True,
-            "bsp_min": 0.35,
-            "bsp_max": 0.65,
+            "bsp_range": 0.15,
             "bsp_depth": 4
     }
 
     mapset_bspcirc = {
-            "room_max_size": 15,
-            "room_min_size": 8,
-            "min_rooms": 8,
+            "room_max_size": 28,
+            "room_min_size": 12,
+            "min_rooms": 6,
             "max_rooms": 30,
             "ratio_vh": 0,
             "ratio_hv": 0,
@@ -53,8 +52,7 @@ def main():
             "circ_rooms": 1,
             "rect_rooms": 0,
             "unused": True,
-            "bsp_min": 0.35,
-            "bsp_max": 0.65,
+            "bsp_range": 0.15,
             "bsp_depth": 4
     }
 
@@ -70,8 +68,7 @@ def main():
             "circ_rooms": 1,
             "rect_rooms": 1,
             "unused": True,
-            "bsp_min": 0.35,
-            "bsp_max": 0.65,
+            "bsp_range": 0.15,
             "bsp_depth": 4
     }
 
