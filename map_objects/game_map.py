@@ -15,6 +15,11 @@ from map_objects.map_graph import MapGraph
 
 
 class GameMap:
+    '''Basic GameMap object, provides attributes and a handful of functions
+    used by all GameMap subclasses. By itself just creates one room that fills
+    the map with a 1-width wall around the edge.
+    '''
+
     def __init__(self, width, height, seed, con=None, debug=False):
         self.width = width
         self.height = height
@@ -82,6 +87,7 @@ class GameMap:
             self.tiles[x][y].block_sight = False
 
     def make_halls(self, space, player, ratio_vh, ratio_hv, ratio_d):
+        '''Add halls to the map betwen rooms in order of room creation.'''
         old_room = None
         for room in self.rooms:
             if old_room is None:
@@ -112,6 +118,7 @@ class GameMap:
                 old_room = room
 
     def make_halls_random(self, space, player, ratio_vh, ratio_hv, ratio_d):
+        '''Add halls to the map between rooms in random order.'''
         old_room = None
         rooms = list(self.rooms)
         while rooms:
