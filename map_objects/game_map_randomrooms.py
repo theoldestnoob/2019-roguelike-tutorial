@@ -13,6 +13,7 @@ from map_objects.game_map import GameMap
 from map_objects.geometry import Rect
 
 
+# TODO: add support for various map generation options from GameMapBSP
 class GameMapRandomRooms(GameMap):
     def make_map(self, player, *args,
                  max_rooms=30, room_min_size=6, room_max_size=10,

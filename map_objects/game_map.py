@@ -5,6 +5,9 @@ Created on Tue Jun 25 20:47:16 2019
 @author: theoldestnoob
 """
 
+from random import uniform
+from random import choice
+
 from map_objects.geometry import Rect
 from map_objects.geometry import line_lerp_orthogonal
 from map_objects.tile import Tile
@@ -50,6 +53,11 @@ class GameMap:
             print(self.graph)
 
     def create_room(self, room):
+        for (x, y) in room.coords:
+            self.tiles[x][y].blocked = False
+            self.tiles[x][y].block_sight = False
+
+    def create_room_rect(self, room):
         # go through the tiles in the rectangle and make them passable
         #   leaving a 1-tile wide border around the edge
         for x in range(room.x1, room.x2 + 1):
@@ -72,6 +80,69 @@ class GameMap:
         for x, y in points:
             self.tiles[x][y].blocked = False
             self.tiles[x][y].block_sight = False
+
+    def make_halls(self, space, player, ratio_vh, ratio_hv, ratio_d):
+        old_room = None
+        for room in self.rooms:
+            if old_room is None:
+                (x, y) = room.center()
+                player.x = x
+                player.y = y
+                old_room = room
+            else:
+                # generate corridors depending on proportions passed into
+                #   make_map function
+                (new_x, new_y) = room.center()
+                (prev_x, prev_y) = old_room.center()
+                randpool = ratio_hv + ratio_vh + ratio_d
+                hv = ratio_hv
+                vh = ratio_hv + ratio_vh
+                roll = uniform(0, randpool)
+                if roll < hv:
+                    # first move horizontally, then vertically
+                    self.create_h_tunnel(prev_x, new_x, prev_y)
+                    self.create_v_tunnel(prev_y, new_y, new_x)
+                elif roll < vh:
+                    # first move vertically, then horizontally
+                    self.create_v_tunnel(prev_y, new_y, prev_x)
+                    self.create_h_tunnel(prev_x, new_x, new_y)
+                else:
+                    # draw diagonal hallways
+                    self.create_d_tunnel(prev_x, prev_y, new_x, new_y)
+                old_room = room
+
+    def make_halls_random(self, space, player, ratio_vh, ratio_hv, ratio_d):
+        old_room = None
+        rooms = list(self.rooms)
+        while rooms:
+            room = choice(rooms)
+            rooms.remove(room)
+            if old_room is None:
+                (x, y) = room.center()
+                player.x = x
+                player.y = y
+                old_room = room
+            else:
+                # generate corridors depending on proportions passed into
+                #   make_map function
+                (new_x, new_y) = room.center()
+                (prev_x, prev_y) = old_room.center()
+                randpool = ratio_hv + ratio_vh + ratio_d
+                hv = ratio_hv
+                vh = ratio_hv + ratio_vh
+                roll = uniform(0, randpool)
+                if roll < hv:
+                    # first move horizontally, then vertically
+                    self.create_h_tunnel(prev_x, new_x, prev_y)
+                    self.create_v_tunnel(prev_y, new_y, new_x)
+                elif roll < vh:
+                    # first move vertically, then horizontally
+                    self.create_v_tunnel(prev_y, new_y, prev_x)
+                    self.create_h_tunnel(prev_x, new_x, new_y)
+                else:
+                    # draw diagonal hallways
+                    self.create_d_tunnel(prev_x, prev_y, new_x, new_y)
+                old_room = room
 
     def game_map_to_bool_array(self):
         return [[self.tiles[x][y].blocked for y in range(self.height)]
