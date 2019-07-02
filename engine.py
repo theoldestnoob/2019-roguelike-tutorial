@@ -23,7 +23,7 @@ def main():
     map_width = 80
     map_height = 45
     seed = "testseed"
-    debug_f = False
+    debug_f = True
 
     mapset_bsprect = {
             "room_max_size": 15,
@@ -58,9 +58,9 @@ def main():
     }
 
     mapset_bsprand = {
-            "room_max_size": 15,
-            "room_min_size": 8,
-            "min_rooms": 8,
+            "room_max_size": 26,
+            "room_min_size": 6,
+            "min_rooms": 5,
             "max_rooms": 30,
             "ratio_vh": 1,
             "ratio_hv": 1,
@@ -69,11 +69,11 @@ def main():
             "circ_rooms": 1,
             "rect_rooms": 1,
             "unused": True,
-            "bsp_range": 0.15,
+            "bsp_range": 0.4,
             "bsp_depth": 4
     }
 
-    mapset = mapset_bsprect
+    mapset = mapset_bsprand
 
     colors = {
             "dark_wall": tcod.Color(0, 0, 100),
@@ -124,8 +124,7 @@ def main():
 
             action = in_handle.get_action()
 
-            # debug output
-            if(action):
+            if debug_f and action:
                 print(action)
 
             move = action.get("move")
@@ -162,7 +161,8 @@ def main():
                 for edge in game_map.graph.hyperedges:
                     display_space(con, edge.space, tcod.green)
                     tcod.console_flush()
-                    print(f"***Hyperedge: {edge}")
+                    if debug_f:
+                        print(f"***Hyperedge: {edge}")
                     while True:
                         for event in tcod.event.get():
                             in_handle.dispatch(event)
@@ -181,7 +181,8 @@ def main():
                 for edge in game_map.graph.edges:
                     display_space(con, edge.space, tcod.green)
                     tcod.console_flush()
-                    print(f"***Edge: {edge}")
+                    if debug_f:
+                        print(f"***Edge: {edge}")
                     while True:
                         for event in tcod.event.get():
                             in_handle.dispatch(event)
@@ -200,7 +201,8 @@ def main():
                 for vertex in game_map.graph.vertices:
                     display_space(con, vertex.space, tcod.green)
                     tcod.console_flush()
-                    print(f"***Vertex: {vertex}")
+                    if debug_f:
+                        print(f"***Vertex: {vertex}")
                     while True:
                         for event in tcod.event.get():
                             in_handle.dispatch(event)
@@ -216,9 +218,8 @@ def main():
                     tcod.console_flush()
 
             if test:
-                tiles = game_map.game_map_to_bool_array()
-                print(f"MapGraph({tiles}, {game_map.rooms})")
-                pass
+                game_map.make_graph()
+                print(game_map.graph.get_metrics())
 
 
 if __name__ == "__main__":

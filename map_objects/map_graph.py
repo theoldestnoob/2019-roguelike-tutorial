@@ -21,10 +21,10 @@ class MapGraph():
         a list of rooms (instances of map_objects.geometry.Space)
     '''
     def __init__(self, tiles, rooms=[], debug=False):
+        self.debug = debug
         self.tiles = tiles
         self.hyperedges = []
         self.edges = []
-        self.debug = debug
         self.vertices = self.create_vertices(rooms)
         # self.graph.find_vertex_neighbors()
         self.find_hyperedges()
@@ -161,7 +161,7 @@ class MapGraph():
 
     def find_hyperedges(self):
         '''Find all hyperedges in graph using floodfill helper method and store
-        as MapEdge objects.
+        as MapHyperedge objects.
         '''
         if self.debug:
             print("Finding Hyperedges...")
@@ -240,7 +240,7 @@ class MapGraph():
                 tiles.append((x, y))
 
         nlist = sorted(list(set(neighbors)), key=lambda x: x.ident)
-        edge = MapEdge(Space(tiles), nlist)
+        edge = MapHyperedge(Space(tiles), nlist)
         return edge
 
     def find_edges_from_hyperedges(self):
@@ -258,7 +258,9 @@ class MapGraph():
                 # find shortest path between v0 and v1 in hyperedge.space
                 v0, v1 = pair
                 s = self.find_spath_in_coords(hyperedge.space, v0, v1)
-                elist.append(MapEdge(Space(s), [v0, v1]))
+                edge = MapEdge(Space(s), [v0, v1], hyperedge=hyperedge)
+                elist.append(edge)
+                edge.hyperedge.edges.append(edge)
         # assign identifiers to all edges
         alphabet = "abcdefghijklmnopqrstuvwxyz"
         rnum = len(elist) // len(alphabet) + 1
@@ -326,22 +328,69 @@ class MapGraph():
 
         return spath
 
+    def get_metrics(self):
+        '''Generate a set of measures about the graph.'''
+        v_count = len(self.vertices)
+        e_count = len(self.edges)
+        he_count = len(self.hyperedges)
+        len_2_he = 0
+        true_he = he_count
+        he_rank = 0
+        he_k_degree = 0
+        he_uniform = True
+        for he in self.hyperedges:
+            he_card = len(he.vertices)
+            if he_rank < he_card:
+                he_rank = he_card
+            if he_k_degree == 0:
+                he_k_degree = he_card
+            elif he_k_degree != he_card:
+                he_uniform = False
+            if he_card == 2:
+                len_2_he += 1
+                true_he -= 1
+        outstr = "===Graph Metrics===\n"
+        outstr += f" Vertices: {v_count}\n"
+        outstr += f" Edges: {e_count}\n"
+        outstr += f" Hyperedges: {he_count}\n"
+        outstr += f" Cardinality 2 Hyperedges (Edges): {len_2_he}\n"
+        outstr += f" Cardinality >2 Hyperedges: {true_he}\n"
+        outstr += f" Hypergraph rank: {he_rank}\n"
+        if he_uniform:
+            outstr += f" Hypergraph is k-uniform.\n"
+        else:
+            outstr += f" Hypergraph is not k-uniform.\n"
+        if he_uniform and he_rank == 2:
+            outstr += f" 2-uniform Hypergraph: just a normal graph!\n"
+
+        return outstr
+
 
 class MapVertex():
     '''Vertex in MapGraph. Contains a Space and identifier and lists of
     connected hyperedges, connected edges, and neighbor vertices.
     '''
-    def __init__(self, space=None, ident=None, hyperedges=[], edges=[],
-                 neighbors=[]):
+    def __init__(self, space=None, ident=None, hyperedges=None, edges=None,
+                 neighbors=None):
         self.space = space
         self.ident = ident
-        self.hyperedges = hyperedges
-        self.edges = edges
-        self.neighbors = neighbors
+        if hyperedges is None:
+            self.hyperedges = []
+        else:
+            self.hyperedges = hyperedges
+        if edges is None:
+            self.edges = []
+        else:
+            self.edges = edges
+        if neighbors is None:
+            self.neighbors = []
+        else:
+            self.neighbors = neighbors
 
     def __repr__(self):
-        outstr = f"MapVertex({self.space}, {self.ident}, "
-        outstr += f"{self.hyperedges}, {self.neighbors})"
+        outstr = f"MapVertex(space={self.space}, ident={self.ident}, "
+        outstr += f"hyperedges={self.hyperedges}, edges={self.edges}, "
+        outstr += f"neighbors={self.neighbors})"
         return outstr
 
     def __str__(self):
@@ -365,12 +414,13 @@ class MapVertex():
 
 
 class MapEdge():
-    '''Edge or Hyperedge in MapGraph. Contains a Space and identifier and lists
-    of connected vertices.
+    '''Edge in MapGraph. Contains a Space, identifier, list of connected
+    vertices, and its parent hyperedge.
     '''
-    def __init__(self, space, vertices, ident=None):
+    def __init__(self, space, vertices, ident=None, hyperedge=None):
         self.space = space
         self.vertices = vertices
+        self.hyperedge = hyperedge
         if ident is None:
             vlist = []
             for vertex in vertices:
@@ -382,17 +432,52 @@ class MapEdge():
         self.cost = len(self.space)
 
     def __repr__(self):
-        return f"MapEdge({self.space}, {self.ident}, {self.vertices})"
+        repstr = f"MapEdge({self.space}, {self.vertices}, ident={self.ident}, "
+        repstr += f"hyperedge={self.hyperedge})"
+        return repstr
 
     def __str__(self):
         outstr = f"Edge '{self.ident}'\n"
+        outstr += f"Parent Hyperedge: '{self.hyperedge.ident}'\n"
         outstr += f"Vertices: "
         vids = []
         for vertex in self.vertices:
             vids.append(f"{vertex.ident}")
         outstr += ", ".join(vids)
         outstr += f"\nCost: {self.cost}\n"
-        outstr += f"Space: {self.space}\n"
+        return outstr
+
+
+class MapHyperedge(MapEdge):
+    '''Hyperedge in MapGraph. A MapEdge that contains a list of all of its
+    child edges.
+    '''
+    def __init__(self, *args, edges=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.hyperedge = None
+        if edges is None:
+            self.edges = []
+        else:
+            self.edges = edges
+
+    def __repr__(self):
+        repstr = f"MapHyperedge({self.space}, {self.vertices}, "
+        repstr += f"ident={self.ident}, edges={self.edges})"
+        return repstr
+
+    def __str__(self):
+        outstr = f"Hyperedge '{self.ident}'\n"
+        outstr += f"Vertices: "
+        vids = []
+        for vertex in self.vertices:
+            vids.append(f"{vertex.ident}")
+        outstr += ", ".join(vids)
+        eids = []
+        for edge in self.edges:
+            eids.append(f"{edge.ident}")
+        outstr += "\nEdges: "
+        outstr += ", ".join(eids)
+        outstr += "\n"
         return outstr
 
 
