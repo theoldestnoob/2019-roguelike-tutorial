@@ -18,12 +18,16 @@ from map_objects.game_map_randomrooms import GameMapRandomRooms
 
 
 def main():
+    debug_f = True
+    seed = "testseed"
     screen_width = 80
     screen_height = 50
     map_width = 80
     map_height = 45
-    seed = "testseed"
-    debug_f = True
+
+    fov_algorithm = 0
+    fov_light_walls = True
+    fov_radius = 10  
 
     mapset_bsprect = {
             "room_max_size": 15,
@@ -77,8 +81,12 @@ def main():
 
     colors = {
             "dark_wall": tcod.Color(0, 0, 100),
-            "dark_ground": tcod.Color(50, 50, 150)
+            "dark_ground": tcod.Color(50, 50, 150),
+            "light_wall": tcod.Color(130, 110, 50),
+            "light_ground": tcod.Color(200, 180, 50)
     }
+
+    fov_recompute = True
 
     player = Entity(int(map_width / 2), int(map_height / 2), "@",
                     tcod.white)

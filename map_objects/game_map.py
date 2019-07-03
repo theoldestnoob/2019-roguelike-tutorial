@@ -57,7 +57,7 @@ class GameMap:
 
     def make_graph(self):
         '''Generate graph data about the map and store it in self.graph.'''
-        tiles = self.game_map_to_bool_array()
+        tiles = self.game_map_to_walkable_array()
         self.graph = MapGraph(tiles, self.rooms, debug=self.debug)
         if self.debug:
             print(self.graph)
@@ -161,10 +161,10 @@ class GameMap:
                     self.create_d_tunnel(prev_x, prev_y, new_x, new_y)
                 old_room = room
 
-    def game_map_to_bool_array(self):
+    def game_map_to_walkable_array(self):
         '''Get a multidimensional array of bools describing map walkability.
         Passed into MapGraph to decouple the MapGraph class from specific
         GameMap implementation detail.
         '''
-        return [[self.tiles[x][y].blocked for y in range(self.height)]
+        return [[not self.tiles[x][y].blocked for y in range(self.height)]
                 for x in range(self.width)]

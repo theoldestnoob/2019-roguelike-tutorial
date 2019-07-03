@@ -17,12 +17,12 @@ from map_objects.geometry import Rect
 class MapGraph():
     '''
     Derives a graph structure from:
-        an array of grid tiles (2d list of bools where blocked tiles are True)
+        an array of grid tiles (2d list of bools where walkable tiles are True)
         a list of rooms (instances of map_objects.geometry.Space)
     '''
-    def __init__(self, tiles, rooms=[], debug=False):
+    def __init__(self, walkable_array, rooms=[], debug=False):
         self.debug = debug
-        self.tiles = tiles
+        self.walkable = walkable_array
         self.hyperedges = []
         self.edges = []
         self.vertices = self.create_vertices(rooms)
@@ -34,7 +34,7 @@ class MapGraph():
         self.find_vertex_edges()
 
     def __repr__(self):
-        return f"MapGraph({self.tiles}, {self.vertices})"
+        return f"MapGraph({self.walkable}, {self.vertices})"
 
     def __str__(self):
         outstr = "=====MapGraph=====\n===Vertices===:\n"
@@ -70,8 +70,8 @@ class MapGraph():
         for vertex in self.vertices:
             room_x, room_y = vertex.space.center()
             others = [k for k in self.vertices if k is not vertex]
-            width = len(self.tiles)
-            height = len(self.tiles[0])
+            width = len(self.walkable)
+            height = len(self.walkable[0])
             neighbors = self.find_vertex_neigh_iter(vertex, others,
                                                     width, height)
             vneigh = sorted(list(set(neighbors)), key=lambda x: x.ident)
@@ -119,19 +119,19 @@ class MapGraph():
                     break
             else:
                 if (not searched[x + 1][y]
-                        and not self.tiles[x + 1][y]
+                        and self.walkable[x + 1][y]
                         and not (x + 1, y) in searchq):
                     searchq.append((x + 1, y))
                 if (not searched[x - 1][y]
-                        and not self.tiles[x - 1][y]
+                        and self.walkable[x - 1][y]
                         and not (x - 1, y) in searchq):
                     searchq.append((x - 1, y))
                 if (not searched[x][y + 1]
-                        and not self.tiles[x][y + 1]
+                        and self.walkable[x][y + 1]
                         and not (x, y + 1) in searchq):
                     searchq.append((x, y + 1))
                 if (not searched[x][y - 1]
-                        and not self.tiles[x][y - 1]
+                        and self.walkable[x][y - 1]
                         and not (x, y - 1) in searchq):
                     searchq.append((x, y - 1))
 
@@ -166,13 +166,13 @@ class MapGraph():
         if self.debug:
             print("Finding Hyperedges...")
         # find tiles that aren't walls and aren't in a vertex
-        width = len(self.tiles)
-        height = len(self.tiles[0])
+        width = len(self.walkable)
+        height = len(self.walkable[0])
         edgetiles = [[True for y in range(height)]
                      for x in range(width)]
         for y in range(height):
             for x in range(width):
-                if self.tiles[x][y]:
+                if not self.walkable[x][y]:
                     edgetiles[x][y] = False
                 for vertex in self.vertices:
                     if vertex.space.contains(x, y):
@@ -222,19 +222,19 @@ class MapGraph():
                     break
             else:
                 if (not searched[x + 1][y]
-                        and not self.tiles[x + 1][y]
+                        and self.walkable[x + 1][y]
                         and not (x + 1, y) in searchq):
                     searchq.append((x + 1, y))
                 if (not searched[x - 1][y]
-                        and not self.tiles[x - 1][y]
+                        and self.walkable[x - 1][y]
                         and not (x - 1, y) in searchq):
                     searchq.append((x - 1, y))
                 if (not searched[x][y + 1]
-                        and not self.tiles[x][y + 1]
+                        and self.walkable[x][y + 1]
                         and not (x, y + 1) in searchq):
                     searchq.append((x, y + 1))
                 if (not searched[x][y - 1]
-                        and not self.tiles[x][y - 1]
+                        and self.walkable[x][y - 1]
                         and not (x, y - 1) in searchq):
                     searchq.append((x, y - 1))
                 tiles.append((x, y))
