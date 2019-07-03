@@ -15,6 +15,7 @@ from render_functions import clear_all, render_all, display_space
 from map_objects.game_map import GameMap
 from map_objects.game_map_bsp import GameMapBSP
 from map_objects.game_map_randomrooms import GameMapRandomRooms
+from fov_functions import initialize_fov, recompute_fov
 
 
 def main():
@@ -27,7 +28,7 @@ def main():
 
     fov_algorithm = 0
     fov_light_walls = True
-    fov_radius = 10  
+    fov_radius = 10
 
     mapset_bsprect = {
             "room_max_size": 15,
@@ -86,8 +87,6 @@ def main():
             "light_ground": tcod.Color(200, 180, 50)
     }
 
-    fov_recompute = True
-
     player = Entity(int(map_width / 2), int(map_height / 2), "@",
                     tcod.white)
     npc = Entity(int(map_width / 2 - 5), int(map_height / 2), "@",
@@ -118,10 +117,18 @@ def main():
         game_map = GameMapBSP(map_width, map_height, seed, con=con, debug=debug_f)
         game_map.make_map(player, **mapset)
 
+        fov_recompute = True
+
+        fov_map = initialize_fov(game_map)
+
         while True:
 
-            render_all(con, entities, game_map, screen_width, screen_height,
-                       colors)
+            if fov_recompute:
+                recompute_fov(fov_map, player.x, player.y, fov_radius,
+                              fov_light_walls, fov_algorithm)
+
+            render_all(con, entities, game_map, fov_map, fov_recompute,
+                       screen_width, screen_height, colors)
 
             tcod.console_flush()
 
@@ -149,6 +156,7 @@ def main():
                 dx, dy = move
                 if not game_map.is_blocked(player.x + dx, player.y + dy):
                     player.move(dx, dy)
+                    fov_recompute = True
 
             if want_exit:
                 return True
@@ -161,6 +169,7 @@ def main():
                 game_map.seed = randint(0, 99999)
                 game_map.tiles = game_map.initialize_tiles()
                 game_map.make_map(player, **mapset)
+                fov_map = initialize_fov(game_map)
 
             if graph_gen:
                 game_map.make_graph()
@@ -181,8 +190,8 @@ def main():
                             return True
                         if show_hyperedges:
                             break
-                    render_all(con, entities, game_map, screen_width,
-                               screen_height, colors)
+                    render_all(con, entities, game_map, fov_map, fov_recompute,
+                               screen_width, screen_height, colors)
                     tcod.console_flush()
 
             if show_edges and game_map.graph is not None:
@@ -201,8 +210,8 @@ def main():
                             return True
                         if show_edges:
                             break
-                    render_all(con, entities, game_map, screen_width,
-                               screen_height, colors)
+                    render_all(con, entities, game_map, fov_map, fov_recompute,
+                               screen_width, screen_height, colors)
                     tcod.console_flush()
 
             if show_vertices and game_map.graph is not None:
@@ -221,8 +230,8 @@ def main():
                             return True
                         if show_vertices:
                             break
-                    render_all(con, entities, game_map, screen_width,
-                               screen_height, colors)
+                    render_all(con, entities, game_map, fov_map, fov_recompute,
+                               screen_width, screen_height, colors)
                     tcod.console_flush()
 
             if test:
