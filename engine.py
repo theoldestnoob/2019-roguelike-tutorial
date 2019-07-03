@@ -31,6 +31,7 @@ def main():
     fov_radius = 10
     omnivision = False
 
+
     mapset_bsprect = {
             "room_max_size": 15,
             "room_min_size": 8,
@@ -125,6 +126,7 @@ def main():
         for entity in entities:
             entity.fov_map = initialize_fov(game_map)
 
+
         while True:
 
             if fov_recompute:
@@ -164,6 +166,7 @@ def main():
                 if not game_map.is_blocked(controlled_entity.x + dx,
                                            controlled_entity.y + dy):
                     controlled_entity.move(dx, dy)
+
                     fov_recompute = True
 
             if want_exit:
