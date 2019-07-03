@@ -8,13 +8,14 @@ Created on Tue Jun 25 19:35:17 2019
 import tcod
 
 
-def render_all(con, entities, game_map, screen_width, screen_height, colors):
+def render_all(con, entities, game_map, fov_map, fov_recompute,
+               screen_width, screen_height, colors):
     # draw all the tiles in the game map
-    draw_map(con, game_map.tiles, game_map.width, game_map.height, colors)
+    draw_map(con, game_map, fov_map, fov_recompute, colors)
 
     # draw all the entities in the list
     for entity in entities:
-        draw_entity(con, entity)
+        draw_entity(con, entity, fov_map)
 
     # tcod.console_blit(con, 0, 0, screen_width, screen_height, 0, 0, 0)
 
@@ -24,24 +25,38 @@ def clear_all(con, entities):
         clear_entity(con, entity)
 
 
-def draw_map(con, tiles, width, height, colors):
-    for y in range(height):
-        for x in range(width):
-            wall = tiles[x][y].block_sight
+def draw_map(con, game_map, fov_map, fov_recompute, colors):
+    if fov_recompute:
+        for y in range(game_map.height):
+            for x in range(game_map.width):
+                visible = tcod.map_is_in_fov(fov_map, x, y)
+                wall = game_map.tiles[x][y].block_sight
 
-            if wall:
-                tcod.console_set_char_background(con, x, y,
-                                                 colors["dark_wall"],
-                                                 tcod.BKGND_SET)
-            else:
-                tcod.console_set_char_background(con, x, y,
-                                                 colors["dark_ground"],
-                                                 tcod.BKGND_SET)
+                if visible:
+                    if wall:
+                        tcod.console_set_char_background(con, x, y,
+                                                         colors["light_wall"],
+                                                         tcod.BKGND_SET)
+                    else:
+                        tcod.console_set_char_background(con, x, y,
+                                                         colors["light_ground"],
+                                                         tcod.BKGND_SET)
+                    game_map.tiles[x][y].explored = True
+                elif game_map.tiles[x][y].explored:
+                    if wall:
+                        tcod.console_set_char_background(con, x, y,
+                                                         colors["dark_wall"],
+                                                         tcod.BKGND_SET)
+                    else:
+                        tcod.console_set_char_background(con, x, y,
+                                                         colors["dark_ground"],
+                                                         tcod.BKGND_SET)
 
 
-def draw_entity(con, entity):
-    con.default_fg = entity.color
-    con.put_char(entity.x, entity.y, ord(entity.char))
+def draw_entity(con, entity, fov_map):
+    if tcod.map_is_in_fov(fov_map, entity.x, entity.y):
+        con.default_fg = entity.color
+        con.put_char(entity.x, entity.y, ord(entity.char))
 
 
 def clear_entity(con, entity):

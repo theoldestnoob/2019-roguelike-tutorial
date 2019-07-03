@@ -168,3 +168,10 @@ class GameMap:
         '''
         return [[not self.tiles[x][y].blocked for y in range(self.height)]
                 for x in range(self.width)]
+
+    def game_map_to_transparent_array(self):
+        '''Get a multidimensional array of bools describing map transparency.
+        Passed into tcod map for fov calculations.
+        '''
+        return [[not self.tiles[x][y].block_sight for y in range(self.height)]
+                for x in range(self.width)]
