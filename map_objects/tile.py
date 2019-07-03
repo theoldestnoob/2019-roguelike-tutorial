@@ -7,8 +7,8 @@ Created on Tue Jun 25 20:45:41 2019
 
 
 class Tile:
-    """
-    A tile on a map. It may or may not be blocked, and may or may not block sight.
+    """A tile on a map. It may or may not be blocked, and may or may not block
+    sight.
     """
     def __init__(self, blocked, block_sight=None):
         self.blocked = blocked
