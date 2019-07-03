@@ -51,5 +51,6 @@ in_keymap_nomod = {
         }
 
 in_keymap_lalt = {
-        tcod.event.K_RETURN: {"fullscreen": True}
+        tcod.event.K_RETURN: {"fullscreen": True},
+        tcod.event.K_v: {"omnivis": True}
         }

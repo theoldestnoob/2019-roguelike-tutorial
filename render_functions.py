@@ -9,13 +9,13 @@ import tcod
 
 
 def render_all(con, entities, game_map, fov_map, fov_recompute,
-               screen_width, screen_height, colors):
+               screen_width, screen_height, colors, omnivision):
     # draw all the tiles in the game map
-    draw_map(con, game_map, fov_map, fov_recompute, colors)
+    draw_map(con, game_map, fov_map, fov_recompute, colors, omnivision)
 
     # draw all the entities in the list
     for entity in entities:
-        draw_entity(con, entity, fov_map)
+        draw_entity(con, entity, fov_map, omnivision)
 
     # tcod.console_blit(con, 0, 0, screen_width, screen_height, 0, 0, 0)
 
@@ -25,7 +25,7 @@ def clear_all(con, entities):
         clear_entity(con, entity)
 
 
-def draw_map(con, game_map, fov_map, fov_recompute, colors):
+def draw_map(con, game_map, fov_map, fov_recompute, colors, omnivision):
     if fov_recompute:
         for y in range(game_map.height):
             for x in range(game_map.width):
@@ -42,7 +42,7 @@ def draw_map(con, game_map, fov_map, fov_recompute, colors):
                                                          colors["light_ground"],
                                                          tcod.BKGND_SET)
                     game_map.tiles[x][y].explored = True
-                elif game_map.tiles[x][y].explored:
+                elif game_map.tiles[x][y].explored or omnivision:
                     if wall:
                         tcod.console_set_char_background(con, x, y,
                                                          colors["dark_wall"],
@@ -53,8 +53,15 @@ def draw_map(con, game_map, fov_map, fov_recompute, colors):
                                                          tcod.BKGND_SET)
 
 
-def draw_entity(con, entity, fov_map):
-    if tcod.map_is_in_fov(fov_map, entity.x, entity.y):
+def blank_map(con, game_map):
+    for y in range(game_map.height):
+        for x in range(game_map.width):
+            tcod.console_set_char_background(con, x, y, tcod.black,
+                                             tcod.BKGND_SET)
+
+
+def draw_entity(con, entity, fov_map, omnivision):
+    if tcod.map_is_in_fov(fov_map, entity.x, entity.y) or omnivision:
         con.default_fg = entity.color
         con.put_char(entity.x, entity.y, ord(entity.char))
 
