@@ -8,14 +8,14 @@ Created on Tue Jun 25 19:35:17 2019
 import tcod
 
 
-def render_all(con, entities, game_map, fov_map, fov_recompute,
+def render_all(con, entities, game_map, curr_entity, fov_recompute,
                screen_width, screen_height, colors, omnivision):
     # draw all the tiles in the game map
-    draw_map(con, game_map, fov_map, fov_recompute, colors, omnivision)
+    draw_map(con, game_map, curr_entity, fov_recompute, colors, omnivision)
 
     # draw all the entities in the list
     for entity in entities:
-        draw_entity(con, entity, fov_map, omnivision)
+        draw_entity(con, entity, curr_entity.fov_map, omnivision)
 
     # tcod.console_blit(con, 0, 0, screen_width, screen_height, 0, 0, 0)
 
@@ -25,11 +25,11 @@ def clear_all(con, entities):
         clear_entity(con, entity)
 
 
-def draw_map(con, game_map, fov_map, fov_recompute, colors, omnivision):
+def draw_map(con, game_map, curr_entity, fov_recompute, colors, omnivision):
     if fov_recompute:
         for y in range(game_map.height):
             for x in range(game_map.width):
-                visible = tcod.map_is_in_fov(fov_map, x, y)
+                visible = tcod.map_is_in_fov(curr_entity.fov_map, x, y)
                 wall = game_map.tiles[x][y].block_sight
 
                 if visible:
@@ -41,8 +41,9 @@ def draw_map(con, game_map, fov_map, fov_recompute, colors, omnivision):
                         tcod.console_set_char_background(con, x, y,
                                                          colors["light_ground"],
                                                          tcod.BKGND_SET)
-                    game_map.tiles[x][y].explored = True
-                elif game_map.tiles[x][y].explored or omnivision:
+                    game_map.tiles[x][y].explored.append(curr_entity.ident)
+                elif (curr_entity.ident in game_map.tiles[x][y].explored
+                      or omnivision):
                     if wall:
                         tcod.console_set_char_background(con, x, y,
                                                          colors["dark_wall"],
