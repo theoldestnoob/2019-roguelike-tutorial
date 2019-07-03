@@ -20,5 +20,6 @@ def initialize_fov(game_map):
     return fov_map
 
 
-def recompute_fov(fov_map, x, y, radius, light_walls=True, algorithm=0):
-    tcod.map_compute_fov(fov_map, x, y, radius, light_walls, algorithm)
+def recompute_fov(entity, radius, light_walls=True, algorithm=0):
+    tcod.map_compute_fov(entity.fov_map, entity.x, entity.y,
+                         radius, light_walls, algorithm)

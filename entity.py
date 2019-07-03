@@ -10,11 +10,13 @@ class Entity:
     """
     A generic object to represent players, enemies, items, etc.
     """
-    def __init__(self, x, y, char, color):
+    def __init__(self, ident, x, y, char, color, fov_map=None):
         self.x = x
         self.y = y
         self.char = char
         self.color = color
+        self.ident = ident
+        self.fov_map = fov_map
 
     def move(self, dx, dy):
         # move the entity by a given amount

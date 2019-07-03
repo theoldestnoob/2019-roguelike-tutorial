@@ -88,11 +88,12 @@ def main():
             "light_ground": tcod.Color(200, 180, 50)
     }
 
-    player = Entity(int(map_width / 2), int(map_height / 2), "@",
+    player = Entity(0, int(map_width / 2), int(map_height / 2), "@",
                     tcod.white)
-    npc = Entity(int(map_width / 2 - 5), int(map_height / 2), "@",
+    npc = Entity(1, int(map_width / 2 - 5), int(map_height / 2), "@",
                  tcod.yellow)
     entities = [player, npc]
+    controlled_entity = player
 
     tcod.console_set_custom_font(
             "arial10x10.png",
@@ -120,16 +121,18 @@ def main():
 
         fov_recompute = True
 
-        fov_map = initialize_fov(game_map)
+        for entity in entities:
+            entity.fov_map = initialize_fov(game_map)
 
         while True:
 
             if fov_recompute:
-                recompute_fov(fov_map, player.x, player.y, fov_radius,
+                recompute_fov(controlled_entity, fov_radius,
                               fov_light_walls, fov_algorithm)
 
-            render_all(con, entities, game_map, fov_map, fov_recompute,
-                       screen_width, screen_height, colors, omnivision)
+            render_all(con, entities, game_map, controlled_entity.fov_map,
+                       fov_recompute, screen_width, screen_height, colors,
+                       omnivision)
 
             tcod.console_flush()
 
@@ -168,7 +171,7 @@ def main():
                 tcod.console_set_fullscreen(not tcod.console_is_fullscreen())
 
             if omnivis:
-                if omnivision == True:
+                if omnivision is True:
                     blank_map(con, game_map)
                 omnivision = not omnivision
 
@@ -198,7 +201,8 @@ def main():
                         if show_hyperedges:
                             break
                     blank_map(con, game_map)
-                    render_all(con, entities, game_map, fov_map, fov_recompute,
+                    render_all(con, entities, game_map,
+                               controlled_entity.fov_map, fov_recompute,
                                screen_width, screen_height, colors, omnivision)
                     tcod.console_flush()
 
@@ -219,7 +223,8 @@ def main():
                         if show_edges:
                             break
                     blank_map(con, game_map)
-                    render_all(con, entities, game_map, fov_map, fov_recompute,
+                    render_all(con, entities, game_map,
+                               controlled_entity.fov_map, fov_recompute,
                                screen_width, screen_height, colors, omnivision)
                     tcod.console_flush()
 
@@ -240,7 +245,8 @@ def main():
                         if show_vertices:
                             break
                     blank_map(con, game_map)
-                    render_all(con, entities, game_map, fov_map, fov_recompute,
+                    render_all(con, entities, game_map,
+                               controlled_entity.fov_map, fov_recompute,
                                screen_width, screen_height, colors, omnivision)
                     tcod.console_flush()
 
