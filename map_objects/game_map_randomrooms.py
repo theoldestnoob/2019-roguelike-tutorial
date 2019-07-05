@@ -16,9 +16,10 @@ from map_objects.geometry import Rect
 # TODO: add support for various map generation options from GameMapBSP
 class GameMapRandomRooms(GameMap):
     '''GameMap that places rooms on the map randomly.'''
-    def make_map(self, player, *args,
+    def make_map(self, player, entities, *args,
                  max_rooms=30, room_min_size=6, room_max_size=10,
-                 ratio_vh=1, ratio_hv=1, ratio_d=0, **kwargs):
+                 ratio_vh=1, ratio_hv=1, ratio_d=0,
+                 max_monsters_per_room=0, **kwargs):
         # setup
         map_width = self.width
         map_height = self.height
@@ -88,4 +89,7 @@ class GameMapRandomRooms(GameMap):
 
         # save our list of rooms for later
         self.rooms = rooms
-        # self.make_graph()
+
+        # place monsters
+        for room in self.rooms:
+            self.place_entities(room, entities, max_monsters_per_room)

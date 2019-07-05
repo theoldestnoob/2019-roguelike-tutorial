@@ -9,7 +9,7 @@ import tcod
 import tcod.event
 from random import randint
 
-from entity import Entity
+from entity import Entity, get_blocking_entities_at_location
 from input_handlers import InputHandler
 from render_functions import clear_all, render_all, display_space, blank_map
 from map_objects.game_map import GameMap
@@ -45,13 +45,14 @@ def main():
             "rect_rooms": 1,
             "unused": True,
             "bsp_range": 0.15,
-            "bsp_depth": 4
+            "bsp_depth": 4,
+            "max_monsters_per_room": 3
     }
 
     mapset_bspcirc = {
-            "room_max_size": 28,
-            "room_min_size": 12,
-            "min_rooms": 6,
+            "room_max_size": 26,
+            "room_min_size": 8,
+            "min_rooms": 8,
             "max_rooms": 30,
             "ratio_vh": 0,
             "ratio_hv": 0,
@@ -60,12 +61,13 @@ def main():
             "circ_rooms": 1,
             "rect_rooms": 0,
             "unused": True,
-            "bsp_range": 0.15,
-            "bsp_depth": 4
+            "bsp_range": 0.25,
+            "bsp_depth": 4,
+            "max_monsters_per_room": 3
     }
 
     mapset_bsprand = {
-            "room_max_size": 26,
+            "room_max_size": 20,
             "room_min_size": 6,
             "min_rooms": 5,
             "max_rooms": 30,
@@ -77,7 +79,8 @@ def main():
             "rect_rooms": 1,
             "unused": True,
             "bsp_range": 0.4,
-            "bsp_depth": 4
+            "bsp_depth": 4,
+            "max_monsters_per_room": 3
     }
 
     mapset = mapset_bsprand
@@ -89,11 +92,8 @@ def main():
             "light_ground": tcod.Color(200, 180, 50)
     }
 
-    player = Entity(0, int(map_width / 2), int(map_height / 2), "@",
-                    tcod.white)
-    npc = Entity(1, int(map_width / 2 - 5), int(map_height / 2), "@",
-                 tcod.yellow)
-    entities = [player, npc]
+    player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=True)
+    entities = [player]
     controlled_entity = player
     controlled_entity_index = 0
 
@@ -117,15 +117,14 @@ def main():
             vsync=False) as con:
 
         # game_map = GameMap(map_width, map_height, seed, con=con, debug=debug_f)
-        # game_map = GameMapRandomRooms(map_width, map_height, seed, con=con, debug=debug_f)
-        game_map = GameMapBSP(map_width, map_height, seed, con=con, debug=debug_f)
-        game_map.make_map(player, **mapset)
+        game_map = GameMapRandomRooms(map_width, map_height, seed, con=con, debug=debug_f)
+        # game_map = GameMapBSP(map_width, map_height, seed, con=con, debug=debug_f)
+        game_map.make_map(player, entities, **mapset)
 
         fov_recompute = True
 
         for entity in entities:
             entity.fov_map = initialize_fov(game_map)
-
 
         while True:
 
@@ -163,11 +162,16 @@ def main():
 
             if move:
                 dx, dy = move
-                if not game_map.is_blocked(controlled_entity.x + dx,
-                                           controlled_entity.y + dy):
-                    controlled_entity.move(dx, dy)
-
-                    fov_recompute = True
+                dest_x = controlled_entity.x + dx
+                dest_y = controlled_entity.y + dy
+                if not game_map.is_blocked(dest_x, dest_y):
+                    target = get_blocking_entities_at_location(entities,
+                                                               dest_x, dest_y)
+                    if target:
+                        print(f"You kick the {target.name} in the shins, much to its annoyance!")
+                    else:
+                        controlled_entity.move(dx, dy)
+                        fov_recompute = True
 
             if want_exit:
                 return True
@@ -191,7 +195,9 @@ def main():
             if map_gen:
                 game_map.seed = randint(0, 99999)
                 game_map.tiles = game_map.initialize_tiles()
-                game_map.make_map(player, **mapset)
+                entities = [player]
+                controlled_entity = player
+                game_map.make_map(player, entities, **mapset)
                 for entity in entities:
                     entity.fov_map = initialize_fov(game_map)
                 blank_map(con, game_map)

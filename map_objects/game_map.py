@@ -7,11 +7,14 @@ Created on Tue Jun 25 20:47:16 2019
 
 from random import uniform
 from random import choice
+from random import randint
+import tcod
 
 from map_objects.geometry import Rect
 from map_objects.geometry import line_lerp_orthogonal
 from map_objects.tile import Tile
 from map_objects.map_graph import MapGraph
+from entity import Entity
 
 
 class GameMap:
@@ -44,7 +47,8 @@ class GameMap:
 
         return False
 
-    def make_map(self, player, *args, **kwargs):
+    def make_map(self, player, entities, *args, max_monsters_per_room=0,
+                 **kwargs):
         '''Make a big empty map with a wall around the edge. Expected to be
         overloaded by any child classes.
         '''
@@ -54,6 +58,7 @@ class GameMap:
         self.create_room(room)
         self.rooms.append(room)
         player.x, player.y = room.center()
+        self.place_entities(room, entities, max_monsters_per_room)
 
     def make_graph(self):
         '''Generate graph data about the map and store it in self.graph.'''
@@ -160,6 +165,23 @@ class GameMap:
                     # draw diagonal hallways
                     self.create_d_tunnel(prev_x, prev_y, new_x, new_y)
                 old_room = room
+
+    def place_entities(self, room, entities, max_monsters_per_room):
+        '''Place entities randomly into a room on the map.'''
+        number_of_monsters = randint(0, max_monsters_per_room)
+
+        for i in range(number_of_monsters):
+            x, y = choice(room.coords)
+            if not any([e for e in entities if e.x == x and e.y == y]):
+                if randint(0, 100) < 80:
+                    monster = Entity(len(entities), x, y, 'o',
+                                     tcod.desaturated_green, "Orc",
+                                     blocks=True)
+                else:
+                    monster = Entity(len(entities), x, y, 'T',
+                                     tcod.darker_green, "Troll", blocks=True)
+
+                entities.append(monster)
 
     def game_map_to_walkable_array(self):
         '''Get a multidimensional array of bools describing map walkability.

@@ -17,11 +17,12 @@ from map_objects.game_map import GameMap
 # TODO: store BSP tree structure for later use when generating halls
 class GameMapBSP(GameMap):
     '''GameMap that places rooms based on Binary Space Partitioning.'''
-    def make_map(self, player, *args,
+    def make_map(self, player, entities, *args,
                  room_min_size=8, room_max_size=15, min_rooms=8, max_rooms=30,
                  bsp_depth=4, bsp_range=0.15,
                  ratio_vh=1, ratio_hv=1, ratio_d=0, hall_rand=False,
-                 circ_rooms=0, rect_rooms=1, **kwargs):
+                 circ_rooms=0, rect_rooms=1,
+                 max_monsters_per_room=0, **kwargs):
         map_width = self.width - 1
         map_height = self.height - 1
         randseed(self.seed)
@@ -46,6 +47,8 @@ class GameMapBSP(GameMap):
             self.make_halls_random(space, player, ratio_vh, ratio_hv, ratio_d)
         else:
             self.make_halls(space, player, ratio_vh, ratio_hv, ratio_d)
+        for room in self.rooms:
+            self.place_entities(room, entities, max_monsters_per_room)
 
     def partition(self, space, parts, bsp_depth, bsp_range,
                   room_min_size, room_max_size):
