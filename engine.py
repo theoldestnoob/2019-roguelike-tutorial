@@ -11,12 +11,12 @@ from random import randint
 
 from entity import Entity, get_blocking_entities_at_location
 from input_handlers import InputHandler
-from render_functions import clear_all, render_all, display_space, blank_map
+from render_functions import clear_all, render_all, display_space, blank_map, gray_map
 from game_states import GameStates
 from map_objects.game_map import GameMap
 from map_objects.game_map_bsp import GameMapBSP
 from map_objects.game_map_randomrooms import GameMapRandomRooms
-from fov_functions import initialize_fov, recompute_fov
+from fov_functions import initialize_fov, init_fov_entity0, recompute_fov
 
 
 def main():
@@ -127,7 +127,10 @@ def main():
         fov_recompute = True
 
         for entity in entities:
-            entity.fov_map = initialize_fov(game_map)
+            if entity.ident == 0:
+                entity.fov_map = init_fov_entity0(game_map)
+            else:
+                entity.fov_map = initialize_fov(game_map)
 
         while True:
 
@@ -167,16 +170,28 @@ def main():
                 dx, dy = move
                 dest_x = controlled_entity.x + dx
                 dest_y = controlled_entity.y + dy
-                if not game_map.is_blocked(dest_x, dest_y):
+                # entity 0 can move through walls
+                if controlled_entity.ident == 0:
                     target = get_blocking_entities_at_location(entities,
                                                                dest_x, dest_y)
                     if target:
-                        print(f"You kick the {target.name} in the shins, much to its annoyance!")
+                        print(f"A shudder runs through {target.name} as you press against its soul!")
                     else:
                         controlled_entity.move(dx, dy)
                         fov_recompute = True
-
-                    game_state = GameStates.ENEMY_TURN
+                        game_state = GameStates.ENEMY_TURN
+                else:
+                    if not game_map.is_blocked(dest_x, dest_y):
+                        target = get_blocking_entities_at_location(entities,
+                                                                   dest_x,
+                                                                   dest_y)
+                        if target:
+                            print(f"You kick the {target.name} in the shins, much to its annoyance!")
+                        else:
+                            controlled_entity.move(dx, dy)
+                            fov_recompute = True
+    
+                        game_state = GameStates.ENEMY_TURN
 
             if want_exit:
                 return True
@@ -203,8 +218,8 @@ def main():
                 entities = [player, vip]
                 controlled_entity = player
                 game_map.make_map(player, entities, **mapset)
-                for entity in entities:
-                    entity.fov_map = initialize_fov(game_map)
+                player.fov_map = init_fov_entity0(game_map)
+                vip.fov_map = initialize_fov(game_map)
                 blank_map(con, game_map)
 
             if graph_gen:
