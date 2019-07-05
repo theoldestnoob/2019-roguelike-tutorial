@@ -58,6 +58,8 @@ class GameMapRandomRooms(GameMap):
                     # this is the first room, player starts here
                     player.x = new_x
                     player.y = new_y
+                    entities[1].x = new_x + 1
+                    entities[1].y = new_y
                 else:
                     # all rooms after the first:
                     #  connect it to the previous room with a tunnel

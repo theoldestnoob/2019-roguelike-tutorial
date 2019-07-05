@@ -93,8 +93,9 @@ def main():
             "light_ground": tcod.Color(200, 180, 50)
     }
 
-    player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=True)
-    entities = [player]
+    player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False)
+    vip = Entity(1, 0, 0, "&", tcod.yellow, "VIP", blocks=True)
+    entities = [player, vip]
     controlled_entity = player
     controlled_entity_index = 0
     game_state = GameStates.PLAYERS_TURN
@@ -119,8 +120,8 @@ def main():
             vsync=False) as con:
 
         # game_map = GameMap(map_width, map_height, seed, con=con, debug=debug_f)
-        game_map = GameMapRandomRooms(map_width, map_height, seed, con=con, debug=debug_f)
-        # game_map = GameMapBSP(map_width, map_height, seed, con=con, debug=debug_f)
+        # game_map = GameMapRandomRooms(map_width, map_height, seed, con=con, debug=debug_f)
+        game_map = GameMapBSP(map_width, map_height, seed, con=con, debug=debug_f)
         game_map.make_map(player, entities, **mapset)
 
         fov_recompute = True
@@ -199,7 +200,7 @@ def main():
             if map_gen:
                 game_map.seed = randint(0, 99999)
                 game_map.tiles = game_map.initialize_tiles()
-                entities = [player]
+                entities = [player, vip]
                 controlled_entity = player
                 game_map.make_map(player, entities, **mapset)
                 for entity in entities:
