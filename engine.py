@@ -12,6 +12,7 @@ from random import randint
 from entity import Entity, get_blocking_entities_at_location
 from input_handlers import InputHandler
 from render_functions import clear_all, render_all, display_space, blank_map
+from game_states import GameStates
 from map_objects.game_map import GameMap
 from map_objects.game_map_bsp import GameMapBSP
 from map_objects.game_map_randomrooms import GameMapRandomRooms
@@ -96,6 +97,7 @@ def main():
     entities = [player]
     controlled_entity = player
     controlled_entity_index = 0
+    game_state = GameStates.PLAYERS_TURN
 
     tcod.console_set_custom_font(
             "arial10x10.png",
@@ -172,6 +174,8 @@ def main():
                     else:
                         controlled_entity.move(dx, dy)
                         fov_recompute = True
+
+                    game_state = GameStates.ENEMY_TURN
 
             if want_exit:
                 return True
@@ -274,6 +278,12 @@ def main():
             if test:
                 game_map.make_graph()
                 print(game_map.graph.get_metrics())
+
+            if game_state == GameStates.ENEMY_TURN:
+                for entity in entities:
+                    if entity is not controlled_entity:
+                        print(f"The {entity.name} ponders the meaning of its existence.")
+                game_state = GameStates.PLAYERS_TURN
 
 
 if __name__ == "__main__":
