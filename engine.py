@@ -165,6 +165,7 @@ def main():
             test = action.get("test")
             omnivis = action.get("omnivis")
             switch_char = action.get("switch_char")
+            possess = action.get("possess")
 
             if move:
                 dx, dy = move
@@ -192,6 +193,35 @@ def main():
                             fov_recompute = True
     
                         game_state = GameStates.ENEMY_TURN
+
+            if possess:
+                # get a direction to try to possess/leave
+                while not move:
+                    for event in tcod.event.get():
+                        in_handle.dispatch(event)
+                    action = in_handle.get_action()
+                    move = action.get("move")
+                dx, dy = move
+                dest_x = controlled_entity.x + dx
+                dest_y = controlled_entity.y + dy
+                target = get_blocking_entities_at_location(entities,
+                                                           dest_x, dest_y)
+                # if currently entity 0, we're not possessing anyone
+                if controlled_entity.ident == 0:
+                    if target:
+                        print(f"You possess the {target.name}!")
+                        controlled_entity = target
+                    else:
+                        print(f"Nothing there to possess!")
+                # otherwise, we are possessing someone and want to leave
+                else:
+                    if target:
+                        print(f"That space is already occupied!")
+                    else:
+                        print(f"You stop possessing the {controlled_entity.name}!")
+                        controlled_entity = entities[0]
+                        controlled_entity.x = dest_x
+                        controlled_entity.y = dest_y
 
             if want_exit:
                 return True
