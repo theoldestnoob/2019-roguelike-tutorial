@@ -43,7 +43,7 @@ def draw_map(con, game_map, curr_entity, render_update, colors, omnivision):
     if render_update:
         for y in range(game_map.height):
             for x in range(game_map.width):
-                visible = tcod.map_is_in_fov(curr_entity.fov_map, x, y)
+                visible = curr_entity.fov_map.fov[y][x]
                 wall = game_map.tiles[x][y].block_sight
 
                 if visible:
@@ -82,13 +82,13 @@ def gray_map(con, game_map):
 
 
 def draw_entity(con, entity, fov_map, omnivision):
-    if tcod.map_is_in_fov(fov_map, entity.x, entity.y) or omnivision:
+    if fov_map.fov[entity.y][entity.x] or omnivision:
         con.default_fg = entity.color
         con.put_char(entity.x, entity.y, ord(entity.char))
 
 
 def draw_soul(con, entity, fov_map, omnivision):
-    if tcod.map_is_in_fov(fov_map, entity.x, entity.y) or omnivision:
+    if fov_map.fov[entity.y][entity.x] or omnivision:
         soul_char = get_soul_char(entity.soul)
         soul_color = get_soul_color(entity.soul)
         con.default_fg = soul_color

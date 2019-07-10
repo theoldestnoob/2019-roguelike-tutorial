@@ -9,30 +9,31 @@ import tcod
 
 
 def initialize_fov(game_map):
-    fov_map = tcod.map_new(game_map.width, game_map.height)
 
+    fov_map = tcod.map.Map(width=game_map.width, height=game_map.height)
+    transparency = game_map.game_map_to_transparent_array()
     for y in range(game_map.height):
         for x in range(game_map.width):
-            tcod.map_set_properties(fov_map, x, y,
-                                    not game_map.tiles[x][y].block_sight,
-                                    not game_map.tiles[x][y].blocked)
+            fov_map.transparent[y][x] = transparency[x][y]
 
     return fov_map
 
 
 def init_fov_entity0(game_map):
-    fov_map = tcod.map_new(game_map.width, game_map.height)
-    for y in range(game_map.height):
-        for x in range(game_map.width):
-            tcod.map_set_properties(fov_map, x, y, True, True)
+
+    fov_map = tcod.map.Map(width=game_map.width, height=game_map.height)
+    fov_map.transparent[:] = True
+
     return fov_map
 
 
 def recompute_fov(game_map, entity, radius, light_walls=True, algorithm=0):
-    tcod.map_compute_fov(entity.fov_map, entity.x, entity.y,
-                         radius, light_walls, algorithm)
+
+    entity.fov_map.compute_fov(entity.x, entity.y, radius, light_walls,
+                               algorithm)
+
     for y in range(game_map.height):
         for x in range(game_map.width):
-            visible = tcod.map_is_in_fov(entity.fov_map, x, y)
+            visible = entity.fov_map.fov[y][x]
             if visible:
                 game_map.tiles[x][y].explored.append(entity.ident)

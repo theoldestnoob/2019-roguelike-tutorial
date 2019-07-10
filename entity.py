@@ -6,6 +6,7 @@ Created on Tue Jun 25 19:29:03 2019
 """
 
 import math
+import tcod
 
 
 class Entity:

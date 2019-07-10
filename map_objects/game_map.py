@@ -17,7 +17,6 @@ from map_objects.map_graph import MapGraph
 from entity import Entity
 from components.fighter import Fighter
 from components.ai import BasicMonster
-from fov_functions import initialize_fov
 
 
 class GameMap:
@@ -194,7 +193,7 @@ class GameMap:
                                      tcod.darker_green, "Troll", blocks=True,
                                      soul=m_soul, fighter=fighter_component,
                                      ai=ai_component)
-                # monster.fov_map = initialize_fov(self)
+
                 entities.append(monster)
 
     def game_map_to_walkable_array(self):
