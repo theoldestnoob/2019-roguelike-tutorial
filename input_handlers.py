@@ -42,12 +42,6 @@ in_keymap_nomod = {
         tcod.event.K_RIGHT: {"move": (1, 0)},
         tcod.event.K_PERIOD: {"wait": True},
         tcod.event.K_p: {"possess": True},
-        tcod.event.K_m: {"map_gen": True},
-        tcod.event.K_g: {"graph_gen": True},
-        tcod.event.K_COMMA: {"flood_neigh": True},
-        tcod.event.K_n: {"show_vertices": True},
-        tcod.event.K_h: {"show_hyperedges": True},
-        tcod.event.K_b: {"show_edges": True},
         tcod.event.K_ESCAPE: {"exit": True},
         tcod.event.K_BACKSPACE: {"test": True}
         }
@@ -55,5 +49,11 @@ in_keymap_nomod = {
 in_keymap_lalt = {
         tcod.event.K_RETURN: {"fullscreen": True},
         tcod.event.K_v: {"omnivis": True},
-        tcod.event.K_c: {"switch_char": True}
+        tcod.event.K_c: {"switch_char": True},
+        tcod.event.K_m: {"map_gen": True},
+        tcod.event.K_g: {"graph_gen": True},
+        tcod.event.K_COMMA: {"flood_neigh": True},
+        tcod.event.K_n: {"show_vertices": True},
+        tcod.event.K_h: {"show_hyperedges": True},
+        tcod.event.K_b: {"show_edges": True}
         }

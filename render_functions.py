@@ -8,7 +8,7 @@ Created on Tue Jun 25 19:35:17 2019
 import tcod
 
 
-def render_all(con, entities, game_map, curr_entity, fov_recompute,
+def render_all(con, entities, game_map, curr_entity, render_update,
                screen_width, screen_height, colors, omnivision):
     # if we're currently controlling entity 0, we see things differently
     if curr_entity.ident == 0:
@@ -23,8 +23,8 @@ def render_all(con, entities, game_map, curr_entity, fov_recompute,
     else:
         # draw all the tiles in the game map
         if curr_entity.ident != 0:
-            draw_map(con, game_map, curr_entity, fov_recompute, colors,
-                     omnivision)
+            draw_map(con, game_map, curr_entity, render_update,
+                     colors, omnivision)
 
         # draw all the entities in the list, except for entity 0
         for entity in entities:
@@ -39,8 +39,8 @@ def clear_all(con, entities):
         clear_entity(con, entity)
 
 
-def draw_map(con, game_map, curr_entity, fov_recompute, colors, omnivision):
-    if fov_recompute:
+def draw_map(con, game_map, curr_entity, render_update, colors, omnivision):
+    if render_update:
         for y in range(game_map.height):
             for x in range(game_map.width):
                 visible = tcod.map_is_in_fov(curr_entity.fov_map, x, y)
@@ -55,7 +55,6 @@ def draw_map(con, game_map, curr_entity, fov_recompute, colors, omnivision):
                         tcod.console_set_char_background(con, x, y,
                                                          colors["light_ground"],
                                                          tcod.BKGND_SET)
-                    # game_map.tiles[x][y].explored.append(curr_entity.ident)
                 elif (curr_entity.ident in game_map.tiles[x][y].explored
                       or omnivision):
                     if wall:

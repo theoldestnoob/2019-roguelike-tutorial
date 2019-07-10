@@ -130,7 +130,7 @@ def main():
         game_map.make_map(player, entities, **mapset)
 
         # FOV calculation setup
-        fov_recompute = True
+        render_update = True
 
         for entity in entities:
             if entity.ident == 0:
@@ -146,12 +146,13 @@ def main():
             # refresh graphics
             for entity in entities:
                 if entity.fov_recompute:
+                    render_update = True
                     recompute_fov(game_map, entity, fov_radius,
                                   fov_light_walls, fov_algorithm)
                     entity.fov_recompute = False
 
             render_all(con, entities, game_map, controlled_entity,
-                       fov_recompute, screen_width, screen_height, colors,
+                       render_update, screen_width, screen_height, colors,
                        omnivision)
 
             tcod.console_flush()
@@ -227,6 +228,7 @@ def main():
                     if target:
                         print(f"You possess the {target.name}!")
                         controlled_entity = target
+                        blank_map(con, game_map)
                     else:
                         print(f"Nothing there to possess!")
                 # otherwise, we are possessing someone and want to leave
@@ -270,8 +272,8 @@ def main():
                         entity.fov_map = init_fov_entity0(game_map)
                     else:
                         entity.fov_map = initialize_fov(game_map)
-                    recompute_fov(entity, fov_radius, fov_light_walls,
-                                  fov_algorithm)
+                    recompute_fov(game_map, entity, fov_radius,
+                                  fov_light_walls, fov_algorithm)
                 blank_map(con, game_map)
 
             if graph_gen:
@@ -295,7 +297,7 @@ def main():
                             break
                     blank_map(con, game_map)
                     render_all(con, entities, game_map,
-                               controlled_entity, fov_recompute,
+                               controlled_entity, render_update,
                                screen_width, screen_height, colors, omnivision)
                     tcod.console_flush()
 
@@ -317,7 +319,7 @@ def main():
                             break
                     blank_map(con, game_map)
                     render_all(con, entities, game_map,
-                               controlled_entity, fov_recompute,
+                               controlled_entity, render_update,
                                screen_width, screen_height, colors, omnivision)
                     tcod.console_flush()
 
@@ -339,7 +341,7 @@ def main():
                             break
                     blank_map(con, game_map)
                     render_all(con, entities, game_map,
-                               controlled_entity, fov_recompute,
+                               controlled_entity, render_update,
                                screen_width, screen_height, colors, omnivision)
                     tcod.console_flush()
 
