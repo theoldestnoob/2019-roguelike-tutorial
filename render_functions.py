@@ -55,7 +55,7 @@ def draw_map(con, game_map, curr_entity, fov_recompute, colors, omnivision):
                         tcod.console_set_char_background(con, x, y,
                                                          colors["light_ground"],
                                                          tcod.BKGND_SET)
-                    game_map.tiles[x][y].explored.append(curr_entity.ident)
+                    # game_map.tiles[x][y].explored.append(curr_entity.ident)
                 elif (curr_entity.ident in game_map.tiles[x][y].explored
                       or omnivision):
                     if wall:

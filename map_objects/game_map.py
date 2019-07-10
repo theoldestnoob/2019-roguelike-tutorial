@@ -15,6 +15,9 @@ from map_objects.geometry import line_lerp_orthogonal
 from map_objects.tile import Tile
 from map_objects.map_graph import MapGraph
 from entity import Entity
+from components.fighter import Fighter
+from components.ai import BasicMonster
+from fov_functions import initialize_fov
 
 
 class GameMap:
@@ -175,16 +178,23 @@ class GameMap:
             x, y = choice(room.coords)
             if not any([e for e in entities if e.x == x and e.y == y]):
                 if randint(0, 100) < 80:
+                    fighter_component = Fighter(hp=10, defense=0, power=3)
+                    ai_component = BasicMonster()
                     m_soul = randint(1, 80)
                     monster = Entity(len(entities), x, y, 'o',
                                      tcod.desaturated_green, "Orc",
-                                     soul=m_soul, blocks=True)
+                                     blocks=True, soul=m_soul,
+                                     fighter=fighter_component,
+                                     ai=ai_component)
                 else:
+                    fighter_component = Fighter(hp=16, defense=1, power=4)
+                    ai_component = BasicMonster()
                     m_soul = randint(60, 120)
                     monster = Entity(len(entities), x, y, 'T',
-                                     tcod.darker_green, "Troll", soul=m_soul,
-                                     blocks=True)
-
+                                     tcod.darker_green, "Troll", blocks=True,
+                                     soul=m_soul, fighter=fighter_component,
+                                     ai=ai_component)
+                # monster.fov_map = initialize_fov(self)
                 entities.append(monster)
 
     def game_map_to_walkable_array(self):

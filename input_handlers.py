@@ -40,6 +40,7 @@ in_keymap_nomod = {
         tcod.event.K_DOWN: {"move": (0, 1)},
         tcod.event.K_LEFT: {"move": (-1, 0)},
         tcod.event.K_RIGHT: {"move": (1, 0)},
+        tcod.event.K_PERIOD: {"wait": True},
         tcod.event.K_p: {"possess": True},
         tcod.event.K_m: {"map_gen": True},
         tcod.event.K_g: {"graph_gen": True},

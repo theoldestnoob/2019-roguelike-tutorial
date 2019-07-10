@@ -28,6 +28,11 @@ def init_fov_entity0(game_map):
     return fov_map
 
 
-def recompute_fov(entity, radius, light_walls=True, algorithm=0):
+def recompute_fov(game_map, entity, radius, light_walls=True, algorithm=0):
     tcod.map_compute_fov(entity.fov_map, entity.x, entity.y,
                          radius, light_walls, algorithm)
+    for y in range(game_map.height):
+        for x in range(game_map.width):
+            visible = tcod.map_is_in_fov(entity.fov_map, x, y)
+            if visible:
+                game_map.tiles[x][y].explored.append(entity.ident)

@@ -11,15 +11,18 @@ from random import randint
 
 from entity import Entity, get_blocking_entities_at_location
 from input_handlers import InputHandler
-from render_functions import clear_all, render_all, display_space, blank_map, gray_map
+from render_functions import clear_all, render_all, display_space, blank_map
 from game_states import GameStates
 from map_objects.game_map import GameMap
 from map_objects.game_map_bsp import GameMapBSP
 from map_objects.game_map_randomrooms import GameMapRandomRooms
 from fov_functions import initialize_fov, init_fov_entity0, recompute_fov
+from components.fighter import Fighter
+from components.ai import BasicMonster
 
 
 def main():
+    # "global" variables
     debug_f = True
     seed = "testseed"
     screen_width = 80
@@ -32,7 +35,7 @@ def main():
     fov_radius = 10
     omnivision = False
 
-
+    # various map settings - TODO: move to other module
     mapset_bsprect = {
             "room_max_size": 15,
             "room_min_size": 8,
@@ -93,8 +96,11 @@ def main():
             "light_ground": tcod.Color(200, 180, 50)
     }
 
+    # setup object instantiation
+    fighter_component = Fighter(hp=30, defense=2, power=5)
     player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False)
-    vip = Entity(1, 0, 0, "&", tcod.yellow, "VIP", blocks=True)
+    vip = Entity(1, 0, 0, "&", tcod.yellow, "VIP", blocks=True,
+                 fighter=fighter_component)
     entities = [player, vip]
     controlled_entity = player
     controlled_entity_index = 0
@@ -105,13 +111,11 @@ def main():
             tcod.FONT_TYPE_GREYSCALE | tcod.FONT_LAYOUT_TCOD
             )
 
-    # game_map = GameMapRandomRooms(map_width, map_height, seed, con)
-    # game_map.make_map(player, **mapset)
-
     action = {}
 
     in_handle = InputHandler()
 
+    # open tcod console context
     with tcod.console_init_root(
             screen_width, screen_height,
             "libtcod tutorial revised",
@@ -119,11 +123,13 @@ def main():
             renderer=tcod.RENDERER_SDL2,
             vsync=False) as con:
 
+        # create initial game map
         # game_map = GameMap(map_width, map_height, seed, con=con, debug=debug_f)
         # game_map = GameMapRandomRooms(map_width, map_height, seed, con=con, debug=debug_f)
         game_map = GameMapBSP(map_width, map_height, seed, con=con, debug=debug_f)
         game_map.make_map(player, entities, **mapset)
 
+        # FOV calculation setup
         fov_recompute = True
 
         for entity in entities:
@@ -131,12 +137,18 @@ def main():
                 entity.fov_map = init_fov_entity0(game_map)
             else:
                 entity.fov_map = initialize_fov(game_map)
+            recompute_fov(game_map, entity, fov_radius, fov_light_walls,
+                          fov_algorithm)
 
+        # main game loop
         while True:
 
-            if fov_recompute:
-                recompute_fov(controlled_entity, fov_radius,
-                              fov_light_walls, fov_algorithm)
+            # refresh graphics
+            for entity in entities:
+                if entity.fov_recompute:
+                    recompute_fov(game_map, entity, fov_radius,
+                                  fov_light_walls, fov_algorithm)
+                    entity.fov_recompute = False
 
             render_all(con, entities, game_map, controlled_entity,
                        fov_recompute, screen_width, screen_height, colors,
@@ -146,6 +158,7 @@ def main():
 
             clear_all(con, entities)
 
+            # get user input
             for event in tcod.event.get():
                 in_handle.dispatch(event)
 
@@ -155,6 +168,7 @@ def main():
                 print(action)
 
             move = action.get("move")
+            wait = action.get("wait")
             want_exit = action.get("exit")
             fullscreen = action.get("fullscreen")
             map_gen = action.get("map_gen")
@@ -167,6 +181,7 @@ def main():
             switch_char = action.get("switch_char")
             possess = action.get("possess")
 
+            # handle user input
             if move:
                 dx, dy = move
                 dest_x = controlled_entity.x + dx
@@ -179,7 +194,6 @@ def main():
                         print(f"A shudder runs through {target.name} as you press against its soul!")
                     else:
                         controlled_entity.move(dx, dy)
-                        fov_recompute = True
                         game_state = GameStates.ENEMY_TURN
                 else:
                     if not game_map.is_blocked(dest_x, dest_y):
@@ -190,9 +204,11 @@ def main():
                             print(f"You kick the {target.name} in the shins, much to its annoyance!")
                         else:
                             controlled_entity.move(dx, dy)
-                            fov_recompute = True
-    
+
                         game_state = GameStates.ENEMY_TURN
+
+            if wait:
+                game_state = GameStates.ENEMY_TURN
 
             if possess:
                 # get a direction to try to possess/leave
@@ -222,6 +238,7 @@ def main():
                         controlled_entity = entities[0]
                         controlled_entity.x = dest_x
                         controlled_entity.y = dest_y
+                        controlled_entity.fov_recompute = True
 
             if want_exit:
                 return True
@@ -248,8 +265,13 @@ def main():
                 entities = [player, vip]
                 controlled_entity = player
                 game_map.make_map(player, entities, **mapset)
-                player.fov_map = init_fov_entity0(game_map)
-                vip.fov_map = initialize_fov(game_map)
+                for entity in entities:
+                    if entity.ident == 0:
+                        entity.fov_map = init_fov_entity0(game_map)
+                    else:
+                        entity.fov_map = initialize_fov(game_map)
+                    recompute_fov(entity, fov_radius, fov_light_walls,
+                                  fov_algorithm)
                 blank_map(con, game_map)
 
             if graph_gen:
@@ -327,8 +349,8 @@ def main():
 
             if game_state == GameStates.ENEMY_TURN:
                 for entity in entities:
-                    if entity is not controlled_entity:
-                        print(f"The {entity.name} ponders the meaning of its existence.")
+                    if entity.ai and entity is not controlled_entity:
+                        entity.ai.take_turn(vip, game_map, entities)
                 game_state = GameStates.PLAYERS_TURN
 
 
