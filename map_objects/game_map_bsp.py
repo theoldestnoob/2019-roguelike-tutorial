@@ -44,11 +44,13 @@ class GameMapBSP(GameMap):
             if min_rooms < numrooms < max_rooms:
                 break
         if hall_rand:
-            self.make_halls_random(space, player, ratio_vh, ratio_hv, ratio_d)
+            self.make_halls_random(player, ratio_vh, ratio_hv, ratio_d)
         else:
-            self.make_halls(space, player, ratio_vh, ratio_hv, ratio_d)
+            self.make_halls(player, ratio_vh, ratio_hv, ratio_d)
+        self.place_player_vip(player, entities[1])
         for room in self.rooms:
-            self.place_entities(room, entities, max_monsters_per_room)
+            if room is not self.rooms[0]:
+                self.place_entities(room, entities, max_monsters_per_room)
 
     def partition(self, space, parts, bsp_depth, bsp_range,
                   room_min_size, room_max_size):

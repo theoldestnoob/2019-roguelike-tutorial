@@ -57,7 +57,7 @@ class GameMap:
         print(room)
         self.create_room(room)
         self.rooms.append(room)
-        player.x, player.y = room.center()
+        self.place_player_vip(player, entities[1])
         self.place_entities(room, entities, max_monsters_per_room)
 
     def make_graph(self):
@@ -101,14 +101,11 @@ class GameMap:
             self.tiles[x][y].blocked = False
             self.tiles[x][y].block_sight = False
 
-    def make_halls(self, space, player, ratio_vh, ratio_hv, ratio_d):
+    def make_halls(self, player, ratio_vh, ratio_hv, ratio_d):
         '''Add halls to the map betwen rooms in order of room creation.'''
         old_room = None
         for room in self.rooms:
             if old_room is None:
-                (x, y) = room.center()
-                player.x = x
-                player.y = y
                 old_room = room
             else:
                 # generate corridors depending on proportions passed into
@@ -132,7 +129,7 @@ class GameMap:
                     self.create_d_tunnel(prev_x, prev_y, new_x, new_y)
                 old_room = room
 
-    def make_halls_random(self, space, player, ratio_vh, ratio_hv, ratio_d):
+    def make_halls_random(self, player, ratio_vh, ratio_hv, ratio_d):
         '''Add halls to the map between rooms in random order.'''
         old_room = None
         rooms = list(self.rooms)
@@ -140,9 +137,6 @@ class GameMap:
             room = choice(rooms)
             rooms.remove(room)
             if old_room is None:
-                (x, y) = room.center()
-                player.x = x
-                player.y = y
                 old_room = room
             else:
                 # generate corridors depending on proportions passed into
@@ -165,6 +159,13 @@ class GameMap:
                     # draw diagonal hallways
                     self.create_d_tunnel(prev_x, prev_y, new_x, new_y)
                 old_room = room
+
+    def place_player_vip(self, player, vip):
+        (x, y) = self.rooms[0].center()
+        player.x = x
+        player.y = y
+        vip.x = x + 1
+        vip.y = y
 
     def place_entities(self, room, entities, max_monsters_per_room):
         '''Place entities randomly into a room on the map.'''
@@ -174,12 +175,15 @@ class GameMap:
             x, y = choice(room.coords)
             if not any([e for e in entities if e.x == x and e.y == y]):
                 if randint(0, 100) < 80:
+                    m_soul = randint(1, 80)
                     monster = Entity(len(entities), x, y, 'o',
                                      tcod.desaturated_green, "Orc",
-                                     blocks=True)
+                                     soul=m_soul, blocks=True)
                 else:
+                    m_soul = randint(60, 120)
                     monster = Entity(len(entities), x, y, 'T',
-                                     tcod.darker_green, "Troll", blocks=True)
+                                     tcod.darker_green, "Troll", soul=m_soul,
+                                     blocks=True)
 
                 entities.append(monster)
 

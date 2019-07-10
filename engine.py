@@ -11,12 +11,12 @@ from random import randint
 
 from entity import Entity, get_blocking_entities_at_location
 from input_handlers import InputHandler
-from render_functions import clear_all, render_all, display_space, blank_map
+from render_functions import clear_all, render_all, display_space, blank_map, gray_map
 from game_states import GameStates
 from map_objects.game_map import GameMap
 from map_objects.game_map_bsp import GameMapBSP
 from map_objects.game_map_randomrooms import GameMapRandomRooms
-from fov_functions import initialize_fov, recompute_fov
+from fov_functions import initialize_fov, init_fov_entity0, recompute_fov
 
 
 def main():
@@ -93,8 +93,9 @@ def main():
             "light_ground": tcod.Color(200, 180, 50)
     }
 
-    player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=True)
-    entities = [player]
+    player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False)
+    vip = Entity(1, 0, 0, "&", tcod.yellow, "VIP", blocks=True)
+    entities = [player, vip]
     controlled_entity = player
     controlled_entity_index = 0
     game_state = GameStates.PLAYERS_TURN
@@ -119,14 +120,17 @@ def main():
             vsync=False) as con:
 
         # game_map = GameMap(map_width, map_height, seed, con=con, debug=debug_f)
-        game_map = GameMapRandomRooms(map_width, map_height, seed, con=con, debug=debug_f)
-        # game_map = GameMapBSP(map_width, map_height, seed, con=con, debug=debug_f)
+        # game_map = GameMapRandomRooms(map_width, map_height, seed, con=con, debug=debug_f)
+        game_map = GameMapBSP(map_width, map_height, seed, con=con, debug=debug_f)
         game_map.make_map(player, entities, **mapset)
 
         fov_recompute = True
 
         for entity in entities:
-            entity.fov_map = initialize_fov(game_map)
+            if entity.ident == 0:
+                entity.fov_map = init_fov_entity0(game_map)
+            else:
+                entity.fov_map = initialize_fov(game_map)
 
         while True:
 
@@ -161,21 +165,63 @@ def main():
             test = action.get("test")
             omnivis = action.get("omnivis")
             switch_char = action.get("switch_char")
+            possess = action.get("possess")
 
             if move:
                 dx, dy = move
                 dest_x = controlled_entity.x + dx
                 dest_y = controlled_entity.y + dy
-                if not game_map.is_blocked(dest_x, dest_y):
+                # entity 0 can move through walls
+                if controlled_entity.ident == 0:
                     target = get_blocking_entities_at_location(entities,
                                                                dest_x, dest_y)
                     if target:
-                        print(f"You kick the {target.name} in the shins, much to its annoyance!")
+                        print(f"A shudder runs through {target.name} as you press against its soul!")
                     else:
                         controlled_entity.move(dx, dy)
                         fov_recompute = True
+                        game_state = GameStates.ENEMY_TURN
+                else:
+                    if not game_map.is_blocked(dest_x, dest_y):
+                        target = get_blocking_entities_at_location(entities,
+                                                                   dest_x,
+                                                                   dest_y)
+                        if target:
+                            print(f"You kick the {target.name} in the shins, much to its annoyance!")
+                        else:
+                            controlled_entity.move(dx, dy)
+                            fov_recompute = True
+    
+                        game_state = GameStates.ENEMY_TURN
 
-                    game_state = GameStates.ENEMY_TURN
+            if possess:
+                # get a direction to try to possess/leave
+                while not move:
+                    for event in tcod.event.get():
+                        in_handle.dispatch(event)
+                    action = in_handle.get_action()
+                    move = action.get("move")
+                dx, dy = move
+                dest_x = controlled_entity.x + dx
+                dest_y = controlled_entity.y + dy
+                target = get_blocking_entities_at_location(entities,
+                                                           dest_x, dest_y)
+                # if currently entity 0, we're not possessing anyone
+                if controlled_entity.ident == 0:
+                    if target:
+                        print(f"You possess the {target.name}!")
+                        controlled_entity = target
+                    else:
+                        print(f"Nothing there to possess!")
+                # otherwise, we are possessing someone and want to leave
+                else:
+                    if target:
+                        print(f"That space is already occupied!")
+                    else:
+                        print(f"You stop possessing the {controlled_entity.name}!")
+                        controlled_entity = entities[0]
+                        controlled_entity.x = dest_x
+                        controlled_entity.y = dest_y
 
             if want_exit:
                 return True
@@ -199,11 +245,11 @@ def main():
             if map_gen:
                 game_map.seed = randint(0, 99999)
                 game_map.tiles = game_map.initialize_tiles()
-                entities = [player]
+                entities = [player, vip]
                 controlled_entity = player
                 game_map.make_map(player, entities, **mapset)
-                for entity in entities:
-                    entity.fov_map = initialize_fov(game_map)
+                player.fov_map = init_fov_entity0(game_map)
+                vip.fov_map = initialize_fov(game_map)
                 blank_map(con, game_map)
 
             if graph_gen:
