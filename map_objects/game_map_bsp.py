@@ -52,6 +52,8 @@ class GameMapBSP(GameMap):
             if room is not self.rooms[0]:
                 self.place_entities(room, entities, max_monsters_per_room)
 
+        self.np_array = self.game_map_to_numpy_array()
+
     def partition(self, space, parts, bsp_depth, bsp_range,
                   room_min_size, room_max_size):
         '''Divide space up into Rects that cover the entire space, that are all

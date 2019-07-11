@@ -95,3 +95,6 @@ class GameMapRandomRooms(GameMap):
         # place monsters
         for room in self.rooms:
             self.place_entities(room, entities, max_monsters_per_room)
+
+        # update numpy array
+        self.np_array = self.game_map_to_numpy_array()

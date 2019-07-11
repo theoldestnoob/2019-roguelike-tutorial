@@ -18,7 +18,7 @@ from map_objects.game_map_bsp import GameMapBSP
 from map_objects.game_map_randomrooms import GameMapRandomRooms
 from fov_functions import initialize_fov, init_fov_entity0, recompute_fov
 from components.fighter import Fighter
-from components.ai import BasicMonster
+from components.ai import IdleMonster
 
 
 def main():
@@ -98,9 +98,10 @@ def main():
 
     # setup object instantiation
     fighter_component = Fighter(hp=30, defense=2, power=5)
+    ai_component = IdleMonster()
     player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False)
     vip = Entity(1, 0, 0, "&", tcod.yellow, "VIP", blocks=True,
-                 fighter=fighter_component)
+                 fighter=fighter_component, ai=ai_component)
     entities = [player, vip]
     controlled_entity = player
     controlled_entity_index = 0

@@ -9,7 +9,7 @@ import tcod
 
 
 class IdleMonster:
-    def take_turn(self):
+    def take_turn(self, *args, **kwargs):
         print(f"The {self.owner.name} wonders when it will get to move.")
 
 

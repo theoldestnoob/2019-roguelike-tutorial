@@ -9,6 +9,7 @@ from random import uniform
 from random import choice
 from random import randint
 import tcod
+import numpy as np
 
 from map_objects.geometry import Rect
 from map_objects.geometry import line_lerp_orthogonal
@@ -32,6 +33,7 @@ class GameMap:
         self.con = con
         self.debug = debug
         self.rooms = []
+        self.np_array = None
         self.nodes = []
         self.graph = None
 
@@ -61,6 +63,7 @@ class GameMap:
         self.rooms.append(room)
         self.place_player_vip(player, entities[1])
         self.place_entities(room, entities, max_monsters_per_room)
+        self.np_array = self.game_map_to_numpy_array()
 
     def make_graph(self):
         '''Generate graph data about the map and store it in self.graph.'''
@@ -197,7 +200,7 @@ class GameMap:
                 entities.append(monster)
 
     def game_map_to_walkable_array(self):
-        '''Get a multidimensional array of bools describing map walkability.
+        '''Return a multidimensional array of bools describing map walkability.
         Passed into MapGraph to decouple the MapGraph class from specific
         GameMap implementation detail.
         '''
@@ -205,8 +208,17 @@ class GameMap:
                 for x in range(self.width)]
 
     def game_map_to_transparent_array(self):
-        '''Get a multidimensional array of bools describing map transparency.
-        Passed into tcod map for fov calculations.
+        '''Return a multidimensional array of bools describing map
+        transparency. Passed into tcod map for fov calculations.
         '''
         return [[not self.tiles[x][y].block_sight for y in range(self.height)]
                 for x in range(self.width)]
+
+    def game_map_to_numpy_array(self):
+        numpy_array = np.empty([self.height, self.width], dtype=np.int8)
+        for y in range(self.height):
+            for x in range(self.width):
+                if self.tiles[x][y].blocked:
+                    numpy_array[y][x] = 0
+                else:
+                    numpy_array[y][x] = 1
