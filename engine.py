@@ -203,7 +203,8 @@ def main():
                                                                    dest_x,
                                                                    dest_y)
                         if target:
-                            print(f"You kick the {target.name} in the shins, much to its annoyance!")
+                            if controlled_entity.fighter:
+                                controlled_entity.fighter.attack(target)
                         else:
                             controlled_entity.move(dx, dy)
 

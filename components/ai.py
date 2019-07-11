@@ -20,4 +20,4 @@ class BasicMonster:
             if monster.distance_to(target) >= 2:
                 monster.move_astar(target, entities, game_map)
             elif target.fighter.hp > 0:
-                print(f"The {monster.name} insults the {target.name}! Its ego is damaged!")
+                monster.fighter.attack(target)

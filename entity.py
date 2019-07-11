@@ -74,15 +74,12 @@ class Entity:
         # create astar pathfinder and get a path
         astar = tcod.path.AStar(map_array)
         path = astar.get_path(self.y, self.x, target.y, target.x)
-        print(f"{path}")
 
-        print(f"self:({self.x}, {self.y}); target: ({target.x}, {target.y})")
         # check if the path exists and is < 25 steps, if so move there
         if path and len(path) < 25:
             y, x = path[0]
             dx = x - self.x
             dy = y - self.y
-            print(f"path: ({x}, {y}); move: ({dx}, {dy})")
             self.move(dx, dy)
         # otherwise, fall back to dumb move_towards method
         else:
