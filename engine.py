@@ -184,6 +184,8 @@ def main():
             possess = action.get("possess")
 
             # handle user input
+            turn_results = []
+
             if move:
                 dx, dy = move
                 dest_x = controlled_entity.x + dx
@@ -193,7 +195,7 @@ def main():
                     target = get_blocking_entities_at_location(entities,
                                                                dest_x, dest_y)
                     if target:
-                        print(f"A shudder runs through {target.name} as you press against its soul!")
+                        turn_results.append({"message": f"A shudder runs through {target.name} as you press against its soul!"})
                     else:
                         controlled_entity.move(dx, dy)
                         game_state = GameStates.ENEMY_TURN
@@ -204,7 +206,8 @@ def main():
                                                                    dest_y)
                         if target:
                             if controlled_entity.fighter:
-                                controlled_entity.fighter.attack(target)
+                                attack_results = controlled_entity.fighter.attack(target)
+                                turn_results.extend(attack_results)
                         else:
                             controlled_entity.move(dx, dy)
 
@@ -228,21 +231,40 @@ def main():
                 # if currently entity 0, we're not possessing anyone
                 if controlled_entity.ident == 0:
                     if target:
-                        print(f"You possess the {target.name}!")
+                        turn_results.append({"message": f"You possess the {target.name}!"})
                         controlled_entity = target
                         blank_map(con, game_map)
                     else:
-                        print(f"Nothing there to possess!")
+                        turn_results.append({"message": f"Nothing there to possess!"})
                 # otherwise, we are possessing someone and want to leave
                 else:
                     if target:
-                        print(f"That space is already occupied!")
+                        turn_results.append({"message": f"That space is already occupied!"})
                     else:
-                        print(f"You stop possessing the {controlled_entity.name}!")
+                        turn_results.append({"message": f"You stop possessing the {controlled_entity.name}!"})
                         controlled_entity = entities[0]
                         controlled_entity.x = dest_x
                         controlled_entity.y = dest_y
                         controlled_entity.fov_recompute = True
+
+            if game_state == GameStates.ENEMY_TURN:
+                for entity in entities:
+                    if entity.ai and entity is not controlled_entity:
+                        enemy_results = entity.ai.take_turn(vip, game_map, entities)
+                        turn_results.extend(enemy_results)
+                game_state = GameStates.PLAYERS_TURN
+
+            if turn_results:
+                print(turn_results)
+            for result in turn_results:
+                # print(result)
+                message = result.get("message")
+                dead_entity = result.get("dead")
+
+                if message:
+                    print(message)
+                if dead_entity:
+                    pass
 
             if want_exit:
                 return True
@@ -350,12 +372,6 @@ def main():
             if test:
                 game_map.make_graph()
                 print(game_map.graph.get_metrics())
-
-            if game_state == GameStates.ENEMY_TURN:
-                for entity in entities:
-                    if entity.ai and entity is not controlled_entity:
-                        entity.ai.take_turn(vip, game_map, entities)
-                game_state = GameStates.PLAYERS_TURN
 
 
 if __name__ == "__main__":
