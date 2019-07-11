@@ -33,7 +33,6 @@ class GameMap:
         self.con = con
         self.debug = debug
         self.rooms = []
-        self.np_array = None
         self.nodes = []
         self.graph = None
 
@@ -63,7 +62,6 @@ class GameMap:
         self.rooms.append(room)
         self.place_player_vip(player, entities[1])
         self.place_entities(room, entities, max_monsters_per_room)
-        self.np_array = self.game_map_to_numpy_array()
 
     def make_graph(self):
         '''Generate graph data about the map and store it in self.graph.'''
@@ -222,3 +220,5 @@ class GameMap:
                     numpy_array[y][x] = 0
                 else:
                     numpy_array[y][x] = 1
+
+        return numpy_array

@@ -62,6 +62,32 @@ class Entity:
         dy = other.y - self.y
         return (math.sqrt(dx ** 2 + dy ** 2))
 
+    def move_astar(self, target, entities, game_map):
+        # set up numpy array for use in tcod astar path calculation
+        map_array = game_map.game_map_to_numpy_array()
+
+        # add blocking entities to numpy array
+        for entity in entities:
+            if entity.blocks and entity is not self and entity is not target:
+                map_array[entity.y][entity.x] = 0
+
+        # create astar pathfinder and get a path
+        astar = tcod.path.AStar(map_array)
+        path = astar.get_path(self.y, self.x, target.y, target.x)
+        print(f"{path}")
+
+        print(f"self:({self.x}, {self.y}); target: ({target.x}, {target.y})")
+        # check if the path exists and is < 25 steps, if so move there
+        if path and len(path) < 25:
+            y, x = path[0]
+            dx = x - self.x
+            dy = y - self.y
+            print(f"path: ({x}, {y}); move: ({dx}, {dy})")
+            self.move(dx, dy)
+        # otherwise, fall back to dumb move_towards method
+        else:
+            self.move_towards(target.x, target.y, game_map, entities)
+
 
 def get_blocking_entities_at_location(entities, dest_x, dest_y):
     '''Return the first Entity in entities list on map at dest_x, dest_y.'''
