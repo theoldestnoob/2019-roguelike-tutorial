@@ -10,7 +10,9 @@ import tcod
 
 class IdleMonster:
     def take_turn(self, *args, **kwargs):
-        print(f"The {self.owner.name} wonders when it will get to move.")
+        results = []
+        results.append({"message": f"The {self.owner.name} wonders when it will get to move."})
+        return results
 
 
 class BasicMonster:
@@ -20,7 +22,7 @@ class BasicMonster:
         if tcod.map_is_in_fov(monster.fov_map, target.x, target.y):
             if monster.distance_to(target) >= 2:
                 monster.move_astar(target, entities, game_map)
-            elif target.fighter.hp > 0:
+            elif target.fighter and target.fighter.hp > 0:
                 attack_results = monster.fighter.attack(target)
                 results.extend(attack_results)
         return results

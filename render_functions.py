@@ -16,7 +16,7 @@ def render_all(con, entities, game_map, curr_entity, render_update,
         for entity in entities:
             if entity == curr_entity:
                 draw_entity(con, entity, curr_entity.fov_map, omnivision)
-            else:
+            elif entity.soul > 0:
                 draw_soul(con, entity, curr_entity.fov_map, omnivision)
 
     # otherwise, we see things normally:

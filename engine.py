@@ -19,6 +19,7 @@ from map_objects.game_map_randomrooms import GameMapRandomRooms
 from fov_functions import initialize_fov, init_fov_entity0, recompute_fov
 from components.fighter import Fighter
 from components.ai import IdleMonster
+from death_functions import kill_entity
 
 
 def main():
@@ -100,7 +101,7 @@ def main():
     fighter_component = Fighter(hp=30, defense=2, power=5)
     ai_component = IdleMonster()
     player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False)
-    vip = Entity(1, 0, 0, "&", tcod.yellow, "VIP", blocks=True,
+    vip = Entity(1, 0, 0, "&", tcod.yellow, "VIP", blocks=True, soul=10,
                  fighter=fighter_component, ai=ai_component)
     entities = [player, vip]
     controlled_entity = player
@@ -230,7 +231,7 @@ def main():
                                                            dest_x, dest_y)
                 # if currently entity 0, we're not possessing anyone
                 if controlled_entity.ident == 0:
-                    if target:
+                    if target and target.soul > 0:
                         turn_results.append({"message": f"You possess the {target.name}!"})
                         controlled_entity = target
                         blank_map(con, game_map)
@@ -264,7 +265,15 @@ def main():
                 if message:
                     print(message)
                 if dead_entity:
-                    pass
+                    if dead_entity == vip:
+                        game_state = GameStates.FAIL_STATE
+                    if dead_entity == controlled_entity:
+                        controlled_entity = entities[0]
+                        controlled_entity.x = dead_entity.x
+                        controlled_entity.y = dead_entity.y
+                        controlled_entity.fov_recompute = True
+                    message = kill_entity(dead_entity)
+                    print(message)
 
             if want_exit:
                 return True
