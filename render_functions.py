@@ -6,30 +6,50 @@ Created on Tue Jun 25 19:35:17 2019
 """
 
 import tcod
+from enum import Enum
 
 
-def render_all(con, entities, game_map, curr_entity, fov_recompute,
+class RenderOrder(Enum):
+    CORPSE = 1
+    ITEM = 2
+    ACTOR = 3
+
+
+def render_all(con, entities, game_map, curr_entity, render_update,
                screen_width, screen_height, colors, omnivision):
+    # sort our entities so we render them in the right order
+    entities_sorted = sorted(entities, key=lambda x: x.render_order.value)
+
     # if we're currently controlling entity 0, we see things differently
     if curr_entity.ident == 0:
         gray_map(con, game_map)
-        for entity in entities:
+        for entity in entities_sorted:
             if entity == curr_entity:
                 draw_entity(con, entity, curr_entity.fov_map, omnivision)
-            else:
+            elif entity.soul > 0:
                 draw_soul(con, entity, curr_entity.fov_map, omnivision)
+        hp_str = f"HP: n/a  "
+        tcod.console_set_default_foreground(con, tcod.white)
+        tcod.console_print_ex(con, 1, screen_height - 2, tcod.BKGND_NONE,
+                              tcod.LEFT, hp_str)
 
     # otherwise, we see things normally:
     else:
         # draw all the tiles in the game map
         if curr_entity.ident != 0:
-            draw_map(con, game_map, curr_entity, fov_recompute, colors,
-                     omnivision)
+            draw_map(con, game_map, curr_entity, render_update,
+                     colors, omnivision)
 
         # draw all the entities in the list, except for entity 0
-        for entity in entities:
+        for entity in entities_sorted:
             if entity.ident != 0:
                 draw_entity(con, entity, curr_entity.fov_map, omnivision)
+
+        hp_str = (f"HP: {curr_entity.fighter.hp:02}"
+                  f"/{curr_entity.fighter.max_hp:02}")
+        tcod.console_set_default_foreground(con, tcod.white)
+        tcod.console_print_ex(con, 1, screen_height - 2, tcod.BKGND_NONE,
+                              tcod.LEFT, hp_str)
 
     # tcod.console_blit(con, 0, 0, screen_width, screen_height, 0, 0, 0)
 
@@ -39,11 +59,11 @@ def clear_all(con, entities):
         clear_entity(con, entity)
 
 
-def draw_map(con, game_map, curr_entity, fov_recompute, colors, omnivision):
-    if fov_recompute:
+def draw_map(con, game_map, curr_entity, render_update, colors, omnivision):
+    if render_update:
         for y in range(game_map.height):
             for x in range(game_map.width):
-                visible = tcod.map_is_in_fov(curr_entity.fov_map, x, y)
+                visible = curr_entity.fov_map.fov[y][x]
                 wall = game_map.tiles[x][y].block_sight
 
                 if visible:
@@ -55,7 +75,6 @@ def draw_map(con, game_map, curr_entity, fov_recompute, colors, omnivision):
                         tcod.console_set_char_background(con, x, y,
                                                          colors["light_ground"],
                                                          tcod.BKGND_SET)
-                    game_map.tiles[x][y].explored.append(curr_entity.ident)
                 elif (curr_entity.ident in game_map.tiles[x][y].explored
                       or omnivision):
                     if wall:
@@ -83,13 +102,13 @@ def gray_map(con, game_map):
 
 
 def draw_entity(con, entity, fov_map, omnivision):
-    if tcod.map_is_in_fov(fov_map, entity.x, entity.y) or omnivision:
+    if fov_map.fov[entity.y][entity.x] or omnivision:
         con.default_fg = entity.color
         con.put_char(entity.x, entity.y, ord(entity.char))
 
 
 def draw_soul(con, entity, fov_map, omnivision):
-    if tcod.map_is_in_fov(fov_map, entity.x, entity.y) or omnivision:
+    if fov_map.fov[entity.y][entity.x] or omnivision:
         soul_char = get_soul_char(entity.soul)
         soul_color = get_soul_color(entity.soul)
         con.default_fg = soul_color

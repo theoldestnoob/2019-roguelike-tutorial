@@ -11,15 +11,20 @@ from random import randint
 
 from entity import Entity, get_blocking_entities_at_location
 from input_handlers import InputHandler
-from render_functions import clear_all, render_all, display_space, blank_map, gray_map
+from render_functions import clear_all, render_all, display_space, blank_map
+from render_functions import RenderOrder
 from game_states import GameStates
 from map_objects.game_map import GameMap
 from map_objects.game_map_bsp import GameMapBSP
 from map_objects.game_map_randomrooms import GameMapRandomRooms
 from fov_functions import initialize_fov, init_fov_entity0, recompute_fov
+from components.fighter import Fighter
+from components.ai import IdleMonster
+from death_functions import kill_entity
 
 
 def main():
+    # "global" variables
     debug_f = True
     seed = "testseed"
     screen_width = 80
@@ -32,7 +37,7 @@ def main():
     fov_radius = 10
     omnivision = False
 
-
+    # various map settings - TODO: move to other module
     mapset_bsprect = {
             "room_max_size": 15,
             "room_min_size": 8,
@@ -93,8 +98,14 @@ def main():
             "light_ground": tcod.Color(200, 180, 50)
     }
 
-    player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False)
-    vip = Entity(1, 0, 0, "&", tcod.yellow, "VIP", blocks=True)
+    # setup object instantiation
+    fighter_component = Fighter(hp=30, defense=2, power=5)
+    ai_component = IdleMonster()
+    player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False,
+                    render_order=RenderOrder.ACTOR)
+    vip = Entity(1, 0, 0, "&", tcod.yellow, "VIP", blocks=True, soul=10,
+                 fighter=fighter_component, ai=ai_component,
+                 render_order=RenderOrder.ACTOR)
     entities = [player, vip]
     controlled_entity = player
     controlled_entity_index = 0
@@ -105,13 +116,11 @@ def main():
             tcod.FONT_TYPE_GREYSCALE | tcod.FONT_LAYOUT_TCOD
             )
 
-    # game_map = GameMapRandomRooms(map_width, map_height, seed, con)
-    # game_map.make_map(player, **mapset)
-
     action = {}
 
     in_handle = InputHandler()
 
+    # open tcod console context
     with tcod.console_init_root(
             screen_width, screen_height,
             "libtcod tutorial revised",
@@ -119,33 +128,43 @@ def main():
             renderer=tcod.RENDERER_SDL2,
             vsync=False) as con:
 
+        # create initial game map
         # game_map = GameMap(map_width, map_height, seed, con=con, debug=debug_f)
         # game_map = GameMapRandomRooms(map_width, map_height, seed, con=con, debug=debug_f)
         game_map = GameMapBSP(map_width, map_height, seed, con=con, debug=debug_f)
         game_map.make_map(player, entities, **mapset)
 
-        fov_recompute = True
+        # FOV calculation setup
+        render_update = True
 
         for entity in entities:
             if entity.ident == 0:
                 entity.fov_map = init_fov_entity0(game_map)
             else:
                 entity.fov_map = initialize_fov(game_map)
+            recompute_fov(game_map, entity, fov_radius, fov_light_walls,
+                          fov_algorithm)
 
+        # main game loop
         while True:
 
-            if fov_recompute:
-                recompute_fov(controlled_entity, fov_radius,
-                              fov_light_walls, fov_algorithm)
+            # refresh graphics
+            for entity in entities:
+                if entity.fov_recompute:
+                    render_update = True
+                    recompute_fov(game_map, entity, fov_radius,
+                                  fov_light_walls, fov_algorithm)
+                    entity.fov_recompute = False
 
             render_all(con, entities, game_map, controlled_entity,
-                       fov_recompute, screen_width, screen_height, colors,
+                       render_update, screen_width, screen_height, colors,
                        omnivision)
 
             tcod.console_flush()
 
             clear_all(con, entities)
 
+            # get user input
             for event in tcod.event.get():
                 in_handle.dispatch(event)
 
@@ -155,6 +174,7 @@ def main():
                 print(action)
 
             move = action.get("move")
+            wait = action.get("wait")
             want_exit = action.get("exit")
             fullscreen = action.get("fullscreen")
             map_gen = action.get("map_gen")
@@ -167,6 +187,9 @@ def main():
             switch_char = action.get("switch_char")
             possess = action.get("possess")
 
+            # handle user input
+            turn_results = []
+
             if move:
                 dx, dy = move
                 dest_x = controlled_entity.x + dx
@@ -176,10 +199,9 @@ def main():
                     target = get_blocking_entities_at_location(entities,
                                                                dest_x, dest_y)
                     if target:
-                        print(f"A shudder runs through {target.name} as you press against its soul!")
+                        turn_results.append({"message": f"A shudder runs through {target.name} as you press against its soul!"})
                     else:
                         controlled_entity.move(dx, dy)
-                        fov_recompute = True
                         game_state = GameStates.ENEMY_TURN
                 else:
                     if not game_map.is_blocked(dest_x, dest_y):
@@ -187,12 +209,16 @@ def main():
                                                                    dest_x,
                                                                    dest_y)
                         if target:
-                            print(f"You kick the {target.name} in the shins, much to its annoyance!")
+                            if controlled_entity.fighter:
+                                attack_results = controlled_entity.fighter.attack(target)
+                                turn_results.extend(attack_results)
                         else:
                             controlled_entity.move(dx, dy)
-                            fov_recompute = True
-    
+
                         game_state = GameStates.ENEMY_TURN
+
+            if wait:
+                game_state = GameStates.ENEMY_TURN
 
             if possess:
                 # get a direction to try to possess/leave
@@ -208,20 +234,49 @@ def main():
                                                            dest_x, dest_y)
                 # if currently entity 0, we're not possessing anyone
                 if controlled_entity.ident == 0:
-                    if target:
-                        print(f"You possess the {target.name}!")
+                    if target and target.soul > 0:
+                        turn_results.append({"message": f"You possess the {target.name}!"})
                         controlled_entity = target
+                        blank_map(con, game_map)
                     else:
-                        print(f"Nothing there to possess!")
+                        turn_results.append({"message": f"Nothing there to possess!"})
                 # otherwise, we are possessing someone and want to leave
                 else:
                     if target:
-                        print(f"That space is already occupied!")
+                        turn_results.append({"message": f"That space is already occupied!"})
                     else:
-                        print(f"You stop possessing the {controlled_entity.name}!")
+                        turn_results.append({"message": f"You stop possessing the {controlled_entity.name}!"})
                         controlled_entity = entities[0]
                         controlled_entity.x = dest_x
                         controlled_entity.y = dest_y
+                        controlled_entity.fov_recompute = True
+
+            if game_state == GameStates.ENEMY_TURN:
+                for entity in entities:
+                    if entity.ai and entity is not controlled_entity:
+                        enemy_results = entity.ai.take_turn(vip, game_map, entities)
+                        turn_results.extend(enemy_results)
+                game_state = GameStates.PLAYERS_TURN
+
+            if turn_results:
+                print(turn_results)
+            for result in turn_results:
+                # print(result)
+                message = result.get("message")
+                dead_entity = result.get("dead")
+
+                if message:
+                    print(message)
+                if dead_entity:
+                    if dead_entity == vip:
+                        game_state = GameStates.FAIL_STATE
+                    if dead_entity == controlled_entity:
+                        controlled_entity = entities[0]
+                        controlled_entity.x = dead_entity.x
+                        controlled_entity.y = dead_entity.y
+                        controlled_entity.fov_recompute = True
+                    message = kill_entity(dead_entity)
+                    print(message)
 
             if want_exit:
                 return True
@@ -248,8 +303,13 @@ def main():
                 entities = [player, vip]
                 controlled_entity = player
                 game_map.make_map(player, entities, **mapset)
-                player.fov_map = init_fov_entity0(game_map)
-                vip.fov_map = initialize_fov(game_map)
+                for entity in entities:
+                    if entity.ident == 0:
+                        entity.fov_map = init_fov_entity0(game_map)
+                    else:
+                        entity.fov_map = initialize_fov(game_map)
+                    recompute_fov(game_map, entity, fov_radius,
+                                  fov_light_walls, fov_algorithm)
                 blank_map(con, game_map)
 
             if graph_gen:
@@ -273,7 +333,7 @@ def main():
                             break
                     blank_map(con, game_map)
                     render_all(con, entities, game_map,
-                               controlled_entity, fov_recompute,
+                               controlled_entity, render_update,
                                screen_width, screen_height, colors, omnivision)
                     tcod.console_flush()
 
@@ -295,7 +355,7 @@ def main():
                             break
                     blank_map(con, game_map)
                     render_all(con, entities, game_map,
-                               controlled_entity, fov_recompute,
+                               controlled_entity, render_update,
                                screen_width, screen_height, colors, omnivision)
                     tcod.console_flush()
 
@@ -317,19 +377,13 @@ def main():
                             break
                     blank_map(con, game_map)
                     render_all(con, entities, game_map,
-                               controlled_entity, fov_recompute,
+                               controlled_entity, render_update,
                                screen_width, screen_height, colors, omnivision)
                     tcod.console_flush()
 
             if test:
                 game_map.make_graph()
                 print(game_map.graph.get_metrics())
-
-            if game_state == GameStates.ENEMY_TURN:
-                for entity in entities:
-                    if entity is not controlled_entity:
-                        print(f"The {entity.name} ponders the meaning of its existence.")
-                game_state = GameStates.PLAYERS_TURN
 
 
 if __name__ == "__main__":

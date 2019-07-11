@@ -9,12 +9,16 @@ from random import uniform
 from random import choice
 from random import randint
 import tcod
+import numpy as np
 
 from map_objects.geometry import Rect
 from map_objects.geometry import line_lerp_orthogonal
 from map_objects.tile import Tile
 from map_objects.map_graph import MapGraph
 from entity import Entity
+from components.fighter import Fighter
+from components.ai import BasicMonster
+from render_functions import RenderOrder
 
 
 class GameMap:
@@ -175,20 +179,29 @@ class GameMap:
             x, y = choice(room.coords)
             if not any([e for e in entities if e.x == x and e.y == y]):
                 if randint(0, 100) < 80:
+                    fighter_component = Fighter(hp=10, defense=0, power=3)
+                    ai_component = BasicMonster()
                     m_soul = randint(1, 80)
                     monster = Entity(len(entities), x, y, 'o',
                                      tcod.desaturated_green, "Orc",
-                                     soul=m_soul, blocks=True)
+                                     blocks=True, soul=m_soul,
+                                     fighter=fighter_component,
+                                     ai=ai_component,
+                                     render_order=RenderOrder.ACTOR)
                 else:
+                    fighter_component = Fighter(hp=16, defense=1, power=4)
+                    ai_component = BasicMonster()
                     m_soul = randint(60, 120)
                     monster = Entity(len(entities), x, y, 'T',
-                                     tcod.darker_green, "Troll", soul=m_soul,
-                                     blocks=True)
+                                     tcod.darker_green, "Troll", blocks=True,
+                                     soul=m_soul, fighter=fighter_component,
+                                     ai=ai_component,
+                                     render_order=RenderOrder.ACTOR)
 
                 entities.append(monster)
 
     def game_map_to_walkable_array(self):
-        '''Get a multidimensional array of bools describing map walkability.
+        '''Return a multidimensional array of bools describing map walkability.
         Passed into MapGraph to decouple the MapGraph class from specific
         GameMap implementation detail.
         '''
@@ -196,8 +209,19 @@ class GameMap:
                 for x in range(self.width)]
 
     def game_map_to_transparent_array(self):
-        '''Get a multidimensional array of bools describing map transparency.
-        Passed into tcod map for fov calculations.
+        '''Return a multidimensional array of bools describing map
+        transparency. Passed into tcod map for fov calculations.
         '''
         return [[not self.tiles[x][y].block_sight for y in range(self.height)]
                 for x in range(self.width)]
+
+    def game_map_to_numpy_array(self):
+        numpy_array = np.empty([self.height, self.width], dtype=np.int8)
+        for y in range(self.height):
+            for x in range(self.width):
+                if self.tiles[x][y].blocked:
+                    numpy_array[y][x] = 0
+                else:
+                    numpy_array[y][x] = 1
+
+        return numpy_array
