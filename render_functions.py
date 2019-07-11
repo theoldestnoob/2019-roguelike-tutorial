@@ -18,6 +18,10 @@ def render_all(con, entities, game_map, curr_entity, render_update,
                 draw_entity(con, entity, curr_entity.fov_map, omnivision)
             elif entity.soul > 0:
                 draw_soul(con, entity, curr_entity.fov_map, omnivision)
+        hp_str = f"HP: n/a  "
+        tcod.console_set_default_foreground(con, tcod.white)
+        tcod.console_print_ex(con, 1, screen_height - 2, tcod.BKGND_NONE,
+                              tcod.LEFT, hp_str)
 
     # otherwise, we see things normally:
     else:
@@ -30,6 +34,12 @@ def render_all(con, entities, game_map, curr_entity, render_update,
         for entity in entities:
             if entity.ident != 0:
                 draw_entity(con, entity, curr_entity.fov_map, omnivision)
+
+        hp_str = (f"HP: {curr_entity.fighter.hp:02}"
+                  f"/{curr_entity.fighter.max_hp:02}")
+        tcod.console_set_default_foreground(con, tcod.white)
+        tcod.console_print_ex(con, 1, screen_height - 2, tcod.BKGND_NONE,
+                              tcod.LEFT, hp_str)
 
     # tcod.console_blit(con, 0, 0, screen_width, screen_height, 0, 0, 0)
 
