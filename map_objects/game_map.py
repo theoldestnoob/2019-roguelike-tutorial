@@ -18,6 +18,7 @@ from map_objects.map_graph import MapGraph
 from entity import Entity
 from components.fighter import Fighter
 from components.ai import BasicMonster
+from render_functions import RenderOrder
 
 
 class GameMap:
@@ -185,7 +186,8 @@ class GameMap:
                                      tcod.desaturated_green, "Orc",
                                      blocks=True, soul=m_soul,
                                      fighter=fighter_component,
-                                     ai=ai_component)
+                                     ai=ai_component,
+                                     render_order=RenderOrder.ACTOR)
                 else:
                     fighter_component = Fighter(hp=16, defense=1, power=4)
                     ai_component = BasicMonster()
@@ -193,7 +195,8 @@ class GameMap:
                     monster = Entity(len(entities), x, y, 'T',
                                      tcod.darker_green, "Troll", blocks=True,
                                      soul=m_soul, fighter=fighter_component,
-                                     ai=ai_component)
+                                     ai=ai_component,
+                                     render_order=RenderOrder.ACTOR)
 
                 entities.append(monster)
 

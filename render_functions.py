@@ -6,14 +6,24 @@ Created on Tue Jun 25 19:35:17 2019
 """
 
 import tcod
+from enum import Enum
+
+
+class RenderOrder(Enum):
+    CORPSE = 1
+    ITEM = 2
+    ACTOR = 3
 
 
 def render_all(con, entities, game_map, curr_entity, render_update,
                screen_width, screen_height, colors, omnivision):
+    # sort our entities so we render them in the right order
+    entities_sorted = sorted(entities, key=lambda x: x.render_order.value)
+
     # if we're currently controlling entity 0, we see things differently
     if curr_entity.ident == 0:
         gray_map(con, game_map)
-        for entity in entities:
+        for entity in entities_sorted:
             if entity == curr_entity:
                 draw_entity(con, entity, curr_entity.fov_map, omnivision)
             elif entity.soul > 0:
@@ -31,7 +41,7 @@ def render_all(con, entities, game_map, curr_entity, render_update,
                      colors, omnivision)
 
         # draw all the entities in the list, except for entity 0
-        for entity in entities:
+        for entity in entities_sorted:
             if entity.ident != 0:
                 draw_entity(con, entity, curr_entity.fov_map, omnivision)
 

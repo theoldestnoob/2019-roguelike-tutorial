@@ -8,6 +8,8 @@ Created on Wed Jul 10 22:31:29 2019
 
 import tcod
 
+from render_functions import RenderOrder
+
 
 def kill_entity(entity):
     death_message = f"{entity.name} is dead!"
@@ -19,5 +21,6 @@ def kill_entity(entity):
     entity.ai = None
     entity.soul = 0
     entity.name = f"remains of {entity.name}"
+    entity.render_order = RenderOrder.CORPSE
 
     return death_message

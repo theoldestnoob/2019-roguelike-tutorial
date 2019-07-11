@@ -12,6 +12,7 @@ from random import randint
 from entity import Entity, get_blocking_entities_at_location
 from input_handlers import InputHandler
 from render_functions import clear_all, render_all, display_space, blank_map
+from render_functions import RenderOrder
 from game_states import GameStates
 from map_objects.game_map import GameMap
 from map_objects.game_map_bsp import GameMapBSP
@@ -100,9 +101,11 @@ def main():
     # setup object instantiation
     fighter_component = Fighter(hp=30, defense=2, power=5)
     ai_component = IdleMonster()
-    player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False)
+    player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False,
+                    render_order=RenderOrder.ACTOR)
     vip = Entity(1, 0, 0, "&", tcod.yellow, "VIP", blocks=True, soul=10,
-                 fighter=fighter_component, ai=ai_component)
+                 fighter=fighter_component, ai=ai_component,
+                 render_order=RenderOrder.ACTOR)
     entities = [player, vip]
     controlled_entity = player
     controlled_entity_index = 0

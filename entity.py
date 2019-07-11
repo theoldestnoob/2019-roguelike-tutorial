@@ -8,13 +8,16 @@ Created on Tue Jun 25 19:29:03 2019
 import math
 import tcod
 
+from render_functions import RenderOrder
+
 
 class Entity:
     """
     A generic object to represent players, enemies, items, etc.
     """
     def __init__(self, ident, x, y, char, color, name, soul=0, blocks=False,
-                 fov_map=None, fighter=None, ai=None):
+                 fov_map=None, fighter=None, ai=None,
+                 render_order=RenderOrder.CORPSE):
         self.x = x
         self.y = y
         self.char = char
@@ -25,6 +28,7 @@ class Entity:
         self.blocks = blocks
         self.fov_recompute = False
         self.fov_map = fov_map
+        self.render_order = render_order
         self.fighter = fighter
         self.ai = ai
 
