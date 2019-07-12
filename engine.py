@@ -103,7 +103,7 @@ def main():
     fighter_component = Fighter(hp=30, defense=2, power=5)
     ai_component = IdleMonster()
     player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False,
-                    render_order=RenderOrder.ACTOR, speed=10)
+                    render_order=RenderOrder.ACTOR, speed=20)
     vip = Entity(1, 0, 0, "&", tcod.yellow, "VIP", blocks=True, soul=10,
                  fighter=fighter_component, ai=ai_component,
                  render_order=RenderOrder.ACTOR)
@@ -150,7 +150,7 @@ def main():
                           fov_algorithm)
 
         # set up time system
-        timeq = deque(sorted(entities, key=lambda entity: entity.speed))
+        timeq = deque(sorted(entities, key=lambda entity: entity.speed, reverse=True))
         curr_entity = timeq.popleft()
         next_turn = True
 
