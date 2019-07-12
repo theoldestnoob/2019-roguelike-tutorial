@@ -13,7 +13,7 @@ from collections import deque
 from entity import Entity, get_blocking_entities_at_location
 from input_handlers import InputHandler
 from render_functions import clear_all, render_all, display_space, blank_map
-from render_functions import RenderOrder
+from render_functions import RenderOrder, gray_map
 from game_states import GameStates
 from map_objects.game_map import GameMap
 from map_objects.game_map_bsp import GameMapBSP
@@ -26,7 +26,7 @@ from death_functions import kill_entity
 
 def main():
     # "global" variables
-    debug_f = True
+    debug_f = False
     seed = "testseed"
     screen_width = 80
     screen_height = 50
@@ -103,7 +103,7 @@ def main():
     fighter_component = Fighter(hp=30, defense=2, power=5)
     ai_component = IdleMonster()
     player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False,
-                    render_order=RenderOrder.ACTOR, speed=20)
+                    render_order=RenderOrder.ACTOR, speed=10)
     vip = Entity(1, 0, 0, "&", tcod.yellow, "VIP", blocks=True, soul=10,
                  fighter=fighter_component, ai=ai_component,
                  render_order=RenderOrder.ACTOR)
@@ -134,6 +134,9 @@ def main():
         # game_map = GameMapRandomRooms(map_width, map_height, seed, con=con, debug=debug_f)
         game_map = GameMapBSP(map_width, map_height, seed, con=con, debug=debug_f)
         game_map.make_map(player, entities, **mapset)
+
+        # gray out initial map view
+        gray_map(con, game_map)
 
         # FOV calculation setup
         render_update = True
@@ -260,6 +263,7 @@ def main():
                             controlled_entity = entities[0]
                             controlled_entity.x = dest_x
                             controlled_entity.y = dest_y
+                            gray_map(con, game_map)
                             controlled_entity.fov_recompute = True
                             next_turn = True
 
@@ -295,7 +299,7 @@ def main():
                             entity.fov_map = initialize_fov(game_map)
                         recompute_fov(game_map, entity, fov_radius,
                                       fov_light_walls, fov_algorithm)
-                    blank_map(con, game_map)
+                    gray_map(con, game_map)
                     timeq = deque(sorted(entities, key=lambda entity: entity.speed))
                     curr_entity = timeq.popleft()
                     next_turn = True
@@ -395,7 +399,7 @@ def main():
                 curr_entity = timeq.popleft()
 
             # process turn results
-            if turn_results:
+            if debug_f and turn_results:
                 print(turn_results)
 
             for result in turn_results:
@@ -412,6 +416,7 @@ def main():
                         controlled_entity = entities[0]
                         controlled_entity.x = dead_entity.x
                         controlled_entity.y = dead_entity.y
+                        gray_map(con, game_map)
                         controlled_entity.fov_recompute = True
                     message = kill_entity(dead_entity)
                     print(message)

@@ -22,7 +22,6 @@ def render_all(con, entities, game_map, curr_entity, render_update,
 
     # if we're currently controlling entity 0, we see things differently
     if curr_entity.ident == 0:
-        gray_map(con, game_map)
         for entity in entities_sorted:
             if entity == curr_entity:
                 draw_entity(con, entity, curr_entity.fov_map, omnivision)
