@@ -8,6 +8,7 @@ Created on Tue Jun 18 20:28:25 2019
 import tcod
 import tcod.event
 from random import randint
+from collections import deque
 
 from entity import Entity, get_blocking_entities_at_location
 from input_handlers import InputHandler
@@ -102,7 +103,7 @@ def main():
     fighter_component = Fighter(hp=30, defense=2, power=5)
     ai_component = IdleMonster()
     player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False,
-                    render_order=RenderOrder.ACTOR)
+                    render_order=RenderOrder.ACTOR, speed=20)
     vip = Entity(1, 0, 0, "&", tcod.yellow, "VIP", blocks=True, soul=10,
                  fighter=fighter_component, ai=ai_component,
                  render_order=RenderOrder.ACTOR)
@@ -145,6 +146,11 @@ def main():
             recompute_fov(game_map, entity, fov_radius, fov_light_walls,
                           fov_algorithm)
 
+        # set up time system
+        timeq = deque(sorted(entities, key=lambda entity: entity.speed))
+        curr_entity = timeq.popleft()
+        next_turn = True
+
         # main game loop
         while True:
 
@@ -164,102 +170,232 @@ def main():
 
             clear_all(con, entities)
 
-            # get user input
-            for event in tcod.event.get():
-                in_handle.dispatch(event)
-
-            action = in_handle.get_action()
-
-            if debug_f and action:
-                print(action)
-
-            move = action.get("move")
-            wait = action.get("wait")
-            want_exit = action.get("exit")
-            fullscreen = action.get("fullscreen")
-            map_gen = action.get("map_gen")
-            graph_gen = action.get("graph_gen")
-            show_vertices = action.get("show_vertices")
-            show_hyperedges = action.get("show_hyperedges")
-            show_edges = action.get("show_edges")
-            test = action.get("test")
-            omnivis = action.get("omnivis")
-            switch_char = action.get("switch_char")
-            possess = action.get("possess")
-
-            # handle user input
+            # run an entity's turn
             turn_results = []
 
-            if move:
-                dx, dy = move
-                dest_x = controlled_entity.x + dx
-                dest_y = controlled_entity.y + dy
-                # entity 0 can move through walls
-                if controlled_entity.ident == 0:
-                    target = get_blocking_entities_at_location(entities,
-                                                               dest_x, dest_y)
-                    if target:
-                        turn_results.append({"message": f"A shudder runs through {target.name} as you press against its soul!"})
-                    else:
-                        controlled_entity.move(dx, dy)
-                        game_state = GameStates.ENEMY_TURN
-                else:
-                    if not game_map.is_blocked(dest_x, dest_y):
+            # let player input do the controlled entity's turn
+            if curr_entity is controlled_entity:
+                next_turn = False
+                # get user input
+                for event in tcod.event.get():
+                    in_handle.dispatch(event)
+
+                action = in_handle.get_action()
+
+                if debug_f and action:
+                    print(action)
+
+                move = action.get("move")
+                wait = action.get("wait")
+                possess = action.get("possess")
+                want_exit = action.get("exit")
+                fullscreen = action.get("fullscreen")
+                map_gen = action.get("map_gen")
+                graph_gen = action.get("graph_gen")
+                show_vertices = action.get("show_vertices")
+                show_hyperedges = action.get("show_hyperedges")
+                show_edges = action.get("show_edges")
+                test = action.get("test")
+                omnivis = action.get("omnivis")
+                switch_char = action.get("switch_char")
+
+                # handle user input
+                if move:
+                    dx, dy = move
+                    dest_x = controlled_entity.x + dx
+                    dest_y = controlled_entity.y + dy
+                    # entity 0 can move through walls
+                    if controlled_entity.ident == 0:
                         target = get_blocking_entities_at_location(entities,
-                                                                   dest_x,
-                                                                   dest_y)
+                                                                   dest_x, dest_y)
                         if target:
-                            if controlled_entity.fighter:
-                                attack_results = controlled_entity.fighter.attack(target)
-                                turn_results.extend(attack_results)
+                            turn_results.append({"message": f"A shudder runs through {target.name} as you press against its soul!"})
                         else:
                             controlled_entity.move(dx, dy)
+                            next_turn = True
+                    else:
+                        if not game_map.is_blocked(dest_x, dest_y):
+                            target = get_blocking_entities_at_location(entities,
+                                                                       dest_x,
+                                                                       dest_y)
+                            if target:
+                                if controlled_entity.fighter:
+                                    attack_results = controlled_entity.fighter.attack(target)
+                                    turn_results.extend(attack_results)
+                            else:
+                                controlled_entity.move(dx, dy)
 
-                        game_state = GameStates.ENEMY_TURN
+                            next_turn = True
 
-            if wait:
-                game_state = GameStates.ENEMY_TURN
+                if wait:
+                    next_turn = True
 
-            if possess:
-                # get a direction to try to possess/leave
-                while not move:
-                    for event in tcod.event.get():
-                        in_handle.dispatch(event)
-                    action = in_handle.get_action()
-                    move = action.get("move")
-                dx, dy = move
-                dest_x = controlled_entity.x + dx
-                dest_y = controlled_entity.y + dy
-                target = get_blocking_entities_at_location(entities,
-                                                           dest_x, dest_y)
-                # if currently entity 0, we're not possessing anyone
-                if controlled_entity.ident == 0:
-                    if target and target.soul > 0:
-                        turn_results.append({"message": f"You possess the {target.name}!"})
-                        controlled_entity = target
+                if possess:
+                    # get a direction to try to possess/leave
+                    while not move:
+                        for event in tcod.event.get():
+                            in_handle.dispatch(event)
+                        action = in_handle.get_action()
+                        move = action.get("move")
+                    dx, dy = move
+                    dest_x = controlled_entity.x + dx
+                    dest_y = controlled_entity.y + dy
+                    target = get_blocking_entities_at_location(entities,
+                                                               dest_x, dest_y)
+                    # if currently entity 0, we're not possessing anyone
+                    if controlled_entity.ident == 0:
+                        if target and target.soul > 0:
+                            turn_results.append({"message": f"You possess the {target.name}!"})
+                            controlled_entity = target
+                            blank_map(con, game_map)
+                            next_turn = True
+                        else:
+                            turn_results.append({"message": f"Nothing there to possess!"})
+                    # otherwise, we are possessing someone and want to leave
+                    else:
+                        if target:
+                            turn_results.append({"message": f"That space is already occupied!"})
+                        else:
+                            turn_results.append({"message": f"You stop possessing the {controlled_entity.name}!"})
+                            controlled_entity = entities[0]
+                            controlled_entity.x = dest_x
+                            controlled_entity.y = dest_y
+                            controlled_entity.fov_recompute = True
+                            next_turn = True
+
+                if want_exit:
+                    return True
+                    raise SystemExit()
+
+                if fullscreen:
+                    tcod.console_set_fullscreen(not tcod.console_is_fullscreen())
+
+                if omnivis:
+                    if omnivision is True:
                         blank_map(con, game_map)
-                    else:
-                        turn_results.append({"message": f"Nothing there to possess!"})
-                # otherwise, we are possessing someone and want to leave
+                    omnivision = not omnivision
+
+                if switch_char:
+                    controlled_entity_index += 1
+                    if controlled_entity_index >= len(entities):
+                        controlled_entity_index = 0
+                    controlled_entity = entities[controlled_entity_index]
+                    blank_map(con, game_map)
+
+                if map_gen:
+                    game_map.seed = randint(0, 99999)
+                    game_map.tiles = game_map.initialize_tiles()
+                    entities = [player, vip]
+                    controlled_entity = player
+                    game_map.make_map(player, entities, **mapset)
+                    for entity in entities:
+                        if entity.ident == 0:
+                            entity.fov_map = init_fov_entity0(game_map)
+                        else:
+                            entity.fov_map = initialize_fov(game_map)
+                        recompute_fov(game_map, entity, fov_radius,
+                                      fov_light_walls, fov_algorithm)
+                    blank_map(con, game_map)
+                    timeq = deque(sorted(entities, key=lambda entity: entity.speed))
+                    curr_entity = timeq.popleft()
+                    next_turn = True
+
+                if graph_gen:
+                    game_map.make_graph()
+
+                if show_hyperedges and game_map.graph is not None:
+                    for edge in game_map.graph.hyperedges:
+                        display_space(con, edge.space, tcod.green)
+                        tcod.console_flush()
+                        if debug_f:
+                            print(f"***Hyperedge: {edge}")
+                        while True:
+                            for event in tcod.event.get():
+                                in_handle.dispatch(event)
+                            action = in_handle.get_action()
+                            show_hyperedges = action.get("show_hyperedges")
+                            want_exit = action.get("exit")
+                            if want_exit:
+                                return True
+                            if show_hyperedges:
+                                break
+                        blank_map(con, game_map)
+                        render_all(con, entities, game_map,
+                                   controlled_entity, render_update,
+                                   screen_width, screen_height, colors, omnivision)
+                        tcod.console_flush()
+
+                if show_edges and game_map.graph is not None:
+                    for edge in game_map.graph.edges:
+                        display_space(con, edge.space, tcod.green)
+                        tcod.console_flush()
+                        if debug_f:
+                            print(f"***Edge: {edge}")
+                        while True:
+                            for event in tcod.event.get():
+                                in_handle.dispatch(event)
+                            action = in_handle.get_action()
+                            show_edges = action.get("show_edges")
+                            want_exit = action.get("exit")
+                            if want_exit:
+                                return True
+                            if show_edges:
+                                break
+                        blank_map(con, game_map)
+                        render_all(con, entities, game_map,
+                                   controlled_entity, render_update,
+                                   screen_width, screen_height, colors, omnivision)
+                        tcod.console_flush()
+
+                if show_vertices and game_map.graph is not None:
+                    for vertex in game_map.graph.vertices:
+                        display_space(con, vertex.space, tcod.green)
+                        tcod.console_flush()
+                        if debug_f:
+                            print(f"***Vertex: {vertex}")
+                        while True:
+                            for event in tcod.event.get():
+                                in_handle.dispatch(event)
+                            action = in_handle.get_action()
+                            show_vertices = action.get("show_vertices")
+                            want_exit = action.get("exit")
+                            if want_exit:
+                                return True
+                            if show_vertices:
+                                break
+                        blank_map(con, game_map)
+                        render_all(con, entities, game_map,
+                                   controlled_entity, render_update,
+                                   screen_width, screen_height, colors, omnivision)
+                        tcod.console_flush()
+
+                if test:
+                    game_map.make_graph()
+                    print(game_map.graph.get_metrics())
+
+            # if it's not the controlled entity's turn, take ai turn
+            else:
+                if curr_entity.ai:
+                    ai_result = curr_entity.ai.take_turn(vip, game_map, entities)
+                    turn_results.extend(ai_result)
+
+            # if turn has been taken, reinsert current entity into the time queue based on speed
+            if next_turn:
+                print(f"ce: {curr_entity.name}, {curr_entity.time}")
+                curr_entity.time += int(100 / curr_entity.speed) # future: action_cost / curr_entity.speed
+                for index, entity in enumerate(timeq):
+                    print(f"{entity.name}: {entity.time}")
+                    if entity.time > curr_entity.time:
+                        timeq.insert(index, curr_entity)
+                        break
                 else:
-                    if target:
-                        turn_results.append({"message": f"That space is already occupied!"})
-                    else:
-                        turn_results.append({"message": f"You stop possessing the {controlled_entity.name}!"})
-                        controlled_entity = entities[0]
-                        controlled_entity.x = dest_x
-                        controlled_entity.y = dest_y
-                        controlled_entity.fov_recompute = True
+                    timeq.append(curr_entity)
+                curr_entity = timeq.popleft()
 
-            if game_state == GameStates.ENEMY_TURN:
-                for entity in entities:
-                    if entity.ai and entity is not controlled_entity:
-                        enemy_results = entity.ai.take_turn(vip, game_map, entities)
-                        turn_results.extend(enemy_results)
-                game_state = GameStates.PLAYERS_TURN
-
+            # process turn results
             if turn_results:
                 print(turn_results)
+
             for result in turn_results:
                 # print(result)
                 message = result.get("message")
@@ -277,113 +413,6 @@ def main():
                         controlled_entity.fov_recompute = True
                     message = kill_entity(dead_entity)
                     print(message)
-
-            if want_exit:
-                return True
-                raise SystemExit()
-
-            if fullscreen:
-                tcod.console_set_fullscreen(not tcod.console_is_fullscreen())
-
-            if omnivis:
-                if omnivision is True:
-                    blank_map(con, game_map)
-                omnivision = not omnivision
-
-            if switch_char:
-                controlled_entity_index += 1
-                if controlled_entity_index >= len(entities):
-                    controlled_entity_index = 0
-                controlled_entity = entities[controlled_entity_index]
-                blank_map(con, game_map)
-
-            if map_gen:
-                game_map.seed = randint(0, 99999)
-                game_map.tiles = game_map.initialize_tiles()
-                entities = [player, vip]
-                controlled_entity = player
-                game_map.make_map(player, entities, **mapset)
-                for entity in entities:
-                    if entity.ident == 0:
-                        entity.fov_map = init_fov_entity0(game_map)
-                    else:
-                        entity.fov_map = initialize_fov(game_map)
-                    recompute_fov(game_map, entity, fov_radius,
-                                  fov_light_walls, fov_algorithm)
-                blank_map(con, game_map)
-
-            if graph_gen:
-                game_map.make_graph()
-
-            if show_hyperedges and game_map.graph is not None:
-                for edge in game_map.graph.hyperedges:
-                    display_space(con, edge.space, tcod.green)
-                    tcod.console_flush()
-                    if debug_f:
-                        print(f"***Hyperedge: {edge}")
-                    while True:
-                        for event in tcod.event.get():
-                            in_handle.dispatch(event)
-                        action = in_handle.get_action()
-                        show_hyperedges = action.get("show_hyperedges")
-                        want_exit = action.get("exit")
-                        if want_exit:
-                            return True
-                        if show_hyperedges:
-                            break
-                    blank_map(con, game_map)
-                    render_all(con, entities, game_map,
-                               controlled_entity, render_update,
-                               screen_width, screen_height, colors, omnivision)
-                    tcod.console_flush()
-
-            if show_edges and game_map.graph is not None:
-                for edge in game_map.graph.edges:
-                    display_space(con, edge.space, tcod.green)
-                    tcod.console_flush()
-                    if debug_f:
-                        print(f"***Edge: {edge}")
-                    while True:
-                        for event in tcod.event.get():
-                            in_handle.dispatch(event)
-                        action = in_handle.get_action()
-                        show_edges = action.get("show_edges")
-                        want_exit = action.get("exit")
-                        if want_exit:
-                            return True
-                        if show_edges:
-                            break
-                    blank_map(con, game_map)
-                    render_all(con, entities, game_map,
-                               controlled_entity, render_update,
-                               screen_width, screen_height, colors, omnivision)
-                    tcod.console_flush()
-
-            if show_vertices and game_map.graph is not None:
-                for vertex in game_map.graph.vertices:
-                    display_space(con, vertex.space, tcod.green)
-                    tcod.console_flush()
-                    if debug_f:
-                        print(f"***Vertex: {vertex}")
-                    while True:
-                        for event in tcod.event.get():
-                            in_handle.dispatch(event)
-                        action = in_handle.get_action()
-                        show_vertices = action.get("show_vertices")
-                        want_exit = action.get("exit")
-                        if want_exit:
-                            return True
-                        if show_vertices:
-                            break
-                    blank_map(con, game_map)
-                    render_all(con, entities, game_map,
-                               controlled_entity, render_update,
-                               screen_width, screen_height, colors, omnivision)
-                    tcod.console_flush()
-
-            if test:
-                game_map.make_graph()
-                print(game_map.graph.get_metrics())
 
 
 if __name__ == "__main__":
