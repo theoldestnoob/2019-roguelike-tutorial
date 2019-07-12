@@ -379,17 +379,19 @@ def main():
                     ai_result = curr_entity.ai.take_turn(vip, game_map, entities)
                     turn_results.extend(ai_result)
 
-            # if turn has been taken, reinsert current entity into the time queue based on speed
+            # put current entity back in time queue and get the next one
             if next_turn:
-                print(f"ce: {curr_entity.name}, {curr_entity.time}")
-                curr_entity.time += int(100 / curr_entity.speed) # future: action_cost / curr_entity.speed
-                for index, entity in enumerate(timeq):
-                    print(f"{entity.name}: {entity.time}")
-                    if entity.time > curr_entity.time:
-                        timeq.insert(index, curr_entity)
-                        break
-                else:
-                    timeq.append(curr_entity)
+                # we do not reinsert entities with 0 speed
+                if curr_entity.speed != 0:
+                    curr_entity.time += int(100 / curr_entity.speed)
+                    # future: action_cost / curr_entity.speed
+                    for index, entity in enumerate(timeq):
+                        if entity.time > curr_entity.time:
+                            timeq.insert(index, curr_entity)
+                            break
+                    else:
+                        timeq.append(curr_entity)
+                # get our next entity
                 curr_entity = timeq.popleft()
 
             # process turn results

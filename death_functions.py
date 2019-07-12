@@ -22,5 +22,6 @@ def kill_entity(entity):
     entity.soul = 0
     entity.name = f"remains of {entity.name}"
     entity.render_order = RenderOrder.CORPSE
+    entity.speed = 0
 
     return death_message
