@@ -168,11 +168,13 @@ def main():
                                   fov_light_walls, fov_algorithm)
                     entity.fov_recompute = False
             if render_update:
+                if debug_f:
+                    print("RENDER UPDATE")
                 render_all(con, entities, game_map, controlled_entity,
-                           render_update, screen_width, screen_height, colors,
-                           omnivision)
+                           screen_width, screen_height, colors, omnivision)
                 tcod.console_flush()
                 clear_all(con, entities)
+                render_update = False
 
             # run an entity's turn
             actions = {}
@@ -207,7 +209,7 @@ def main():
                                    curr_entity, controlled_entity, omnivision,
                                    debug_f)
             (action_cost, results, next_turn, curr_entity, controlled_entity,
-             omnivision, want_exit) = act_r
+             omnivision, render_update, want_exit) = act_r
 
             # process turn results
             if want_exit:
@@ -226,6 +228,7 @@ def main():
                 if message:
                     print(message)
                 if dead_entity:
+                    render_update = True
                     if dead_entity == vip:
                         game_state = GameStates.FAIL_STATE
                     if dead_entity == controlled_entity:

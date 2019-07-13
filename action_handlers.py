@@ -19,6 +19,7 @@ def handle_actions(actions, in_handle, entities, game_map, console,
     controlled_entity = controlled_entity
     omnivision = omnivision
     want_exit = False
+    render_update = False
 
     for action in actions:
         # turn actions
@@ -73,6 +74,7 @@ def handle_actions(actions, in_handle, entities, game_map, console,
         if possess:  # {"possess": target}
             action_cost = 100
             next_turn = True
+            render_update = True
             target = possess
             results.append({"message": f"You possess the {target.name}!"})
             controlled_entity = target
@@ -81,6 +83,7 @@ def handle_actions(actions, in_handle, entities, game_map, console,
         if unpossess:  # {"unpossess": (dest_x, dest_y)}
             action_cost = 100
             next_turn = True
+            render_update = True
             dest_x, dest_y = unpossess
             result_msg = f"You stop possessing the {controlled_entity.name}!"
             results.append({"message": result_msg})
@@ -98,8 +101,8 @@ def handle_actions(actions, in_handle, entities, game_map, console,
             tcod.console_set_fullscreen(not tcod.console_is_fullscreen())
 
         if omnivis:  # {"omnivis": True}
-            print("OMNIVIS!")
             next_turn = False
+            render_update = True
             if omnivision is True:
                 if controlled_entity is entities[0]:
                     gray_map(console, game_map)
@@ -129,4 +132,4 @@ def handle_actions(actions, in_handle, entities, game_map, console,
             pass
 
     return (action_cost, results, next_turn, curr_entity, controlled_entity,
-            omnivision, want_exit)
+            omnivision, render_update, want_exit)
