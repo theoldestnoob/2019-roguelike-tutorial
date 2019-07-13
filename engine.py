@@ -28,7 +28,7 @@ from action_handlers import handle_actions
 
 def main():
     # "global" variables
-    debug_f = False
+    debug_f = True
     seed = "testseed"
     screen_width = 80
     screen_height = 50
@@ -167,14 +167,12 @@ def main():
                     recompute_fov(game_map, entity, fov_radius,
                                   fov_light_walls, fov_algorithm)
                     entity.fov_recompute = False
-
-            render_all(con, entities, game_map, controlled_entity,
-                       render_update, screen_width, screen_height, colors,
-                       omnivision)
-
-            tcod.console_flush()
-
-            clear_all(con, entities)
+            if render_update:
+                render_all(con, entities, game_map, controlled_entity,
+                           render_update, screen_width, screen_height, colors,
+                           omnivision)
+                tcod.console_flush()
+                clear_all(con, entities)
 
             # run an entity's turn
             actions = {}

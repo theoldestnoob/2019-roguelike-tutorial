@@ -60,44 +60,36 @@ def clear_all(con, entities):
 
 def draw_map(con, game_map, curr_entity, render_update, colors, omnivision):
     if render_update:
+        bg = con.bg
         for y in range(game_map.height):
             for x in range(game_map.width):
                 visible = curr_entity.fov_map.fov[y][x]
                 wall = game_map.tiles[x][y].block_sight
-
                 if visible:
                     if wall:
-                        tcod.console_set_char_background(con, x, y,
-                                                         colors["light_wall"],
-                                                         tcod.BKGND_SET)
+                        bg[y][x] = colors["light_wall"]
                     else:
-                        tcod.console_set_char_background(con, x, y,
-                                                         colors["light_ground"],
-                                                         tcod.BKGND_SET)
+                        bg[y][x] = colors["light_ground"]
                 elif (curr_entity.ident in game_map.tiles[x][y].explored
                       or omnivision):
                     if wall:
-                        tcod.console_set_char_background(con, x, y,
-                                                         colors["dark_wall"],
-                                                         tcod.BKGND_SET)
+                        bg[y][x] = colors["dark_wall"]
                     else:
-                        tcod.console_set_char_background(con, x, y,
-                                                         colors["dark_ground"],
-                                                         tcod.BKGND_SET)
+                        bg[y][x] = colors["dark_ground"]
 
 
 def blank_map(con, game_map):
+    bg = con.bg
     for y in range(game_map.height):
         for x in range(game_map.width):
-            tcod.console_set_char_background(con, x, y, tcod.black,
-                                             tcod.BKGND_SET)
+            bg[y][x] = tcod.black
 
 
 def gray_map(con, game_map):
+    bg = con.bg
     for y in range(game_map.height):
         for x in range(game_map.width):
-            tcod.console_set_char_background(con, x, y, tcod.grey,
-                                             tcod.BKGND_SET)
+            bg[y][x] = tcod.grey
 
 
 def draw_entity(con, entity, fov_map, omnivision):

@@ -21,7 +21,8 @@ class BasicMonster:
     def take_turn(self, target, game_map, entities):
         actions = []
         monster = self.owner
-        if tcod.map_is_in_fov(monster.fov_map, target.x, target.y):
+        # if tcod.map_is_in_fov(monster.fov_map, target.x, target.y):
+        if monster.fov_map.fov[target.y][target.x]:
             if monster.distance_to(target) >= 2:
                 actions.append({"move_astar": (monster, target)})
             elif target.fighter and target.fighter.hp > 0:

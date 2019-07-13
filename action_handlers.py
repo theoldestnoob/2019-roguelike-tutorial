@@ -5,6 +5,8 @@ Created on Fri Jul 12 22:46:03 2019
 @author: theoldestnoob
 """
 
+import tcod
+
 from render_functions import blank_map, gray_map
 
 
@@ -92,10 +94,18 @@ def handle_actions(actions, in_handle, entities, game_map, console,
             want_exit = True
 
         if fullscreen:  # {"fullscreen": True}
-            pass
+            next_turn = False
+            tcod.console_set_fullscreen(not tcod.console_is_fullscreen())
 
         if omnivis:  # {"omnivis": True}
-            pass
+            print("OMNIVIS!")
+            next_turn = False
+            if omnivision is True:
+                if controlled_entity is entities[0]:
+                    gray_map(console, game_map)
+                else:
+                    blank_map(console, game_map)
+            omnivision = not omnivision
 
         if switch_char:  # {"switch_char": True}
             pass
