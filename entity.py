@@ -19,6 +19,9 @@ class Entity:
                  fov_map=None, fighter=None, ai=None, speed=10,
                  render_order=RenderOrder.CORPSE):
         # every entity has an ident and a name
+        # TODO: add component for insubstantiality, or just test on blocks
+        #       for if we can walk into stuff or not, or add a variable for
+        #       the "plane" an entity exists in (material, astral, etc)
         self.ident = ident
         self.name = name
         # TODO: switch to "render_ascii" or "render_tcod" component

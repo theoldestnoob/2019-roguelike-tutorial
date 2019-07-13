@@ -10,19 +10,24 @@ import tcod
 
 class IdleMonster:
     def take_turn(self, *args, **kwargs):
-        results = []
-        results.append({"message": f"The {self.owner.name} wonders when it will get to move."})
-        return results
+        actions = []
+        # act_msg = f"The {self.owner.name} wonders when it will get to move."
+        # actions.append({"message": act_msg})
+        actions.append({"wait": 100})
+        return actions
 
 
 class BasicMonster:
     def take_turn(self, target, game_map, entities):
-        results = []
+        actions = []
         monster = self.owner
         if tcod.map_is_in_fov(monster.fov_map, target.x, target.y):
             if monster.distance_to(target) >= 2:
-                monster.move_astar(target, entities, game_map)
+                actions.append({"move_astar": (monster, target)})
             elif target.fighter and target.fighter.hp > 0:
-                attack_results = monster.fighter.attack(target)
-                results.extend(attack_results)
-        return results
+                actions.append({"melee": (monster, target)})
+            else:
+                actions.append({"wait": 100})
+        else:
+            actions.append({"wait": 100})
+        return actions
