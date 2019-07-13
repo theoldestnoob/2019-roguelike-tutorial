@@ -10,6 +10,8 @@ import tcod
 from render_functions import blank_map, gray_map
 
 
+# TODO: maybe break this up into one function to handle entity actions
+#       and one to handle other non-entity actions (exit, omnivis, etc)?
 def handle_actions(actions, in_handle, entities, game_map, console,
                    curr_entity, controlled_entity, omnivision, debug_f):
     action_cost = 0
@@ -111,7 +113,17 @@ def handle_actions(actions, in_handle, entities, game_map, console,
             omnivision = not omnivision
 
         if switch_char:  # {"switch_char": True}
-            pass
+            next_turn = False
+            render_update = True
+            index = controlled_entity.ident + 1
+            if index >= len(entities):
+                controlled_entity = entities[0]
+            else:
+                controlled_entity = entities[index]
+            if controlled_entity is entities[0]:
+                gray_map(console, game_map)
+            else:
+                blank_map(console, game_map)
 
         if map_gen:  # {"map_gen": True}
             pass
