@@ -103,7 +103,7 @@ def main():
     fighter_component = Fighter(hp=30, defense=2, power=5)
     ai_component = IdleMonster()
     player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False,
-                    render_order=RenderOrder.ACTOR, speed=20)
+                    render_order=RenderOrder.ACTOR, speed=25)
     vip = Entity(1, 0, 0, "&", tcod.yellow, "VIP", blocks=True, soul=10,
                  fighter=fighter_component, ai=ai_component,
                  render_order=RenderOrder.ACTOR)
@@ -150,7 +150,7 @@ def main():
                           fov_algorithm)
 
         # set up time system
-        timeq = deque(sorted(entities, key=lambda entity: entity.speed, reverse=True))
+        timeq = deque(sorted(entities, key=lambda entity: entity.time_to_act))
         curr_entity = timeq.popleft()
         next_turn = True
 
@@ -387,16 +387,22 @@ def main():
             if next_turn:
                 # we do not reinsert entities with 0 speed
                 if curr_entity.speed != 0:
-                    curr_entity.time += int(100 / curr_entity.speed)
+                    curr_entity.time_to_act = int(100 / curr_entity.speed)
                     # future: action_cost / curr_entity.speed
                     for index, entity in enumerate(timeq):
-                        if entity.time > curr_entity.time:
+                        if entity.time_to_act > curr_entity.time_to_act:
                             timeq.insert(index, curr_entity)
                             break
                     else:
                         timeq.append(curr_entity)
                 # get our next entity
                 curr_entity = timeq.popleft()
+                # count down everyone's time to act
+                time_tick = curr_entity.time_to_act
+                for entity in timeq:
+                    entity.time_to_act -= time_tick
+                    if entity.time_to_act < 0:
+                        entity.time_to_act = 0
 
             # process turn results
             if debug_f and turn_results:

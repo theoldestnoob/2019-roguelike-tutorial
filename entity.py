@@ -32,7 +32,7 @@ class Entity:
         self.fighter = fighter
         self.ai = ai
         self.speed = speed
-        self.time = int(100 / speed)
+        self.time_to_act = int(100 / speed)
 
         if self.fighter:
             self.fighter.owner = self
