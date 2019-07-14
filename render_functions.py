@@ -15,8 +15,8 @@ class RenderOrder(Enum):
     ACTOR = 3
 
 
-def render_all(con, entities, game_map, curr_entity, render_update,
-               screen_width, screen_height, colors, omnivision):
+def render_all(con, entities, game_map, curr_entity, screen_width,
+               screen_height, colors, omnivision):
     # sort our entities so we render them in the right order
     entities_sorted = sorted(entities, key=lambda x: x.render_order.value)
 
@@ -37,8 +37,7 @@ def render_all(con, entities, game_map, curr_entity, render_update,
     else:
         # draw all the tiles in the game map
         if curr_entity.ident != 0:
-            draw_map(con, game_map, curr_entity, render_update,
-                     colors, omnivision)
+            draw_map(con, game_map, curr_entity, colors, omnivision)
 
         # draw all the entities in the list, except for entity 0
         for entity in entities_sorted:
@@ -59,46 +58,39 @@ def clear_all(con, entities):
         clear_entity(con, entity)
 
 
-def draw_map(con, game_map, curr_entity, render_update, colors, omnivision):
-    if render_update:
-        for y in range(game_map.height):
-            for x in range(game_map.width):
-                visible = curr_entity.fov_map.fov[y][x]
-                wall = game_map.tiles[x][y].block_sight
-
-                if visible:
-                    if wall:
-                        tcod.console_set_char_background(con, x, y,
-                                                         colors["light_wall"],
-                                                         tcod.BKGND_SET)
-                    else:
-                        tcod.console_set_char_background(con, x, y,
-                                                         colors["light_ground"],
-                                                         tcod.BKGND_SET)
-                elif (curr_entity.ident in game_map.tiles[x][y].explored
-                      or omnivision):
-                    if wall:
-                        tcod.console_set_char_background(con, x, y,
-                                                         colors["dark_wall"],
-                                                         tcod.BKGND_SET)
-                    else:
-                        tcod.console_set_char_background(con, x, y,
-                                                         colors["dark_ground"],
-                                                         tcod.BKGND_SET)
+def draw_map(con, game_map, curr_entity, colors, omnivision):
+    bg = con.bg
+    for y in range(game_map.height):
+        for x in range(game_map.width):
+            visible = curr_entity.fov_map.fov[y][x]
+            wall = game_map.tiles[x][y].block_sight
+            if visible:
+                if wall:
+                    bg[y][x] = colors["light_wall"]
+                else:
+                    bg[y][x] = colors["light_ground"]
+            elif (curr_entity.ident in game_map.tiles[x][y].explored
+                  or omnivision):
+                if wall:
+                    bg[y][x] = colors["dark_wall"]
+                else:
+                    bg[y][x] = colors["dark_ground"]
+            else:
+                bg[y][x] = tcod.black
 
 
 def blank_map(con, game_map):
+    bg = con.bg
     for y in range(game_map.height):
         for x in range(game_map.width):
-            tcod.console_set_char_background(con, x, y, tcod.black,
-                                             tcod.BKGND_SET)
+            bg[y][x] = tcod.black
 
 
 def gray_map(con, game_map):
+    bg = con.bg
     for y in range(game_map.height):
         for x in range(game_map.width):
-            tcod.console_set_char_background(con, x, y, tcod.grey,
-                                             tcod.BKGND_SET)
+            bg[y][x] = tcod.grey
 
 
 def draw_entity(con, entity, fov_map, omnivision):

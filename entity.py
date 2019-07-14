@@ -16,25 +16,35 @@ class Entity:
     A generic object to represent players, enemies, items, etc.
     """
     def __init__(self, ident, x, y, char, color, name, soul=0, blocks=False,
-                 fov_map=None, fighter=None, ai=None,
+                 fov_map=None, fighter=None, ai=None, speed=10,
                  render_order=RenderOrder.CORPSE):
+        # every entity has an ident and a name
+        # TODO: add component for insubstantiality, or just test on blocks
+        #       for if we can walk into stuff or not, or add a variable for
+        #       the "plane" an entity exists in (material, astral, etc)
+        self.ident = ident
+        self.name = name
+        # TODO: switch to "render_ascii" or "render_tcod" component
         self.x = x
         self.y = y
         self.char = char
         self.color = color
-        self.ident = ident
-        self.name = name
+        self.render_order = render_order
+        # TODO: move to "soul" component with other soul-related attributes
         self.soul = soul
         self.blocks = blocks
+        # TODO: move to "fov" component?
         self.fov_recompute = False
         self.fov_map = fov_map
-        self.render_order = render_order
+        # TODO: move to "actor" component? bundle in "ai" component?
+        self.speed = speed
+        self.time_to_act = int(100 / speed)
+        # Entity components
         self.fighter = fighter
-        self.ai = ai
-
         if self.fighter:
             self.fighter.owner = self
 
+        self.ai = ai
         if self.ai:
             self.ai.owner = self
 

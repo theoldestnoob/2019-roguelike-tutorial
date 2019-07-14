@@ -11,7 +11,7 @@ import tcod.event
 class InputHandler(tcod.event.EventDispatch):
 
     def __init__(self):
-        self._actionq = []
+        self._user_in_q = []
 
     def ev_quit(self, event):
         raise SystemExit()
@@ -20,19 +20,19 @@ class InputHandler(tcod.event.EventDispatch):
         # first check for mapped modified keys
         if (event.mod & tcod.event.KMOD_LALT
                 and event.sym in in_keymap_lalt.keys()):
-            self._actionq.append(in_keymap_lalt[event.sym])
+            self._user_in_q.append(in_keymap_lalt[event.sym])
         # if no mapped modified keys, push the nomod mapped action to our queue
         elif event.sym in in_keymap_nomod.keys():
-            self._actionq.append(in_keymap_nomod[event.sym])
+            self._user_in_q.append(in_keymap_nomod[event.sym])
 
-    def get_action(self):
-        if self._actionq:
-            return self._actionq.pop(0)
+    def get_user_input(self):
+        if self._user_in_q:
+            return self._user_in_q.pop(0)
         else:
             return {}
 
-    def clear_actionq(self):
-        self._actionq.clear()
+    def clear_user_input_q(self):
+        self._user_in_q.clear()
 
 
 in_keymap_nomod = {

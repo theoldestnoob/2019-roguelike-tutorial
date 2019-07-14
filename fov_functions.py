@@ -35,5 +35,5 @@ def recompute_fov(game_map, entity, radius, light_walls=True, algorithm=0):
     for y in range(game_map.height):
         for x in range(game_map.width):
             visible = entity.fov_map.fov[y][x]
-            if visible:
+            if visible and entity.ident not in game_map.tiles[x][y].explored:
                 game_map.tiles[x][y].explored.append(entity.ident)
