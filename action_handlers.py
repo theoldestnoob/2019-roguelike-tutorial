@@ -16,18 +16,17 @@ from fov_functions import initialize_fov, init_fov_entity0, recompute_fov
 from entity import Entity
 from components.fighter import Fighter
 from components.ai import IdleMonster
+from game_messages import Message
+from death_functions import kill_entity
 
 
 # TODO: man I have to pass a lot of stuff in and out of these guys
 #       there must be a better way?
 def handle_entity_actions(actions, in_handle, entities, game_map, console,
-                          curr_entity, controlled_entity, omnivision, debug_f):
+                          message_log, controlled_entity, debug_f):
     action_cost = 0
-    results = []
     next_turn = True
-    curr_entity = curr_entity
     controlled_entity = controlled_entity
-    omnivision = omnivision
     render_update = False
 
     for action in actions:
@@ -39,9 +38,11 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
         wait = action.get("wait")
         possess = action.get("possess")
         unpossess = action.get("unpossess")
+        dead = action.get("dead")
 
         if message:  # {"message": message_string}
-            results.append({"message": message})
+            render_update = True
+            message_log.add_message(message)
 
         if move:  # {"move": (entity, dx, dy)}
             action_cost = 100
@@ -60,7 +61,7 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
             next_turn = True
             entity, target = melee
             melee_results = entity.fighter.attack(target)
-            results.extend(melee_results)
+            actions.extend(melee_results)
 
         if wait:  # {"wait": int_time}
             action_cost = wait
@@ -71,7 +72,8 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
             next_turn = True
             render_update = True
             target = possess
-            results.append({"message": f"You possess the {target.name}!"})
+            result_str = f"You possess the {target.name}!"
+            message_log.add_message(Message(result_str, tcod.light_gray))
             controlled_entity = target
 
         if unpossess:  # {"unpossess": (dest_x, dest_y)}
@@ -79,22 +81,31 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
             next_turn = True
             render_update = True
             dest_x, dest_y = unpossess
-            result_msg = f"You stop possessing the {controlled_entity.name}!"
-            results.append({"message": result_msg})
+            result_str = f"You stop possessing the {controlled_entity.name}!"
+            message_log.add_message(Message(result_str, tcod.light_gray))
             controlled_entity = entities[0]
             controlled_entity.x = dest_x
             controlled_entity.y = dest_y
             controlled_entity.fov_recompute = True
 
-    return (action_cost, results, next_turn, curr_entity, controlled_entity,
-            omnivision, render_update)
+        if dead:  # {"dead": entity}
+            render_update = True
+            if dead == controlled_entity:
+                controlled_entity = entities[0]
+                controlled_entity.x = dead.x
+                controlled_entity.y = dead.y
+                controlled_entity.fov_recompute = True
+            message = kill_entity(dead)
+            message_log.add_message(message)
+
+    return (action_cost, next_turn, controlled_entity, render_update)
 
 
 def handle_player_actions(actions, in_handle, entities, game_map, console,
-                          curr_entity, controlled_entity, player, vip,
+                          panel, curr_entity, controlled_entity, player, vip,
                           omnivision, mapset, fov_radius, fov_light_walls,
                           fov_algorithm, screen_width, screen_height, colors,
-                          timeq, debug_f):
+                          timeq, bar_width, panel_height, panel_y, debug_f):
     next_turn = False
     curr_entity = curr_entity
     controlled_entity = controlled_entity
@@ -110,6 +121,7 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
         # out of turn actions
         want_exit = action.get("exit")
         fullscreen = action.get("fullscreen")
+        mousemotion = action.get("mousemotion")
 
         # debug actions
         omnivis = action.get("omnivis")
@@ -127,6 +139,12 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
         if fullscreen:  # {"fullscreen": True}
             next_turn = False
             tcod.console_set_fullscreen(not tcod.console_is_fullscreen())
+
+        # TODO: I'm not super happy about how this works
+        #       but not sure how to elegantly tag render_update when the list
+        #       of entities being moused over changes
+        if mousemotion:  # {"mousemotion": (x, y)}
+            render_update = True
 
         if omnivis:  # {"omnivis": True}
             next_turn = False
@@ -201,11 +219,12 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
                         break
                 if want_exit:
                     break
-                render_all(console, entities, game_map, controlled_entity,
-                           screen_width, screen_height, colors, omnivision)
+                render_all(console, panel, entities, game_map,
+                           controlled_entity, screen_width, screen_height,
+                           bar_width, panel_height, panel_y, colors,
+                           omnivision)
                 tcod.console_flush()
             render_update = True
-
         if show_hyperedges:  # {"show_hyperedges": True}
             for edge in game_map.graph.hyperedges:
                 display_space(console, edge.space, tcod.green)
@@ -222,8 +241,10 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
                         break
                 if want_exit:
                     break
-                render_all(console, entities, game_map, controlled_entity,
-                           screen_width, screen_height, colors, omnivision)
+                render_all(console, panel, entities, game_map,
+                           controlled_entity, screen_width, screen_height,
+                           bar_width, panel_height, panel_y, colors,
+                           omnivision)
                 tcod.console_flush()
             render_update = True
 
@@ -243,8 +264,10 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
                         break
                 if want_exit:
                     break
-                render_all(console, entities, game_map, controlled_entity,
-                           screen_width, screen_height, colors, omnivision)
+                render_all(console, panel, entities, game_map,
+                           controlled_entity, screen_width, screen_height,
+                           bar_width, panel_height, panel_y, colors,
+                           omnivision)
                 tcod.console_flush()
             render_update = True
 

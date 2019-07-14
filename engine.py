@@ -20,8 +20,8 @@ from map_objects.game_map_randomrooms import GameMapRandomRooms
 from fov_functions import initialize_fov, init_fov_entity0, recompute_fov
 from components.fighter import Fighter
 from components.ai import IdleMonster
-from death_functions import kill_entity
 from action_handlers import handle_entity_actions, handle_player_actions
+from game_messages import MessageLog, Message
 
 
 def main():
@@ -30,8 +30,17 @@ def main():
     seed = "testseed"
     screen_width = 80
     screen_height = 50
+
+    bar_width = 20
+    panel_height = 7
+    panel_y = screen_height - panel_height
+
+    message_x = bar_width + 2
+    message_width = screen_width - bar_width - 2
+    message_height = panel_height - 1
+
     map_width = 80
-    map_height = 45
+    map_height = 43
 
     fov_algorithm = 0
     fov_light_walls = True
@@ -100,13 +109,15 @@ def main():
     }
 
     # setup object instantiation
-    fighter_component = Fighter(hp=30, defense=2, power=5)
+    player_fighter = Fighter(hp=1, defense=0, power=0)
+    vip_fighter = Fighter(hp=30, defense=2, power=5)
     player_ai = IdleMonster()
     vip_ai = IdleMonster()
     player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False, soul=1,
-                    ai=player_ai, render_order=RenderOrder.ACTOR, speed=25)
+                    fighter=player_fighter, ai=player_ai,
+                    render_order=RenderOrder.ACTOR, speed=25)
     vip = Entity(1, 0, 0, "&", tcod.yellow, "VIP", blocks=True, soul=10,
-                 fighter=fighter_component, ai=vip_ai,
+                 fighter=vip_fighter, ai=vip_ai,
                  render_order=RenderOrder.ACTOR)
     entities = [player, vip]
     controlled_entity = player
@@ -119,6 +130,10 @@ def main():
 
     in_handle = InputHandler()
 
+    message_log = MessageLog(message_x, message_width, message_height)
+    mouse_x = 0
+    mouse_y = 0
+
     # open tcod console context
     with tcod.console_init_root(
             screen_width, screen_height,
@@ -126,6 +141,9 @@ def main():
             fullscreen=False,
             renderer=tcod.RENDERER_SDL2,
             vsync=False) as con:
+
+        # set up ui
+        panel = tcod.console.Console(screen_width, panel_height)
 
         # create initial game map
         # game_map = GameMap(map_width, map_height, seed, con=con, debug=debug_f)
@@ -162,8 +180,10 @@ def main():
             if render_update:
                 if debug_f:
                     print("RENDER UPDATE")
-                render_all(con, entities, game_map, controlled_entity,
-                           screen_width, screen_height, colors, omnivision)
+                render_all(con, panel, entities, game_map, controlled_entity,
+                           screen_width, screen_height, bar_width,
+                           panel_height, panel_y, colors, message_log,
+                           mouse_x, mouse_y, omnivision)
                 tcod.console_flush()
                 clear_all(con, entities)
                 render_update = False
@@ -185,17 +205,20 @@ def main():
                 if debug_f and user_in:
                     print(user_in)
 
-                actions = parse_input(in_handle, user_in, curr_entity,
-                                      entities, game_map)
+                input_r = parse_input(in_handle, user_in, curr_entity,
+                                      entities, game_map, mouse_x, mouse_y)
+                actions, mouse_x, mouse_y = input_r
 
                 # process any player-only actions
                 act_r = handle_player_actions(actions, in_handle, entities,
-                                              game_map, con, curr_entity,
-                                              controlled_entity, player, vip,
-                                              omnivision, mapset, fov_radius,
-                                              fov_light_walls, fov_algorithm,
-                                              screen_width, screen_height,
-                                              colors, timeq, debug_f)
+                                              game_map, con, panel,
+                                              curr_entity, controlled_entity,
+                                              player, vip, omnivision, mapset,
+                                              fov_radius, fov_light_walls,
+                                              fov_algorithm, screen_width,
+                                              screen_height, colors, timeq,
+                                              bar_width, panel_height, panel_y,
+                                              debug_f)
                 (next_turn, curr_entity, controlled_entity, entities, player,
                  vip, timeq, omnivision, render_update_p, want_exit) = act_r
 
@@ -209,11 +232,10 @@ def main():
 
             # process turn actions, modify game state, and get results
             act_r = handle_entity_actions(actions, in_handle, entities,
-                                          game_map, con, curr_entity,
-                                          controlled_entity, omnivision,
-                                          debug_f)
-            (action_cost, results, next_turn, curr_entity, controlled_entity,
-             omnivision, render_update_e) = act_r
+                                          game_map, con, message_log,
+                                          controlled_entity, debug_f)
+
+            action_cost, next_turn, controlled_entity, render_update_e = act_r
 
             render_update = render_update_p or render_update_e
 
@@ -224,25 +246,12 @@ def main():
             if debug_f and results:
                 print(results)
 
-            # TODO: do I even really need this? should I just handle it all in
-            #       handle_actions?
-            for result in results:
-                message = result.get("message")
-                dead_entity = result.get("dead")
-
-                if message:
-                    print(message)
-                if dead_entity:
-                    render_update = True
-                    if dead_entity == vip:
-                        game_state = GameStates.FAIL_STATE
-                    if dead_entity == controlled_entity:
-                        controlled_entity = entities[0]
-                        controlled_entity.x = dead_entity.x
-                        controlled_entity.y = dead_entity.y
-                        controlled_entity.fov_recompute = True
-                    message = kill_entity(dead_entity)
-                    print(message)
+            # TODO: check for and handle failure states
+            if ((not vip.fighter or vip.fighter.hp <= 0)
+                    and game_state != GameStates.FAIL_STATE):
+                message_log.add_message(Message("Oh no you lose!", tcod.red))
+                game_state = GameStates.FAIL_STATE
+                render_update = True
 
             # put current entity back in time queue and get the next one
             if next_turn:

@@ -8,11 +8,15 @@ Created on Fri Jul 12 22:14:46 2019
 import tcod
 
 from entity import get_blocking_entities_at_location
+from game_messages import Message
 
 
-def parse_input(in_handle, user_in, curr_entity, entities, game_map):
+def parse_input(in_handle, user_in, curr_entity, entities, game_map,
+                mouse_x, mouse_y):
     # set up stuff
     actions = []
+    mouse_x = mouse_x
+    mouse_y = mouse_y
 
     # get user input details
     move = user_in.get("move")
@@ -28,6 +32,7 @@ def parse_input(in_handle, user_in, curr_entity, entities, game_map):
     test = user_in.get("test")
     omnivis = user_in.get("omnivis")
     switch_char = user_in.get("switch_char")
+    mouse_motion = user_in.get("mousemotion")
 
     # put together actions based on user input
     if move:
@@ -41,7 +46,7 @@ def parse_input(in_handle, user_in, curr_entity, entities, game_map):
             if target:
                 act_msg = (f"A shudder runs through {target.name} "
                            f"as you press against its soul!")
-                actions.append({"message": act_msg})
+                actions.append({"message": Message(act_msg, tcod.light_gray)})
             else:
                 actions.append({"move": (curr_entity, dx, dy)})
         else:
@@ -56,7 +61,8 @@ def parse_input(in_handle, user_in, curr_entity, entities, game_map):
                     actions.append({"move": (curr_entity, dx, dy)})
 
     if wait:
-        actions.append({"message": f"{curr_entity.name} waits."})
+        actions.append({"message":
+                        Message(f"{curr_entity.name} waits.", tcod.white)})
         actions.append({"wait": 100})
         # TODO: potential future waits of variable length
         #       or normalized to entity speed
@@ -78,11 +84,15 @@ def parse_input(in_handle, user_in, curr_entity, entities, game_map):
             if target and target.soul > 0:
                 actions.append({"possess": target})
             else:
-                actions.append({"message": f"Nothing there to possess!"})
+                actions.append({"message":
+                                Message(f"Nothing there to possess!",
+                                        tcod.light_gray)})
         # otherwise, we are possessing someone and want to leave
         else:
             if target:
-                actions.append({"message": f"That space is already occupied!"})
+                actions.append({"message":
+                                Message(f"That space is already occupied!",
+                                        tcod.light_gray)})
             else:
                 actions.append({"unpossess": (dest_x, dest_y)})
 
@@ -94,4 +104,11 @@ def parse_input(in_handle, user_in, curr_entity, entities, game_map):
             and game_map.graph is not None):
         actions.append(user_in)
 
-    return actions
+    if mouse_motion:
+        x, y = mouse_motion
+        if x != mouse_x or y != mouse_y:
+            mouse_x = x
+            mouse_y = y
+        actions.append({"mousemotion": (x, y)})
+
+    return actions, mouse_x, mouse_y

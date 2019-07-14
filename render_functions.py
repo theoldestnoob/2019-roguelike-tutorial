@@ -15,8 +15,31 @@ class RenderOrder(Enum):
     ACTOR = 3
 
 
-def render_all(con, entities, game_map, curr_entity, screen_width,
-               screen_height, colors, omnivision):
+def render_bar(panel, x, y, total_width, name, value, maximum, bar_color,
+               back_color):
+    bar_width = int(float(value) / maximum * total_width)
+    panel.draw_rect(x, y, total_width, 1, ord(" "), bg=back_color)
+    if bar_width > 0:
+        panel.draw_rect(x, y, bar_width, 1, ord(" "), bg=bar_color)
+    panel.print(int(x + total_width / 2), y, f"{name}: {value}/{maximum}",
+                fg=tcod.white, alignment=tcod.CENTER)
+
+
+def mouseover_names(mouse_x, mouse_y, entities, curr_entity, omnivision):
+    if curr_entity.fov_map.fov[mouse_y][mouse_x] or omnivision:
+        names = []
+        for entity in entities:
+            if (entity.x == mouse_x and entity.y == mouse_y
+                    and entity is not entities[0]
+                    and curr_entity is not entities[0]):
+                names.append(entity.name)
+        namelist = ", ".join(names)
+        return namelist
+
+
+def render_all(con, panel, entities, game_map, curr_entity, screen_width,
+               screen_height, bar_width, panel_height, panel_y, colors,
+               message_log, mouse_x, mouse_y, omnivision):
     # sort our entities so we render them in the right order
     entities_sorted = sorted(entities, key=lambda x: x.render_order.value)
 
@@ -28,10 +51,6 @@ def render_all(con, entities, game_map, curr_entity, screen_width,
                 draw_entity(con, entity, curr_entity.fov_map, omnivision)
             elif entity.soul > 0:
                 draw_soul(con, entity, curr_entity.fov_map, omnivision)
-        hp_str = f"HP: n/a  "
-        tcod.console_set_default_foreground(con, tcod.white)
-        tcod.console_print_ex(con, 1, screen_height - 2, tcod.BKGND_NONE,
-                              tcod.LEFT, hp_str)
 
     # otherwise, we see things normally:
     else:
@@ -44,13 +63,29 @@ def render_all(con, entities, game_map, curr_entity, screen_width,
             if entity.ident != 0:
                 draw_entity(con, entity, curr_entity.fov_map, omnivision)
 
-        hp_str = (f"HP: {curr_entity.fighter.hp:02}"
-                  f"/{curr_entity.fighter.max_hp:02}")
-        tcod.console_set_default_foreground(con, tcod.white)
-        tcod.console_print_ex(con, 1, screen_height - 2, tcod.BKGND_NONE,
-                              tcod.LEFT, hp_str)
+    # draw UI panel
+    panel.clear()
 
-    # tcod.console_blit(con, 0, 0, screen_width, screen_height, 0, 0, 0)
+    # HP bar
+    render_bar(panel, 1, 1, bar_width, "HP", curr_entity.fighter.hp,
+               curr_entity.fighter.max_hp, tcod.light_red, tcod.darker_red)
+
+    # message log
+    y = 1
+    for message in message_log.messages:
+        panel.print(message_log.x, y, message.text, fg=message.color,
+                    alignment=tcod.LEFT)
+        y += 1
+
+    # anything we're mousing over
+    namelist = mouseover_names(mouse_x, mouse_y, entities, curr_entity,
+                               omnivision)
+    if namelist:
+        panel.print(1, 0, namelist, fg=tcod.light_gray, alignment=tcod.LEFT)
+
+    # blit UI and map to root console
+    tcod.console_blit(panel, 0, 0, screen_width, panel_height, 0, 0, panel_y)
+    tcod.console_blit(con, 0, 0, screen_width, screen_height, 0, 0, 0)
 
 
 def clear_all(con, entities):
