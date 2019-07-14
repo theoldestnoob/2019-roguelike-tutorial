@@ -8,6 +8,7 @@ Created on Fri Jul 12 22:14:46 2019
 import tcod
 
 from entity import get_blocking_entities_at_location
+from game_messages import Message
 
 
 def parse_input(in_handle, user_in, curr_entity, entities, game_map):
@@ -41,7 +42,7 @@ def parse_input(in_handle, user_in, curr_entity, entities, game_map):
             if target:
                 act_msg = (f"A shudder runs through {target.name} "
                            f"as you press against its soul!")
-                actions.append({"message": act_msg})
+                actions.append({"message": Message(act_msg, tcod.light_gray)})
             else:
                 actions.append({"move": (curr_entity, dx, dy)})
         else:
@@ -56,7 +57,8 @@ def parse_input(in_handle, user_in, curr_entity, entities, game_map):
                     actions.append({"move": (curr_entity, dx, dy)})
 
     if wait:
-        actions.append({"message": f"{curr_entity.name} waits."})
+        actions.append({"message":
+                        Message(f"{curr_entity.name} waits.", tcod.white)})
         actions.append({"wait": 100})
         # TODO: potential future waits of variable length
         #       or normalized to entity speed
@@ -78,11 +80,15 @@ def parse_input(in_handle, user_in, curr_entity, entities, game_map):
             if target and target.soul > 0:
                 actions.append({"possess": target})
             else:
-                actions.append({"message": f"Nothing there to possess!"})
+                actions.append({"message":
+                                Message(f"Nothing there to possess!",
+                                        tcod.light_gray)})
         # otherwise, we are possessing someone and want to leave
         else:
             if target:
-                actions.append({"message": f"That space is already occupied!"})
+                actions.append({"message":
+                                Message(f"That space is already occupied!",
+                                        tcod.light_gray)})
             else:
                 actions.append({"unpossess": (dest_x, dest_y)})
 

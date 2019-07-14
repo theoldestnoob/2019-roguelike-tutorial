@@ -5,6 +5,10 @@ Created on Tue Jul  9 21:11:17 2019
 @author: theoldestnoob
 """
 
+import tcod
+
+from game_messages import Message
+
 
 class Fighter:
     def __init__(self, hp, defense, power):
@@ -28,10 +32,13 @@ class Fighter:
 
         damage = self.power - target.fighter.defense
 
+        atk_str = f"{self.owner.name} attacks {target.name} "
         if damage > 0:
-            results.append({"message": f"{self.owner.name} attacks {target.name} for {damage} hit points."})
+            atk_str += "for {damage} hit points."
             results.extend(target.fighter.take_damage(damage))
         else:
-            results.append({"message": f"{self.owner.name} attacks {target.name} but does no damage."})
+            atk_str += f"but does no damage."
+
+        results.append({"message": Message(atk_str, tcod.white)})
 
         return results

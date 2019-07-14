@@ -22,6 +22,7 @@ from components.fighter import Fighter
 from components.ai import IdleMonster
 from death_functions import kill_entity
 from action_handlers import handle_entity_actions, handle_player_actions
+from game_messages import MessageLog
 
 
 def main():
@@ -34,6 +35,11 @@ def main():
     bar_width = 20
     panel_height = 7
     panel_y = screen_height - panel_height
+
+    message_x = bar_width + 2
+    message_width = screen_width - bar_width - 2
+    message_height = panel_height - 1
+
     map_width = 80
     map_height = 43
 
@@ -125,6 +131,8 @@ def main():
 
     in_handle = InputHandler()
 
+    message_log = MessageLog(message_x, message_width, message_height)
+
     # open tcod console context
     with tcod.console_init_root(
             screen_width, screen_height,
@@ -173,7 +181,8 @@ def main():
                     print("RENDER UPDATE")
                 render_all(con, panel, entities, game_map, controlled_entity,
                            screen_width, screen_height, bar_width,
-                           panel_height, panel_y, colors, omnivision)
+                           panel_height, panel_y, colors, message_log,
+                           omnivision)
                 tcod.console_flush()
                 clear_all(con, entities)
                 render_update = False
@@ -243,7 +252,8 @@ def main():
                 dead_entity = result.get("dead")
 
                 if message:
-                    print(message)
+                    message_log.add_message(message)
+                    render_update = True
                 if dead_entity:
                     render_update = True
                     if dead_entity == vip:
@@ -254,7 +264,7 @@ def main():
                         controlled_entity.y = dead_entity.y
                         controlled_entity.fov_recompute = True
                     message = kill_entity(dead_entity)
-                    print(message)
+                    message_log.add_message(message)
 
             # put current entity back in time queue and get the next one
             if next_turn:

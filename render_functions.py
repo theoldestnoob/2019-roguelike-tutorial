@@ -27,7 +27,7 @@ def render_bar(panel, x, y, total_width, name, value, maximum, bar_color,
 
 def render_all(con, panel, entities, game_map, curr_entity, screen_width,
                screen_height, bar_width, panel_height, panel_y, colors,
-               omnivision):
+               message_log, omnivision):
     # sort our entities so we render them in the right order
     entities_sorted = sorted(entities, key=lambda x: x.render_order.value)
 
@@ -39,10 +39,6 @@ def render_all(con, panel, entities, game_map, curr_entity, screen_width,
                 draw_entity(con, entity, curr_entity.fov_map, omnivision)
             elif entity.soul > 0:
                 draw_soul(con, entity, curr_entity.fov_map, omnivision)
-        '''hp_str = f"HP: n/a  "
-        tcod.console_set_default_foreground(con, tcod.white)
-        tcod.console_print_ex(con, 1, screen_height - 2, tcod.BKGND_NONE,
-                              tcod.LEFT, hp_str)'''
 
     # otherwise, we see things normally:
     else:
@@ -55,13 +51,17 @@ def render_all(con, panel, entities, game_map, curr_entity, screen_width,
             if entity.ident != 0:
                 draw_entity(con, entity, curr_entity.fov_map, omnivision)
 
-        '''hp_str = (f"HP: {curr_entity.fighter.hp:02}"
-                  f"/{curr_entity.fighter.max_hp:02}")
-        tcod.console_set_default_foreground(con, tcod.white)
-        tcod.console_print_ex(con, 1, screen_height - 2, tcod.BKGND_NONE,
-                              tcod.LEFT, hp_str)'''
+    panel.clear()
+
+    y = 1
+    for message in message_log.messages:
+        panel.print(message_log.x, y, message.text, fg=message.color,
+                    alignment=tcod.LEFT)
+        y += 1
+
     render_bar(panel, 1, 1, bar_width, "HP", curr_entity.fighter.hp,
                curr_entity.fighter.max_hp, tcod.light_red, tcod.darker_red)
+
     tcod.console_blit(panel, 0, 0, screen_width, panel_height, 0, 0, panel_y)
     tcod.console_blit(con, 0, 0, screen_width, screen_height, 0, 0, 0)
 

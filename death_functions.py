@@ -9,10 +9,11 @@ Created on Wed Jul 10 22:31:29 2019
 import tcod
 
 from render_functions import RenderOrder
+from game_messages import Message
 
 
 def kill_entity(entity):
-    death_message = f"{entity.name} is dead!"
+    death_message = Message(f"{entity.name} is dead!", tcod.orange)
 
     entity.char = '%'
     entity.color = tcod.dark_red

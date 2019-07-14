@@ -16,6 +16,7 @@ from fov_functions import initialize_fov, init_fov_entity0, recompute_fov
 from entity import Entity
 from components.fighter import Fighter
 from components.ai import IdleMonster
+from game_messages import Message
 
 
 # TODO: man I have to pass a lot of stuff in and out of these guys
@@ -71,7 +72,9 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
             next_turn = True
             render_update = True
             target = possess
-            results.append({"message": f"You possess the {target.name}!"})
+            result_msg = Message(f"You possess the {target.name}!",
+                                 tcod.light_gray)
+            results.append({"message": result_msg})
             controlled_entity = target
 
         if unpossess:  # {"unpossess": (dest_x, dest_y)}
@@ -79,7 +82,8 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
             next_turn = True
             render_update = True
             dest_x, dest_y = unpossess
-            result_msg = f"You stop possessing the {controlled_entity.name}!"
+            result_str = f"You stop possessing the {controlled_entity.name}!"
+            result_msg = Message(result_str, tcod.light_gray)
             results.append({"message": result_msg})
             controlled_entity = entities[0]
             controlled_entity.x = dest_x
