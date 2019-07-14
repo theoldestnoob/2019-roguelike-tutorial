@@ -17,18 +17,16 @@ from entity import Entity
 from components.fighter import Fighter
 from components.ai import IdleMonster
 from game_messages import Message
+from death_functions import kill_entity
 
 
 # TODO: man I have to pass a lot of stuff in and out of these guys
 #       there must be a better way?
 def handle_entity_actions(actions, in_handle, entities, game_map, console,
-                          curr_entity, controlled_entity, omnivision, debug_f):
+                          message_log, controlled_entity, debug_f):
     action_cost = 0
-    results = []
     next_turn = True
-    curr_entity = curr_entity
     controlled_entity = controlled_entity
-    omnivision = omnivision
     render_update = False
 
     for action in actions:
@@ -40,9 +38,11 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
         wait = action.get("wait")
         possess = action.get("possess")
         unpossess = action.get("unpossess")
+        dead = action.get("dead")
 
         if message:  # {"message": message_string}
-            results.append({"message": message})
+            render_update = True
+            message_log.add_message(message)
 
         if move:  # {"move": (entity, dx, dy)}
             action_cost = 100
@@ -61,7 +61,7 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
             next_turn = True
             entity, target = melee
             melee_results = entity.fighter.attack(target)
-            results.extend(melee_results)
+            actions.extend(melee_results)
 
         if wait:  # {"wait": int_time}
             action_cost = wait
@@ -72,9 +72,8 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
             next_turn = True
             render_update = True
             target = possess
-            result_msg = Message(f"You possess the {target.name}!",
-                                 tcod.light_gray)
-            results.append({"message": result_msg})
+            result_str = f"You possess the {target.name}!"
+            message_log.add_message(Message(result_str, tcod.light_gray))
             controlled_entity = target
 
         if unpossess:  # {"unpossess": (dest_x, dest_y)}
@@ -83,15 +82,23 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
             render_update = True
             dest_x, dest_y = unpossess
             result_str = f"You stop possessing the {controlled_entity.name}!"
-            result_msg = Message(result_str, tcod.light_gray)
-            results.append({"message": result_msg})
+            message_log.add_message(Message(result_str, tcod.light_gray))
             controlled_entity = entities[0]
             controlled_entity.x = dest_x
             controlled_entity.y = dest_y
             controlled_entity.fov_recompute = True
 
-    return (action_cost, results, next_turn, curr_entity, controlled_entity,
-            omnivision, render_update)
+        if dead:  # {"dead": entity}
+            render_update = True
+            if dead == controlled_entity:
+                controlled_entity = entities[0]
+                controlled_entity.x = dead.x
+                controlled_entity.y = dead.y
+                controlled_entity.fov_recompute = True
+            message = kill_entity(dead)
+            message_log.add_message(message)
+
+    return (action_cost, next_turn, controlled_entity, render_update)
 
 
 def handle_player_actions(actions, in_handle, entities, game_map, console,

@@ -20,9 +20,8 @@ from map_objects.game_map_randomrooms import GameMapRandomRooms
 from fov_functions import initialize_fov, init_fov_entity0, recompute_fov
 from components.fighter import Fighter
 from components.ai import IdleMonster
-from death_functions import kill_entity
 from action_handlers import handle_entity_actions, handle_player_actions
-from game_messages import MessageLog
+from game_messages import MessageLog, Message
 
 
 def main():
@@ -230,11 +229,10 @@ def main():
 
             # process turn actions, modify game state, and get results
             act_r = handle_entity_actions(actions, in_handle, entities,
-                                          game_map, con, curr_entity,
-                                          controlled_entity, omnivision,
-                                          debug_f)
-            (action_cost, results, next_turn, curr_entity, controlled_entity,
-             omnivision, render_update_e) = act_r
+                                          game_map, con, message_log,
+                                          controlled_entity, debug_f)
+
+            action_cost, next_turn, controlled_entity, render_update_e = act_r
 
             render_update = render_update_p or render_update_e
 
@@ -245,26 +243,12 @@ def main():
             if debug_f and results:
                 print(results)
 
-            # TODO: do I even really need this? should I just handle it all in
-            #       handle_actions?
-            for result in results:
-                message = result.get("message")
-                dead_entity = result.get("dead")
-
-                if message:
-                    message_log.add_message(message)
-                    render_update = True
-                if dead_entity:
-                    render_update = True
-                    if dead_entity == vip:
-                        game_state = GameStates.FAIL_STATE
-                    if dead_entity == controlled_entity:
-                        controlled_entity = entities[0]
-                        controlled_entity.x = dead_entity.x
-                        controlled_entity.y = dead_entity.y
-                        controlled_entity.fov_recompute = True
-                    message = kill_entity(dead_entity)
-                    message_log.add_message(message)
+            # TODO: check for and handle failure states
+            if ((not vip.fighter or vip.fighter.hp <= 0)
+                    and game_state != GameStates.FAIL_STATE):
+                message_log.add_message(Message("Oh no you lose!", tcod.red))
+                game_state = GameStates.FAIL_STATE
+                render_update = True
 
             # put current entity back in time queue and get the next one
             if next_turn:

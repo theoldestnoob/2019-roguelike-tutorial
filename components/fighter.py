@@ -32,13 +32,14 @@ class Fighter:
 
         damage = self.power - target.fighter.defense
 
-        atk_str = f"{self.owner.name} attacks {target.name} "
         if damage > 0:
-            atk_str += "for {damage} hit points."
+            atk_str = (f"{self.owner.name} attacks {target.name} "
+                       f"for {damage} hit points.")
+            results.append({"message": Message(atk_str, tcod.white)})
             results.extend(target.fighter.take_damage(damage))
         else:
-            atk_str += f"but does no damage."
-
-        results.append({"message": Message(atk_str, tcod.white)})
+            atk_str = (f"{self.owner.name} attacks {target.name} "
+                       f"but does no damage.")
+            results.append({"message": Message(atk_str, tcod.white)})
 
         return results
