@@ -176,14 +176,15 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
             render_update = True
             game_map.seed = randint(0, 99999)
             game_map.tiles = game_map.initialize_tiles()
-            fighter_component = Fighter(hp=30, defense=2, power=5)
+            player_fighter = Fighter(hp=1, defense=0, power=0)
+            vip_fighter = Fighter(hp=30, defense=2, power=5)
             player_ai = IdleMonster()
             vip_ai = IdleMonster()
             player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False,
                             ai=player_ai, render_order=RenderOrder.ACTOR,
-                            speed=25, soul=1)
+                            fighter=player_fighter, speed=25, soul=1)
             vip = Entity(1, 0, 0, "&", tcod.yellow, "VIP", blocks=True,
-                         fighter=fighter_component, ai=vip_ai, soul=10,
+                         fighter=vip_fighter, ai=vip_ai, soul=10,
                          render_order=RenderOrder.ACTOR)
             entities = [player, vip]
             controlled_entity = player

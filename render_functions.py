@@ -25,8 +25,10 @@ def render_bar(panel, x, y, total_width, name, value, maximum, bar_color,
                 fg=tcod.white, alignment=tcod.CENTER)
 
 
-def mouseover_names(mouse_x, mouse_y, entities, curr_entity, omnivision):
-    if curr_entity.fov_map.fov[mouse_y][mouse_x] or omnivision:
+def mouseover_names(game_map, mouse_x, mouse_y, entities, curr_entity,
+                    omnivision):
+    if ((mouse_x < game_map.width and mouse_y < game_map.height)
+            and (curr_entity.fov_map.fov[mouse_y][mouse_x] or omnivision)):
         names = []
         for entity in entities:
             if (entity.x == mouse_x and entity.y == mouse_y
@@ -78,8 +80,8 @@ def render_all(con, panel, entities, game_map, curr_entity, screen_width,
         y += 1
 
     # anything we're mousing over
-    namelist = mouseover_names(mouse_x, mouse_y, entities, curr_entity,
-                               omnivision)
+    namelist = mouseover_names(game_map, mouse_x, mouse_y, entities,
+                               curr_entity, omnivision)
     if namelist:
         panel.print(1, 0, namelist, fg=tcod.light_gray, alignment=tcod.LEFT)
 
