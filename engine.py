@@ -171,8 +171,6 @@ def main():
             if render_update:
                 if debug_f:
                     print("RENDER UPDATE")
-                '''render_all(con, entities, game_map, controlled_entity,
-                           screen_width, screen_height, colors, omnivision)'''
                 render_all(con, panel, entities, game_map, controlled_entity,
                            screen_width, screen_height, bar_width,
                            panel_height, panel_y, colors, omnivision)
@@ -202,12 +200,14 @@ def main():
 
                 # process any player-only actions
                 act_r = handle_player_actions(actions, in_handle, entities,
-                                              game_map, con, curr_entity,
-                                              controlled_entity, player, vip,
-                                              omnivision, mapset, fov_radius,
-                                              fov_light_walls, fov_algorithm,
-                                              screen_width, screen_height,
-                                              colors, timeq, debug_f)
+                                              game_map, con, panel,
+                                              curr_entity, controlled_entity,
+                                              player, vip, omnivision, mapset,
+                                              fov_radius, fov_light_walls,
+                                              fov_algorithm, screen_width,
+                                              screen_height, colors, timeq,
+                                              bar_width, panel_height, panel_y,
+                                              debug_f)
                 (next_turn, curr_entity, controlled_entity, entities, player,
                  vip, timeq, omnivision, render_update_p, want_exit) = act_r
 

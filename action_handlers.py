@@ -91,10 +91,10 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
 
 
 def handle_player_actions(actions, in_handle, entities, game_map, console,
-                          curr_entity, controlled_entity, player, vip,
+                          panel, curr_entity, controlled_entity, player, vip,
                           omnivision, mapset, fov_radius, fov_light_walls,
                           fov_algorithm, screen_width, screen_height, colors,
-                          timeq, debug_f):
+                          timeq, bar_width, panel_height, panel_y, debug_f):
     next_turn = False
     curr_entity = curr_entity
     controlled_entity = controlled_entity
@@ -201,11 +201,12 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
                         break
                 if want_exit:
                     break
-                render_all(console, entities, game_map, controlled_entity,
-                           screen_width, screen_height, colors, omnivision)
+                render_all(console, panel, entities, game_map,
+                           controlled_entity, screen_width, screen_height,
+                           bar_width, panel_height, panel_y, colors,
+                           omnivision)
                 tcod.console_flush()
             render_update = True
-
         if show_hyperedges:  # {"show_hyperedges": True}
             for edge in game_map.graph.hyperedges:
                 display_space(console, edge.space, tcod.green)
@@ -222,8 +223,10 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
                         break
                 if want_exit:
                     break
-                render_all(console, entities, game_map, controlled_entity,
-                           screen_width, screen_height, colors, omnivision)
+                render_all(console, panel, entities, game_map,
+                           controlled_entity, screen_width, screen_height,
+                           bar_width, panel_height, panel_y, colors,
+                           omnivision)
                 tcod.console_flush()
             render_update = True
 
@@ -243,8 +246,10 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
                         break
                 if want_exit:
                     break
-                render_all(console, entities, game_map, controlled_entity,
-                           screen_width, screen_height, colors, omnivision)
+                render_all(console, panel, entities, game_map,
+                           controlled_entity, screen_width, screen_height,
+                           bar_width, panel_height, panel_y, colors,
+                           omnivision)
                 tcod.console_flush()
             render_update = True
 
