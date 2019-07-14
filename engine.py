@@ -23,7 +23,7 @@ from fov_functions import initialize_fov, init_fov_entity0, recompute_fov
 from components.fighter import Fighter
 from components.ai import IdleMonster
 from death_functions import kill_entity
-from action_handlers import handle_actions
+from action_handlers import handle_entity_actions, handle_player_actions
 
 
 def main():
@@ -193,6 +193,16 @@ def main():
                 actions = parse_input(in_handle, user_in, curr_entity,
                                       entities, game_map)
 
+                # process any player-only actions
+                act_r = handle_player_actions(actions, in_handle, entities,
+                                              game_map, con, curr_entity,
+                                              controlled_entity, player, vip,
+                                              omnivision, mapset, fov_radius,
+                                              fov_light_walls, fov_algorithm,
+                                              timeq, debug_f)
+                (next_turn, curr_entity, controlled_entity, entities, player,
+                 vip, timeq, omnivision, render_update_p, want_exit) = act_r
+
             # if it's not the controlled entity's turn
             elif curr_entity.ai:
                 # get the actions the entity wants to take
@@ -202,11 +212,14 @@ def main():
                 print(f"{curr_entity}: {actions}")
 
             # process turn actions, modify game state, and get results
-            act_r = handle_actions(actions, in_handle, entities, game_map, con,
-                                   curr_entity, controlled_entity, omnivision,
-                                   debug_f)
+            act_r = handle_entity_actions(actions, in_handle, entities,
+                                          game_map, con, curr_entity,
+                                          controlled_entity, omnivision,
+                                          debug_f)
             (action_cost, results, next_turn, curr_entity, controlled_entity,
-             omnivision, render_update, want_exit) = act_r
+             omnivision, render_update_e) = act_r
+
+            render_update = render_update_p or render_update_e
 
             # process turn results
             if want_exit:

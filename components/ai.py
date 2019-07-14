@@ -5,8 +5,6 @@ Created on Tue Jul  9 21:12:03 2019
 @author: theoldestnoob
 """
 
-import tcod
-
 
 class IdleMonster:
     def take_turn(self, *args, **kwargs):
