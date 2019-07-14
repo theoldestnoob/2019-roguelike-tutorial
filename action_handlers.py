@@ -10,15 +10,16 @@ import tcod.event
 from random import randint
 from collections import deque
 
-from render_functions import blank_map, gray_map, RenderOrder
+from render_functions import blank_map, gray_map, RenderOrder, display_space
+from render_functions import render_all
 from fov_functions import initialize_fov, init_fov_entity0, recompute_fov
 from entity import Entity
 from components.fighter import Fighter
 from components.ai import IdleMonster
 
 
-# TODO: maybe break this up into one function to handle entity actions
-#       and one to handle other non-entity actions (exit, omnivis, etc)?
+# TODO: man I have to pass a lot of stuff in and out of these guys
+#       there must be a better way?
 def handle_entity_actions(actions, in_handle, entities, game_map, console,
                           curr_entity, controlled_entity, omnivision, debug_f):
     action_cost = 0
@@ -72,7 +73,6 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
             target = possess
             results.append({"message": f"You possess the {target.name}!"})
             controlled_entity = target
-            blank_map(console, game_map)
 
         if unpossess:  # {"unpossess": (dest_x, dest_y)}
             action_cost = 100
@@ -84,7 +84,6 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
             controlled_entity = entities[0]
             controlled_entity.x = dest_x
             controlled_entity.y = dest_y
-            gray_map(console, game_map)
             controlled_entity.fov_recompute = True
 
     return (action_cost, results, next_turn, curr_entity, controlled_entity,
@@ -94,7 +93,8 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
 def handle_player_actions(actions, in_handle, entities, game_map, console,
                           curr_entity, controlled_entity, player, vip,
                           omnivision, mapset, fov_radius, fov_light_walls,
-                          fov_algorithm, timeq, debug_f):
+                          fov_algorithm, screen_width, screen_height, colors,
+                          timeq, debug_f):
     next_turn = False
     curr_entity = curr_entity
     controlled_entity = controlled_entity
@@ -131,11 +131,6 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
         if omnivis:  # {"omnivis": True}
             next_turn = False
             render_update = True
-            if omnivision is True:
-                if controlled_entity is entities[0]:
-                    gray_map(console, game_map)
-                else:
-                    blank_map(console, game_map)
             omnivision = not omnivision
 
         if switch_char:  # {"switch_char": True}
@@ -191,13 +186,67 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
             game_map.make_graph()
 
         if show_vertices:  # {"show_vertices": True}
-            pass
+            for vertex in game_map.graph.vertices:
+                display_space(console, vertex.space, tcod.green)
+                tcod.console_flush()
+                if debug_f:
+                    print(f"***Vertex: {vertex}")
+                while True:
+                    for event in tcod.event.get():
+                        in_handle.dispatch(event)
+                    action = in_handle.get_user_input()
+                    show_vertices = action.get("show_vertices")
+                    want_exit = action.get("exit")
+                    if show_vertices or want_exit:
+                        break
+                if want_exit:
+                    break
+                render_all(console, entities, game_map, controlled_entity,
+                           screen_width, screen_height, colors, omnivision)
+                tcod.console_flush()
+            render_update = True
 
         if show_hyperedges:  # {"show_hyperedges": True}
-            pass
+            for edge in game_map.graph.hyperedges:
+                display_space(console, edge.space, tcod.green)
+                tcod.console_flush()
+                if debug_f:
+                    print(f"***Hyperedge: {edge}")
+                while True:
+                    for event in tcod.event.get():
+                        in_handle.dispatch(event)
+                    action = in_handle.get_user_input()
+                    show_hyperedges = action.get("show_hyperedges")
+                    want_exit = action.get("exit")
+                    if show_hyperedges or want_exit:
+                        break
+                if want_exit:
+                    break
+                render_all(console, entities, game_map, controlled_entity,
+                           screen_width, screen_height, colors, omnivision)
+                tcod.console_flush()
+            render_update = True
 
         if show_edges:  # {"show_edges": True}
-            pass
+            for edge in game_map.graph.edges:
+                display_space(console, edge.space, tcod.green)
+                tcod.console_flush()
+                if debug_f:
+                    print(f"***Edge: {edge}")
+                while True:
+                    for event in tcod.event.get():
+                        in_handle.dispatch(event)
+                    action = in_handle.get_user_input()
+                    show_edges = action.get("show_edges")
+                    want_exit = action.get("exit")
+                    if show_edges or want_exit:
+                        break
+                if want_exit:
+                    break
+                render_all(console, entities, game_map, controlled_entity,
+                           screen_width, screen_height, colors, omnivision)
+                tcod.console_flush()
+            render_update = True
 
         if test:  # {"test": True}
             pass

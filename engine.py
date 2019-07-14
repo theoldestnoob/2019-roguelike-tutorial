@@ -7,14 +7,12 @@ Created on Tue Jun 18 20:28:25 2019
 
 import tcod
 import tcod.event
-from random import randint
 from collections import deque
 
-from entity import Entity, get_blocking_entities_at_location
+from entity import Entity
 from input_handlers import InputHandler
 from input_parsers import parse_input
-from render_functions import clear_all, render_all, display_space, blank_map
-from render_functions import RenderOrder, gray_map
+from render_functions import clear_all, render_all, RenderOrder
 from game_states import GameStates
 from map_objects.game_map import GameMap
 from map_objects.game_map_bsp import GameMapBSP
@@ -135,9 +133,6 @@ def main():
         game_map = GameMapBSP(map_width, map_height, seed, con=con, debug=debug_f)
         game_map.make_map(player, entities, **mapset)
 
-        # gray out initial map view
-        gray_map(con, game_map)
-
         # FOV calculation setup
         render_update = True
 
@@ -199,7 +194,8 @@ def main():
                                               controlled_entity, player, vip,
                                               omnivision, mapset, fov_radius,
                                               fov_light_walls, fov_algorithm,
-                                              timeq, debug_f)
+                                              screen_width, screen_height,
+                                              colors, timeq, debug_f)
                 (next_turn, curr_entity, controlled_entity, entities, player,
                  vip, timeq, omnivision, render_update_p, want_exit) = act_r
 
@@ -244,7 +240,6 @@ def main():
                         controlled_entity = entities[0]
                         controlled_entity.x = dead_entity.x
                         controlled_entity.y = dead_entity.y
-                        gray_map(con, game_map)
                         controlled_entity.fov_recompute = True
                     message = kill_entity(dead_entity)
                     print(message)
@@ -253,7 +248,7 @@ def main():
             if next_turn:
                 # we do not reinsert entities with 0 speed
                 if curr_entity.speed != 0:
-                    curr_entity.time_to_act = int(action_cost / curr_entity.speed)
+                    curr_entity.time_to_act = action_cost // curr_entity.speed
                     # future: action_cost / curr_entity.speed
                     for index, entity in enumerate(timeq):
                         if entity.time_to_act > curr_entity.time_to_act:

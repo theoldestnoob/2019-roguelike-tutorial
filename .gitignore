@@ -5,3 +5,4 @@ pyvenv.cfg
 .spyproject
 __pycache__
 algorithms.txt
+todo.txt

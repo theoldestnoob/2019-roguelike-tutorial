@@ -22,6 +22,7 @@ def render_all(con, entities, game_map, curr_entity, screen_width,
 
     # if we're currently controlling entity 0, we see things differently
     if curr_entity.ident == 0:
+        gray_map(con, game_map)
         for entity in entities_sorted:
             if entity == curr_entity:
                 draw_entity(con, entity, curr_entity.fov_map, omnivision)
@@ -74,6 +75,8 @@ def draw_map(con, game_map, curr_entity, colors, omnivision):
                     bg[y][x] = colors["dark_wall"]
                 else:
                     bg[y][x] = colors["dark_ground"]
+            else:
+                bg[y][x] = tcod.black
 
 
 def blank_map(con, game_map):
