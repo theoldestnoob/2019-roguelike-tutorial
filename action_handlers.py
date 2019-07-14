@@ -120,6 +120,13 @@ def handle_actions(actions, in_handle, entities, game_map, console,
                 controlled_entity = entities[0]
             else:
                 controlled_entity = entities[index]
+            # only switch to controllable entities
+            while controlled_entity.soul <= 0:
+                index = controlled_entity.ident + 1
+                if index >= len(entities):
+                    controlled_entity = entities[0]
+                else:
+                    controlled_entity = entities[index]
             if controlled_entity is entities[0]:
                 gray_map(console, game_map)
             else:

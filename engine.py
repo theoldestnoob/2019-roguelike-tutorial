@@ -105,22 +105,19 @@ def main():
     fighter_component = Fighter(hp=30, defense=2, power=5)
     player_ai = IdleMonster()
     vip_ai = IdleMonster()
-    player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False,
+    player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False, soul=1,
                     ai=player_ai, render_order=RenderOrder.ACTOR, speed=25)
     vip = Entity(1, 0, 0, "&", tcod.yellow, "VIP", blocks=True, soul=10,
                  fighter=fighter_component, ai=vip_ai,
                  render_order=RenderOrder.ACTOR)
     entities = [player, vip]
     controlled_entity = player
-    controlled_entity_index = 0
     game_state = GameStates.PLAYERS_TURN
 
     tcod.console_set_custom_font(
             "arial10x10.png",
             tcod.FONT_TYPE_GREYSCALE | tcod.FONT_LAYOUT_TCOD
             )
-
-    user_input = {}
 
     in_handle = InputHandler()
 
@@ -221,7 +218,6 @@ def main():
             # TODO: do I even really need this? should I just handle it all in
             #       handle_actions?
             for result in results:
-                # print(result)
                 message = result.get("message")
                 dead_entity = result.get("dead")
 
