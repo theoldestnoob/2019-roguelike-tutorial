@@ -30,8 +30,12 @@ def main():
     seed = "testseed"
     screen_width = 80
     screen_height = 50
+
+    bar_width = 20
+    panel_height = 7
+    panel_y = screen_height - panel_height
     map_width = 80
-    map_height = 45
+    map_height = 43
 
     fov_algorithm = 0
     fov_light_walls = True
@@ -100,13 +104,15 @@ def main():
     }
 
     # setup object instantiation
-    fighter_component = Fighter(hp=30, defense=2, power=5)
+    player_fighter = Fighter(hp=1, defense=0, power=0)
+    vip_fighter = Fighter(hp=30, defense=2, power=5)
     player_ai = IdleMonster()
     vip_ai = IdleMonster()
     player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False, soul=1,
-                    ai=player_ai, render_order=RenderOrder.ACTOR, speed=25)
+                    fighter=player_fighter, ai=player_ai,
+                    render_order=RenderOrder.ACTOR, speed=25)
     vip = Entity(1, 0, 0, "&", tcod.yellow, "VIP", blocks=True, soul=10,
-                 fighter=fighter_component, ai=vip_ai,
+                 fighter=vip_fighter, ai=vip_ai,
                  render_order=RenderOrder.ACTOR)
     entities = [player, vip]
     controlled_entity = player
@@ -126,6 +132,9 @@ def main():
             fullscreen=False,
             renderer=tcod.RENDERER_SDL2,
             vsync=False) as con:
+
+        # set up ui
+        panel = tcod.console.Console(screen_width, panel_height)
 
         # create initial game map
         # game_map = GameMap(map_width, map_height, seed, con=con, debug=debug_f)
@@ -162,8 +171,11 @@ def main():
             if render_update:
                 if debug_f:
                     print("RENDER UPDATE")
-                render_all(con, entities, game_map, controlled_entity,
-                           screen_width, screen_height, colors, omnivision)
+                '''render_all(con, entities, game_map, controlled_entity,
+                           screen_width, screen_height, colors, omnivision)'''
+                render_all(con, panel, entities, game_map, controlled_entity,
+                           screen_width, screen_height, bar_width,
+                           panel_height, panel_y, colors, omnivision)
                 tcod.console_flush()
                 clear_all(con, entities)
                 render_update = False
