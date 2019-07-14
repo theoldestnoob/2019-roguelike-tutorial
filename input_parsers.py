@@ -11,9 +11,12 @@ from entity import get_blocking_entities_at_location
 from game_messages import Message
 
 
-def parse_input(in_handle, user_in, curr_entity, entities, game_map):
+def parse_input(in_handle, user_in, curr_entity, entities, game_map,
+                mouse_x, mouse_y):
     # set up stuff
     actions = []
+    mouse_x = mouse_x
+    mouse_y = mouse_y
 
     # get user input details
     move = user_in.get("move")
@@ -29,6 +32,7 @@ def parse_input(in_handle, user_in, curr_entity, entities, game_map):
     test = user_in.get("test")
     omnivis = user_in.get("omnivis")
     switch_char = user_in.get("switch_char")
+    mouse_motion = user_in.get("mousemotion")
 
     # put together actions based on user input
     if move:
@@ -100,4 +104,11 @@ def parse_input(in_handle, user_in, curr_entity, entities, game_map):
             and game_map.graph is not None):
         actions.append(user_in)
 
-    return actions
+    if mouse_motion:
+        x, y = mouse_motion
+        if x != mouse_x or y != mouse_y:
+            mouse_x = x
+            mouse_y = y
+        actions.append({"mousemotion": (x, y)})
+
+    return actions, mouse_x, mouse_y

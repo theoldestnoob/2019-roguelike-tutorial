@@ -121,6 +121,7 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
         # out of turn actions
         want_exit = action.get("exit")
         fullscreen = action.get("fullscreen")
+        mousemotion = action.get("mousemotion")
 
         # debug actions
         omnivis = action.get("omnivis")
@@ -138,6 +139,12 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
         if fullscreen:  # {"fullscreen": True}
             next_turn = False
             tcod.console_set_fullscreen(not tcod.console_is_fullscreen())
+
+        # TODO: I'm not super happy about how this works
+        #       but not sure how to elegantly tag render_update when the list
+        #       of entities being moused over changes
+        if mousemotion:  # {"mousemotion": (x, y)}
+            render_update = True
 
         if omnivis:  # {"omnivis": True}
             next_turn = False

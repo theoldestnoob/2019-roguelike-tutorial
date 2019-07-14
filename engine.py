@@ -131,6 +131,8 @@ def main():
     in_handle = InputHandler()
 
     message_log = MessageLog(message_x, message_width, message_height)
+    mouse_x = 0
+    mouse_y = 0
 
     # open tcod console context
     with tcod.console_init_root(
@@ -181,7 +183,7 @@ def main():
                 render_all(con, panel, entities, game_map, controlled_entity,
                            screen_width, screen_height, bar_width,
                            panel_height, panel_y, colors, message_log,
-                           omnivision)
+                           mouse_x, mouse_y, omnivision)
                 tcod.console_flush()
                 clear_all(con, entities)
                 render_update = False
@@ -203,8 +205,9 @@ def main():
                 if debug_f and user_in:
                     print(user_in)
 
-                actions = parse_input(in_handle, user_in, curr_entity,
-                                      entities, game_map)
+                input_r = parse_input(in_handle, user_in, curr_entity,
+                                      entities, game_map, mouse_x, mouse_y)
+                actions, mouse_x, mouse_y = input_r
 
                 # process any player-only actions
                 act_r = handle_player_actions(actions, in_handle, entities,

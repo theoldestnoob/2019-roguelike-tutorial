@@ -25,6 +25,10 @@ class InputHandler(tcod.event.EventDispatch):
         elif event.sym in in_keymap_nomod.keys():
             self._user_in_q.append(in_keymap_nomod[event.sym])
 
+    def ev_mousemotion(self, event):
+        x, y = event.tile
+        self._user_in_q.append({"mousemotion": (x, y)})
+
     def get_user_input(self):
         if self._user_in_q:
             return self._user_in_q.pop(0)
