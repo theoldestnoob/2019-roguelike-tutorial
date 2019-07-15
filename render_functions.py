@@ -107,8 +107,8 @@ def draw_map(console, game_map, curr_entity, colors, omnivision):
     # get our map panel's top left corner offset from the actual game map
     map_x, map_y = get_map_offset(console, game_map, curr_entity)
     # go through our map display area, update our map panel's background colors
-    for con_y in range(console.height):
-        for con_x in range(console.width):
+    for con_y in range(min(console.height, game_map.height)):
+        for con_x in range(min(console.width, game_map.width)):
             x = con_x + map_x
             y = con_y + map_y
             visible = curr_entity.fov_map.fov[y][x]

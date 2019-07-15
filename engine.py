@@ -45,8 +45,8 @@ def main():
 
     # map_width = 80
     # map_height = 43
-    map_width = 160
-    map_height = 90
+    map_width = 40
+    map_height = 20
 
     fov_algorithm = 0
     fov_light_walls = True
