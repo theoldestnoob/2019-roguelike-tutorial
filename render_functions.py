@@ -103,16 +103,7 @@ def draw_map(console, game_map, curr_entity, colors, omnivision):
     bg = console.bg
 
     # get our map panel's top left corner offset from the actual game map
-    map_x = int(curr_entity.x - console.width / 2)
-    if map_x < 0:
-        map_x = 0
-    elif map_x + console.width > game_map.width:
-        map_x = game_map.width - console.width
-    map_y = int(curr_entity.y - console.height / 2)
-    if map_y < 0:
-        map_y = 0
-    elif map_y + console.height > game_map.height:
-        map_y = game_map.height - console.height
+    map_x, map_y = get_map_offset(console, game_map, curr_entity)
 
     # go through our map display area
     # and update our map panel's background colors
@@ -198,3 +189,19 @@ def get_soul_color(soul):
     else:
         color = tcod.violet
     return color
+
+
+def get_map_offset(console, game_map, curr_entity):
+    # get our map panel's top left corner offset from the actual game map
+    map_x = int(curr_entity.x - console.width / 2)
+    if map_x < 0:
+        map_x = 0
+    elif map_x + console.width > game_map.width:
+        map_x = game_map.width - console.width
+    map_y = int(curr_entity.y - console.height / 2)
+    if map_y < 0:
+        map_y = 0
+    elif map_y + console.height > game_map.height:
+        map_y = game_map.height - console.height
+
+    return (map_x, map_y)
