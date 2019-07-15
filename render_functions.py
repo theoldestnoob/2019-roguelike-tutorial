@@ -68,7 +68,6 @@ def render_all(con, panel_ui, panel_map, entities, game_map, curr_entity,
                 draw_entity(panel_map, entity, curr_entity, omnivision)
 
     # draw UI panel
-
     # HP bar
     render_bar(panel_ui, 1, 1, bar_width, "HP", curr_entity.fighter.hp,
                curr_entity.fighter.max_hp, tcod.light_red, tcod.darker_red)
@@ -102,10 +101,25 @@ def render_all(con, panel_ui, panel_map, entities, game_map, curr_entity,
 def draw_map(console, game_map, curr_entity, colors, omnivision):
     # our map panel's (tcod console) background array
     bg = console.bg
+
+    # get our map panel's top left corner offset from the actual game map
+    map_x = int(curr_entity.x - console.width / 2)
+    if map_x < 0:
+        map_x = 0
+    elif map_x + console.width > game_map.width:
+        map_x = game_map.width - console.width
+    map_y = int(curr_entity.y - console.height / 2)
+    if map_y < 0:
+        map_y = 0
+    elif map_y + console.height > game_map.height:
+        map_y = game_map.height - console.height
+
     # go through our map display area
     # and update our map panel's background colors
-    for y in range(console.height):
-        for x in range(console.width):
+    for con_y in range(console.height):
+        for con_x in range(console.width):
+            x = con_x + map_x
+            y = con_y + map_y
             visible = curr_entity.fov_map.fov[y][x]
             wall = game_map.tiles[x][y].block_sight
             if visible:
