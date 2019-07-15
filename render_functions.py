@@ -60,8 +60,7 @@ def render_all(con, panel_ui, panel_map, entities, game_map, curr_entity,
     else:
         # draw all the tiles in the game map
         if curr_entity.ident != 0:
-            draw_map(panel_map, panel_map_width, panel_map_height,
-                     game_map, curr_entity, colors, omnivision)
+            draw_map(panel_map, game_map, curr_entity, colors, omnivision)
 
         # draw all the entities in the list, except for entity 0
         for entity in entities_sorted:
@@ -102,14 +101,13 @@ def clear_all(con, entities):
         clear_entity(con, entity)
 
 
-def draw_map(panel_map, panel_map_width, panel_map_height, game_map,
-             curr_entity, colors, omnivision):
+def draw_map(panel_map, game_map, curr_entity, colors, omnivision):
     # our map panel's (tcod console) background array
     bg = panel_map.bg
     # go through our map display area
     # and update our map panel's background colors
-    for y in range(panel_map_height):
-        for x in range(panel_map_width):
+    for y in range(panel_map.height):
+        for x in range(panel_map.width):
             visible = curr_entity.fov_map.fov[y][x]
             wall = game_map.tiles[x][y].block_sight
             if visible:
