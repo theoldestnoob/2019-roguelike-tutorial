@@ -52,9 +52,10 @@ def render_all(con, panel_ui, panel_map, entities, game_map, curr_entity,
         gray_map(panel_map)
         for entity in entities_sorted:
             if entity == curr_entity:
-                draw_entity(panel_map, entity, curr_entity, omnivision)
+                draw_entity(panel_map, game_map, entity, curr_entity,
+                            omnivision)
             elif entity.soul > 0:
-                draw_soul(panel_map, entity, curr_entity, omnivision)
+                draw_soul(panel_map, game_map, entity, curr_entity, omnivision)
 
     # otherwise, we see things normally:
     else:
@@ -65,7 +66,8 @@ def render_all(con, panel_ui, panel_map, entities, game_map, curr_entity,
         # draw all the entities in the list, except for entity 0
         for entity in entities_sorted:
             if entity.ident != 0:
-                draw_entity(panel_map, entity, curr_entity, omnivision)
+                draw_entity(panel_map, game_map, entity, curr_entity,
+                            omnivision)
 
     # draw UI panel
     # HP bar
@@ -142,18 +144,20 @@ def gray_map(console):
             bg[y][x] = tcod.grey
 
 
-def draw_entity(console, entity, curr_entity, omnivision):
+def draw_entity(console, game_map, entity, curr_entity, omnivision):
+    map_x, map_y = get_map_offset(console, game_map, curr_entity)
     if curr_entity.fov_map.fov[entity.y][entity.x] or omnivision:
         console.default_fg = entity.color
-        console.put_char(entity.x, entity.y, ord(entity.char))
+        console.put_char(entity.x + map_x, entity.y + map_y, ord(entity.char))
 
 
-def draw_soul(console, entity, curr_entity, omnivision):
+def draw_soul(console, game_map, entity, curr_entity, omnivision):
+    map_x, map_y = get_map_offset(console, game_map, curr_entity)
     if curr_entity.fov_map.fov[entity.y][entity.x] or omnivision:
         soul_char = get_soul_char(entity.soul)
         soul_color = get_soul_color(entity.soul)
         console.default_fg = soul_color
-        console.put_char(entity.x, entity.y, ord(soul_char))
+        console.put_char(entity.x + map_x, entity.y + map_y, ord(soul_char))
 
 
 def clear_entity(console, entity):
