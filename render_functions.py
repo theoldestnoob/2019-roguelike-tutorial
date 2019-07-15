@@ -145,10 +145,13 @@ def gray_map(console):
 
 
 def draw_entity(console, game_map, entity, curr_entity, omnivision):
-    map_x, map_y = get_map_offset(console, game_map, curr_entity)
     if curr_entity.fov_map.fov[entity.y][entity.x] or omnivision:
+        map_x, map_y = get_map_offset(console, game_map, curr_entity)
+        print(f"{entity.name}: {entity.x}, {entity.y}")
+        print(f"map offset: {map_x}, {map_y}")
+        print(f"offset position: {entity.x - map_x}, {entity.y - map_y}")
         console.default_fg = entity.color
-        console.put_char(entity.x + map_x, entity.y + map_y, ord(entity.char))
+        console.put_char(entity.x - map_x, entity.y - map_y, ord(entity.char))
 
 
 def draw_soul(console, game_map, entity, curr_entity, omnivision):
@@ -157,7 +160,7 @@ def draw_soul(console, game_map, entity, curr_entity, omnivision):
         soul_char = get_soul_char(entity.soul)
         soul_color = get_soul_color(entity.soul)
         console.default_fg = soul_color
-        console.put_char(entity.x + map_x, entity.y + map_y, ord(soul_char))
+        console.put_char(entity.x - map_x, entity.y - map_y, ord(soul_char))
 
 
 def clear_entity(console, entity):
