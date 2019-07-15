@@ -106,9 +106,7 @@ def draw_map(console, game_map, curr_entity, colors, omnivision):
 
     # get our map panel's top left corner offset from the actual game map
     map_x, map_y = get_map_offset(console, game_map, curr_entity)
-    print(f"map offset: {map_x}, {map_y}")
-    # go through our map display area
-    # and update our map panel's background colors
+    # go through our map display area, update our map panel's background colors
     for con_y in range(console.height):
         for con_x in range(console.width):
             x = con_x + map_x
@@ -147,9 +145,6 @@ def gray_map(console):
 def draw_entity(console, game_map, entity, curr_entity, omnivision):
     if curr_entity.fov_map.fov[entity.y][entity.x] or omnivision:
         map_x, map_y = get_map_offset(console, game_map, curr_entity)
-        print(f"{entity.name}: {entity.x}, {entity.y}")
-        print(f"map offset: {map_x}, {map_y}")
-        print(f"offset position: {entity.x - map_x}, {entity.y - map_y}")
         console.default_fg = entity.color
         console.put_char(entity.x - map_x, entity.y - map_y, ord(entity.char))
 
