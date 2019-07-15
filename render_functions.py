@@ -39,9 +39,11 @@ def mouseover_names(game_map, mouse_x, mouse_y, entities, curr_entity,
         return namelist
 
 
-def render_all(con, panel, entities, game_map, curr_entity, screen_width,
-               screen_height, bar_width, panel_height, panel_y, colors,
-               message_log, mouse_x, mouse_y, omnivision):
+def render_all(con, panel_ui, panel_map, entities, game_map, curr_entity,
+               screen_width, screen_height,
+               bar_width, panel_ui_width, panel_ui_height, panel_ui_y,
+               panel_map_width, panel_map_height,
+               colors, message_log, mouse_x, mouse_y, omnivision):
     # sort our entities so we render them in the right order
     entities_sorted = sorted(entities, key=lambda x: x.render_order.value)
 
@@ -66,27 +68,28 @@ def render_all(con, panel, entities, game_map, curr_entity, screen_width,
                 draw_entity(con, entity, curr_entity.fov_map, omnivision)
 
     # draw UI panel
-    panel.clear()
+    panel_ui.clear()
 
     # HP bar
-    render_bar(panel, 1, 1, bar_width, "HP", curr_entity.fighter.hp,
+    render_bar(panel_ui, 1, 1, bar_width, "HP", curr_entity.fighter.hp,
                curr_entity.fighter.max_hp, tcod.light_red, tcod.darker_red)
 
     # message log
     y = 1
     for message in message_log.messages:
-        panel.print(message_log.x, y, message.text, fg=message.color,
-                    alignment=tcod.LEFT)
+        panel_ui.print(message_log.x, y, message.text, fg=message.color,
+                       alignment=tcod.LEFT)
         y += 1
 
     # anything we're mousing over
     namelist = mouseover_names(game_map, mouse_x, mouse_y, entities,
                                curr_entity, omnivision)
     if namelist:
-        panel.print(1, 0, namelist, fg=tcod.light_gray, alignment=tcod.LEFT)
+        panel_ui.print(1, 0, namelist, fg=tcod.light_gray, alignment=tcod.LEFT)
 
     # blit UI and map to root console
-    tcod.console_blit(panel, 0, 0, screen_width, panel_height, 0, 0, panel_y)
+    tcod.console_blit(panel_ui, 0, 0, panel_ui_width, panel_ui_height, 0, 0,
+                      panel_ui_y)
     tcod.console_blit(con, 0, 0, screen_width, screen_height, 0, 0, 0)
 
 
