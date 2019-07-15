@@ -52,9 +52,9 @@ def render_all(con, panel_ui, panel_map, entities, game_map, curr_entity,
         gray_map(panel_map)
         for entity in entities_sorted:
             if entity == curr_entity:
-                draw_entity(panel_map, entity, curr_entity.fov_map, omnivision)
+                draw_entity(panel_map, entity, curr_entity, omnivision)
             elif entity.soul > 0:
-                draw_soul(panel_map, entity, curr_entity.fov_map, omnivision)
+                draw_soul(panel_map, entity, curr_entity, omnivision)
 
     # otherwise, we see things normally:
     else:
@@ -65,7 +65,7 @@ def render_all(con, panel_ui, panel_map, entities, game_map, curr_entity,
         # draw all the entities in the list, except for entity 0
         for entity in entities_sorted:
             if entity.ident != 0:
-                draw_entity(panel_map, entity, curr_entity.fov_map, omnivision)
+                draw_entity(panel_map, entity, curr_entity, omnivision)
 
     # draw UI panel
 
@@ -99,13 +99,13 @@ def render_all(con, panel_ui, panel_map, entities, game_map, curr_entity,
     panel_ui.clear()
 
 
-def draw_map(panel_map, game_map, curr_entity, colors, omnivision):
+def draw_map(console, game_map, curr_entity, colors, omnivision):
     # our map panel's (tcod console) background array
-    bg = panel_map.bg
+    bg = console.bg
     # go through our map display area
     # and update our map panel's background colors
-    for y in range(panel_map.height):
-        for x in range(panel_map.width):
+    for y in range(console.height):
+        for x in range(console.width):
             visible = curr_entity.fov_map.fov[y][x]
             wall = game_map.tiles[x][y].block_sight
             if visible:
@@ -123,42 +123,42 @@ def draw_map(panel_map, game_map, curr_entity, colors, omnivision):
                 bg[y][x] = tcod.black
 
 
-def blank_map(panel_map):
-    bg = panel_map.bg
-    for y in range(panel_map.height):
-        for x in range(panel_map.width):
+def blank_map(console):
+    bg = console.bg
+    for y in range(console.height):
+        for x in range(console.width):
             bg[y][x] = tcod.black
 
 
-def gray_map(panel_map):
-    bg = panel_map.bg
-    for y in range(panel_map.height):
-        for x in range(panel_map.width):
+def gray_map(console):
+    bg = console.bg
+    for y in range(console.height):
+        for x in range(console.width):
             bg[y][x] = tcod.grey
 
 
-def draw_entity(con, entity, fov_map, omnivision):
-    if fov_map.fov[entity.y][entity.x] or omnivision:
-        con.default_fg = entity.color
-        con.put_char(entity.x, entity.y, ord(entity.char))
+def draw_entity(console, entity, curr_entity, omnivision):
+    if curr_entity.fov_map.fov[entity.y][entity.x] or omnivision:
+        console.default_fg = entity.color
+        console.put_char(entity.x, entity.y, ord(entity.char))
 
 
-def draw_soul(con, entity, fov_map, omnivision):
-    if fov_map.fov[entity.y][entity.x] or omnivision:
+def draw_soul(console, entity, curr_entity, omnivision):
+    if curr_entity.fov_map.fov[entity.y][entity.x] or omnivision:
         soul_char = get_soul_char(entity.soul)
         soul_color = get_soul_color(entity.soul)
-        con.default_fg = soul_color
-        con.put_char(entity.x, entity.y, ord(soul_char))
+        console.default_fg = soul_color
+        console.put_char(entity.x, entity.y, ord(soul_char))
 
 
-def clear_entity(con, entity):
+def clear_entity(console, entity):
     # erase the character that represents this object
-    con.put_char(entity.x, entity.y, ord(" "))
+    console.put_char(entity.x, entity.y, ord(" "))
 
 
-def display_space(con, space, color):
+def display_space(console, space, color):
     for x, y in space:
-        tcod.console_set_char_background(con, x, y, color, tcod.BKGND_SET)
+        tcod.console_set_char_background(console, x, y, color, tcod.BKGND_SET)
 
 
 def get_soul_char(soul):
