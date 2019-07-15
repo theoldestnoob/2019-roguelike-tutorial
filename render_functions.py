@@ -49,7 +49,7 @@ def render_all(con, panel_ui, panel_map, entities, game_map, curr_entity,
 
     # if we're currently controlling entity 0, we see things differently
     if curr_entity.ident == 0:
-        gray_map(con, game_map)
+        gray_map(panel_map)
         for entity in entities_sorted:
             if entity == curr_entity:
                 draw_entity(con, entity, curr_entity.fov_map, omnivision)
@@ -60,7 +60,8 @@ def render_all(con, panel_ui, panel_map, entities, game_map, curr_entity,
     else:
         # draw all the tiles in the game map
         if curr_entity.ident != 0:
-            draw_map(con, game_map, curr_entity, colors, omnivision)
+            draw_map(panel_map, panel_map_width, panel_map_height,
+                     game_map, curr_entity, colors, omnivision)
 
         # draw all the entities in the list, except for entity 0
         for entity in entities_sorted:
@@ -88,9 +89,12 @@ def render_all(con, panel_ui, panel_map, entities, game_map, curr_entity,
         panel_ui.print(1, 0, namelist, fg=tcod.light_gray, alignment=tcod.LEFT)
 
     # blit UI and map to root console
+    # TODO: change to use panel_ui.blit(con, ...) and map_ui.blit(con, ...)
     tcod.console_blit(panel_ui, 0, 0, panel_ui_width, panel_ui_height, 0, 0,
                       panel_ui_y)
-    tcod.console_blit(con, 0, 0, screen_width, screen_height, 0, 0, 0)
+    tcod.console_blit(panel_map, 0, 0, panel_map_width, panel_map_height, 0,
+                      0, 0)
+    # tcod.console_blit(con, 0, 0, screen_width, screen_height, 0, 0, 0)
 
 
 def clear_all(con, entities):
@@ -98,10 +102,14 @@ def clear_all(con, entities):
         clear_entity(con, entity)
 
 
-def draw_map(con, game_map, curr_entity, colors, omnivision):
-    bg = con.bg
-    for y in range(game_map.height):
-        for x in range(game_map.width):
+def draw_map(panel_map, panel_map_width, panel_map_height, game_map,
+             curr_entity, colors, omnivision):
+    # our map panel's (tcod console) background array
+    bg = panel_map.bg
+    # go through our map display area
+    # and update our map panel's background colors
+    for y in range(panel_map_height):
+        for x in range(panel_map_width):
             visible = curr_entity.fov_map.fov[y][x]
             wall = game_map.tiles[x][y].block_sight
             if visible:
@@ -119,17 +127,17 @@ def draw_map(con, game_map, curr_entity, colors, omnivision):
                 bg[y][x] = tcod.black
 
 
-def blank_map(con, game_map):
-    bg = con.bg
-    for y in range(game_map.height):
-        for x in range(game_map.width):
+def blank_map(panel_map):
+    bg = panel_map.bg
+    for y in range(panel_map.height):
+        for x in range(panel_map.width):
             bg[y][x] = tcod.black
 
 
-def gray_map(con, game_map):
-    bg = con.bg
-    for y in range(game_map.height):
-        for x in range(game_map.width):
+def gray_map(panel_map):
+    bg = panel_map.bg
+    for y in range(panel_map.height):
+        for x in range(panel_map.width):
             bg[y][x] = tcod.grey
 
 
