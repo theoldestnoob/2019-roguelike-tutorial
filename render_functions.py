@@ -106,7 +106,7 @@ def draw_map(console, game_map, curr_entity, colors, omnivision):
 
     # get our map panel's top left corner offset from the actual game map
     map_x, map_y = get_map_offset(console, game_map, curr_entity)
-
+    print(f"map offset: {map_x}, {map_y}")
     # go through our map display area
     # and update our map panel's background colors
     for con_y in range(console.height):
@@ -117,17 +117,17 @@ def draw_map(console, game_map, curr_entity, colors, omnivision):
             wall = game_map.tiles[x][y].block_sight
             if visible:
                 if wall:
-                    bg[y][x] = colors["light_wall"]
+                    bg[con_y][con_x] = colors["light_wall"]
                 else:
-                    bg[y][x] = colors["light_ground"]
+                    bg[con_y][con_x] = colors["light_ground"]
             elif (curr_entity.ident in game_map.tiles[x][y].explored
                   or omnivision):
                 if wall:
-                    bg[y][x] = colors["dark_wall"]
+                    bg[con_y][con_x] = colors["dark_wall"]
                 else:
-                    bg[y][x] = colors["dark_ground"]
+                    bg[con_y][con_x] = colors["dark_ground"]
             else:
-                bg[y][x] = tcod.black
+                bg[con_y][con_x] = tcod.black
 
 
 def blank_map(console):
