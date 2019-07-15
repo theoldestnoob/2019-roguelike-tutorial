@@ -47,7 +47,11 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
             action_cost = 100
             next_turn = True
             entity, dx, dy = move
-            entity.move(dx, dy)
+            # don't let entities move out of the map's boundaries
+            if not (entity.x + dx < 0 or entity.y + dy < 0
+                    or entity.x + dx >= game_map.width
+                    or entity.y + dy >= game_map.height):
+                entity.move(dx, dy)
 
         if move_astar:  # {"move_astar": (entity, target)}
             action_cost = 100
