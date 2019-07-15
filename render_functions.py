@@ -99,11 +99,6 @@ def render_all(con, panel_ui, panel_map, entities, game_map, curr_entity,
     panel_ui.clear()
 
 
-def clear_all(con, entities):
-    for entity in entities:
-        clear_entity(con, entity)
-
-
 def draw_map(panel_map, game_map, curr_entity, colors, omnivision):
     # our map panel's (tcod console) background array
     bg = panel_map.bg

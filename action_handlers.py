@@ -10,8 +10,7 @@ import tcod.event
 from random import randint
 from collections import deque
 
-from render_functions import blank_map, gray_map, RenderOrder, display_space
-from render_functions import render_all
+from render_functions import RenderOrder, display_space, render_all
 from fov_functions import initialize_fov, init_fov_entity0, recompute_fov
 from entity import Entity
 from components.fighter import Fighter
@@ -169,10 +168,6 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
                     controlled_entity = entities[0]
                 else:
                     controlled_entity = entities[index]
-            if controlled_entity is entities[0]:
-                gray_map(console, game_map)
-            else:
-                blank_map(console, game_map)
 
         if map_gen:  # {"map_gen": True}
             next_turn = True
@@ -200,7 +195,6 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
                 recompute_fov(game_map, entity, fov_radius,
                               fov_light_walls, fov_algorithm)
                 print(f"{entity.name} AI: {entity.ai}")
-            gray_map(console, game_map)
             timeq = deque(sorted(entities, key=lambda entity: entity.speed))
             curr_entity = timeq.popleft()
 

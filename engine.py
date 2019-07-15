@@ -12,7 +12,7 @@ from collections import deque
 from entity import Entity
 from input_handlers import InputHandler
 from input_parsers import parse_input
-from render_functions import clear_all, render_all, RenderOrder
+from render_functions import render_all, RenderOrder
 from game_states import GameStates
 from map_objects.game_map import GameMap
 from map_objects.game_map_bsp import GameMapBSP
