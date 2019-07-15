@@ -52,9 +52,9 @@ def render_all(con, panel_ui, panel_map, entities, game_map, curr_entity,
         gray_map(panel_map)
         for entity in entities_sorted:
             if entity == curr_entity:
-                draw_entity(con, entity, curr_entity.fov_map, omnivision)
+                draw_entity(panel_map, entity, curr_entity.fov_map, omnivision)
             elif entity.soul > 0:
-                draw_soul(con, entity, curr_entity.fov_map, omnivision)
+                draw_soul(panel_map, entity, curr_entity.fov_map, omnivision)
 
     # otherwise, we see things normally:
     else:
@@ -65,10 +65,9 @@ def render_all(con, panel_ui, panel_map, entities, game_map, curr_entity,
         # draw all the entities in the list, except for entity 0
         for entity in entities_sorted:
             if entity.ident != 0:
-                draw_entity(con, entity, curr_entity.fov_map, omnivision)
+                draw_entity(panel_map, entity, curr_entity.fov_map, omnivision)
 
     # draw UI panel
-    panel_ui.clear()
 
     # HP bar
     render_bar(panel_ui, 1, 1, bar_width, "HP", curr_entity.fighter.hp,
@@ -94,6 +93,10 @@ def render_all(con, panel_ui, panel_map, entities, game_map, curr_entity,
     tcod.console_blit(panel_map, 0, 0, panel_map_width, panel_map_height, 0,
                       0, 0)
     # tcod.console_blit(con, 0, 0, screen_width, screen_height, 0, 0, 0)
+
+    # clear map and ui panels for next time
+    panel_map.clear()
+    panel_ui.clear()
 
 
 def clear_all(con, entities):

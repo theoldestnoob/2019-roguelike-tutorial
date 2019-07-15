@@ -193,7 +193,6 @@ def main():
                            colors, message_log,
                            mouse_x, mouse_y, omnivision)
                 tcod.console_flush()
-                clear_all(con, entities)
                 render_update = False
 
             # run an entity's turn
