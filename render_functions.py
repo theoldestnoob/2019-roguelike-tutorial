@@ -105,14 +105,22 @@ def draw_map(console, game_map, curr_entity, colors, omnivision):
     bg = console.bg
 
     # get our map panel's top left corner offset from the actual game map
-    map_x, map_y = get_map_offset(console, game_map, curr_entity)
+    # these are 0 if the map is smaller in a dimension than the console
+    map_off_x, map_off_y = get_map_offset(console, game_map, curr_entity)
+
+    # get our map display offset from the console top left corner
+    # these are 0 if the map is larger in a dimension than the console
+    con_off_x, con_off_y = get_console_offset(console, game_map)
+
     # go through our map display area, update our map panel's background colors
-    for con_y in range(min(console.height, game_map.height)):
-        for con_x in range(min(console.width, game_map.width)):
-            x = con_x + map_x
-            y = con_y + map_y
-            visible = curr_entity.fov_map.fov[y][x]
-            wall = game_map.tiles[x][y].block_sight
+    for y in range(min(console.height, game_map.height)):
+        for x in range(min(console.width, game_map.width)):
+            map_x = x + map_off_x
+            map_y = y + map_off_y
+            con_x = x + con_off_x
+            con_y = y + con_off_y
+            visible = curr_entity.fov_map.fov[map_y][map_x]
+            wall = game_map.tiles[map_x][map_y].block_sight
             if visible:
                 if wall:
                     bg[con_y][con_x] = colors["light_wall"]
@@ -145,8 +153,11 @@ def gray_map(console):
 def draw_entity(console, game_map, entity, curr_entity, omnivision):
     if curr_entity.fov_map.fov[entity.y][entity.x] or omnivision:
         map_x, map_y = get_map_offset(console, game_map, curr_entity)
+        con_x, con_y = get_console_offset(console, game_map)
+        x_off = map_x - con_x
+        y_off = map_y - con_y
         console.default_fg = entity.color
-        console.put_char(entity.x - map_x, entity.y - map_y, ord(entity.char))
+        console.put_char(entity.x - x_off, entity.y - y_off, ord(entity.char))
 
 
 def draw_soul(console, game_map, entity, curr_entity, omnivision):
@@ -154,8 +165,12 @@ def draw_soul(console, game_map, entity, curr_entity, omnivision):
     if curr_entity.fov_map.fov[entity.y][entity.x] or omnivision:
         soul_char = get_soul_char(entity.soul)
         soul_color = get_soul_color(entity.soul)
+        map_x, map_y = get_map_offset(console, game_map, curr_entity)
+        con_x, con_y = get_console_offset(console, game_map)
+        x_off = map_x - con_x
+        y_off = map_y - con_y
         console.default_fg = soul_color
-        console.put_char(entity.x - map_x, entity.y - map_y, ord(soul_char))
+        console.put_char(entity.x - x_off, entity.y - y_off, ord(soul_char))
 
 
 def clear_entity(console, entity):
@@ -207,3 +222,15 @@ def get_map_offset(console, game_map, curr_entity):
         map_y = game_map.height - console.height
 
     return (map_x, map_y)
+
+
+def get_console_offset(console, game_map):
+    # get our map's display offset from the top left corner of the console
+    con_x = int((console.width - game_map.width) / 2)
+    con_y = int((console.height - game_map.height) / 2)
+    if con_x < 0:
+        con_x = 0
+    if con_y < 0:
+        con_y = 0
+
+    return (con_x, con_y)
