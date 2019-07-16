@@ -126,7 +126,7 @@ def draw_map(console, game_map, curr_entity, colors, omnivision):
                     bg[con_y][con_x] = colors["light_wall"]
                 else:
                     bg[con_y][con_x] = colors["light_ground"]
-            elif (curr_entity.ident in game_map.tiles[x][y].explored
+            elif (curr_entity.ident in game_map.tiles[map_x][map_y].explored
                   or omnivision):
                 if wall:
                     bg[con_y][con_x] = colors["dark_wall"]
