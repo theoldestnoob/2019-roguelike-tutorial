@@ -12,7 +12,7 @@ from collections import deque
 from entity import Entity
 from input_handlers import InputHandler
 from input_parsers import parse_input
-from render_functions import clear_all, render_all, RenderOrder
+from render_functions import render_all, RenderOrder
 from game_states import GameStates
 from map_objects.game_map import GameMap
 from map_objects.game_map_bsp import GameMapBSP
@@ -32,15 +32,21 @@ def main():
     screen_height = 50
 
     bar_width = 20
-    panel_height = 7
-    panel_y = screen_height - panel_height
+    panel_ui_width = screen_width
+    panel_ui_height = 7
+    panel_ui_y = screen_height - panel_ui_height
 
     message_x = bar_width + 2
     message_width = screen_width - bar_width - 2
-    message_height = panel_height - 1
+    message_height = panel_ui_height - 1
 
-    map_width = 80
-    map_height = 43
+    panel_map_width = 80
+    panel_map_height = 43
+
+    # map_width = 80
+    # map_height = 43
+    map_width = 140
+    map_height = 120
 
     fov_algorithm = 0
     fov_light_walls = True
@@ -130,7 +136,7 @@ def main():
 
     in_handle = InputHandler()
 
-    message_log = MessageLog(message_x, message_width, message_height)
+    message_log = MessageLog(message_x, message_width, message_height, 100)
     mouse_x = 0
     mouse_y = 0
 
@@ -143,7 +149,8 @@ def main():
             vsync=False) as con:
 
         # set up ui
-        panel = tcod.console.Console(screen_width, panel_height)
+        panel_ui = tcod.console.Console(panel_ui_width, panel_ui_height)
+        panel_map = tcod.console.Console(panel_map_width, panel_map_height)
 
         # create initial game map
         # game_map = GameMap(map_width, map_height, seed, con=con, debug=debug_f)
@@ -180,12 +187,14 @@ def main():
             if render_update:
                 if debug_f:
                     print("RENDER UPDATE")
-                render_all(con, panel, entities, game_map, controlled_entity,
+                render_all(con, panel_ui, panel_map, entities, game_map,
+                           controlled_entity,
                            screen_width, screen_height, bar_width,
-                           panel_height, panel_y, colors, message_log,
+                           panel_ui_width, panel_ui_height, panel_ui_y,
+                           panel_map_width, panel_map_height,
+                           colors, message_log,
                            mouse_x, mouse_y, omnivision)
                 tcod.console_flush()
-                clear_all(con, entities)
                 render_update = False
 
             # run an entity's turn
@@ -211,13 +220,19 @@ def main():
 
                 # process any player-only actions
                 act_r = handle_player_actions(actions, in_handle, entities,
-                                              game_map, con, panel,
+                                              game_map, con, panel_ui,
+                                              panel_map,
                                               curr_entity, controlled_entity,
                                               player, vip, omnivision, mapset,
+                                              message_log,
                                               fov_radius, fov_light_walls,
                                               fov_algorithm, screen_width,
                                               screen_height, colors, timeq,
-                                              bar_width, panel_height, panel_y,
+                                              bar_width, panel_ui_width,
+                                              panel_ui_height, panel_ui_y,
+                                              panel_map_width,
+                                              panel_map_height,
+                                              mouse_x, mouse_y,
                                               debug_f)
                 (next_turn, curr_entity, controlled_entity, entities, player,
                  vip, timeq, omnivision, render_update_p, want_exit) = act_r

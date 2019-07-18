@@ -33,6 +33,8 @@ def parse_input(in_handle, user_in, curr_entity, entities, game_map,
     omnivis = user_in.get("omnivis")
     switch_char = user_in.get("switch_char")
     mouse_motion = user_in.get("mousemotion")
+    msg_up = user_in.get("msg_up")
+    msg_down = user_in.get("msg_down")
 
     # put together actions based on user input
     if move:
@@ -96,8 +98,9 @@ def parse_input(in_handle, user_in, curr_entity, entities, game_map,
             else:
                 actions.append({"unpossess": (dest_x, dest_y)})
 
+    # TODO: I don't like having to pass actions through like this
     if (want_exit or fullscreen or omnivis or switch_char or map_gen
-            or graph_gen or test):
+            or graph_gen or test or msg_up or msg_down):
         actions.append(user_in)
 
     if ((show_hyperedges or show_edges or show_vertices)
