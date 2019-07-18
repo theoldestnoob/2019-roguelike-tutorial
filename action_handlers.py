@@ -128,6 +128,8 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
         want_exit = action.get("exit")
         fullscreen = action.get("fullscreen")
         mousemotion = action.get("mousemotion")
+        msg_up = action.get("msg_up")
+        msg_down = action.get("msg_down")
 
         # debug actions
         omnivis = action.get("omnivis")
@@ -151,6 +153,16 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
         #       of entities being moused over changes
         if mousemotion:  # {"mousemotion": (x, y)}
             render_update = True
+
+        if msg_up:
+            if message_log.bottom < message_log.length - message_log.height:
+                message_log.scroll(1)
+                render_update = True
+
+        if msg_down:
+            if message_log.bottom > 0:
+                message_log.scroll(-1)
+                render_update = True
 
         if omnivis:  # {"omnivis": True}
             next_turn = False

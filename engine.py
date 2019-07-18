@@ -136,7 +136,7 @@ def main():
 
     in_handle = InputHandler()
 
-    message_log = MessageLog(message_x, message_width, message_height)
+    message_log = MessageLog(message_x, message_width, message_height, 100)
     mouse_x = 0
     mouse_y = 0
 

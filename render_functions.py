@@ -43,7 +43,7 @@ def render_all(con, panel_ui, panel_map, entities, game_map, curr_entity,
                screen_width, screen_height,
                bar_width, panel_ui_width, panel_ui_height, panel_ui_y,
                panel_map_width, panel_map_height,
-               colors, message_log, mouse_x, mouse_y, omnivision):
+               colors, msg_log, mouse_x, mouse_y, omnivision):
     # sort our entities so we render them in the right order
     entities_sorted = sorted(entities, key=lambda x: x.render_order.value)
 
@@ -76,8 +76,11 @@ def render_all(con, panel_ui, panel_map, entities, game_map, curr_entity,
 
     # message log
     y = 1
-    for message in message_log.messages:
-        panel_ui.print(message_log.x, y, message.text, fg=message.color,
+    msg_start = msg_log.bottom + msg_log.height - 1
+    msg_end = msg_log.bottom - 1
+    for i in range(msg_start, msg_end, -1):
+        message = msg_log.messages[i]
+        panel_ui.print(msg_log.x, y, message.text, fg=message.color,
                        alignment=tcod.LEFT)
         y += 1
 
