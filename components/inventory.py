@@ -7,6 +7,6 @@ Created on Sat Jul 20 15:28:34 2019
 
 
 class Inventory:
-    def __init(self, capacity):
+    def __init__(self, capacity):
         self.capacity = capacity
         self.items = []

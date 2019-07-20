@@ -22,6 +22,7 @@ from components.fighter import Fighter
 from components.ai import IdleMonster
 from action_handlers import handle_entity_actions, handle_player_actions
 from game_messages import MessageLog, Message
+from components.inventory import Inventory
 
 
 def main():
@@ -122,11 +123,12 @@ def main():
     vip_fighter = Fighter(hp=30, defense=2, power=5)
     player_ai = IdleMonster()
     vip_ai = IdleMonster()
+    vip_inventory = Inventory(26)
     player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False, soul=1,
                     fighter=player_fighter, ai=player_ai,
                     render_order=RenderOrder.ACTOR, speed=25)
     vip = Entity(1, 0, 0, "&", tcod.yellow, "VIP", blocks=True, soul=10,
-                 fighter=vip_fighter, ai=vip_ai,
+                 fighter=vip_fighter, ai=vip_ai, inventory=vip_inventory,
                  render_order=RenderOrder.ACTOR)
     entities = [player, vip]
     controlled_entity = player
