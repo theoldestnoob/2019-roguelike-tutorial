@@ -52,7 +52,7 @@ class GameMap:
         return False
 
     def make_map(self, player, entities, *args, max_monsters_per_room=0,
-                 **kwargs):
+                 max_items_per_room=0, **kwargs):
         '''Make a big empty map with a wall around the edge. Expected to be
         overloaded by any child classes.
         '''
@@ -62,7 +62,8 @@ class GameMap:
         self.create_room(room)
         self.rooms.append(room)
         self.place_player_vip(player, entities[1])
-        self.place_entities(room, entities, max_monsters_per_room)
+        self.place_entities(room, entities, max_monsters_per_room,
+                            max_items_per_room)
 
     def make_graph(self):
         '''Generate graph data about the map and store it in self.graph.'''
@@ -171,9 +172,11 @@ class GameMap:
         vip.x = x + 1
         vip.y = y
 
-    def place_entities(self, room, entities, max_monsters_per_room):
+    def place_entities(self, room, entities, max_monsters_per_room,
+                       max_items_per_room):
         '''Place entities randomly into a room on the map.'''
         number_of_monsters = randint(0, max_monsters_per_room)
+        number_of_items = randint(0, max_items_per_room)
 
         for i in range(number_of_monsters):
             x, y = choice(room.coords)
@@ -199,6 +202,13 @@ class GameMap:
                                      render_order=RenderOrder.ACTOR)
 
                 entities.append(monster)
+
+        for i in range(number_of_items):
+            x, y = choice(room.coords)
+            if not any([e for e in entities if e.x == x and e.y == y]):
+                item = Entity(len(entities), x, y, '!', tcod.violet,
+                              "Healing Potion", render_order=RenderOrder.ITEM)
+                entities.append(item)
 
     def game_map_to_walkable_array(self):
         '''Return a multidimensional array of bools describing map walkability.

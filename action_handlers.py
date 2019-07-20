@@ -28,6 +28,7 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
     controlled_entity = controlled_entity
     render_update = False
 
+    # TODO: rewrite to use object features: while len(action) > 0: action = action.popleft()
     for action in actions:
         # turn actions
         message = action.get("message")
@@ -203,16 +204,20 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
             entities = [player, vip]
             controlled_entity = player
             game_map.make_map(player, entities, **mapset)
-            for entity in entities:
+            # set up time system
+            actors = [e for e in entities if e.ai]
+            timeq = deque(sorted(actors, key=lambda entity: entity.time_to_act))
+            curr_entity = timeq.popleft()
+            next_turn = True
+            # FOV calculation setup
+            render_update = True
+            for entity in actors:
                 if entity.ident == 0:
                     entity.fov_map = init_fov_entity0(game_map)
                 else:
                     entity.fov_map = initialize_fov(game_map)
-                recompute_fov(game_map, entity, fov_radius,
-                              fov_light_walls, fov_algorithm)
-                print(f"{entity.name} AI: {entity.ai}")
-            timeq = deque(sorted(entities, key=lambda entity: entity.speed))
-            curr_entity = timeq.popleft()
+                recompute_fov(game_map, entity, fov_radius, fov_light_walls,
+                              fov_algorithm)
 
         if graph_gen:  # {"graph_gen": True}
             game_map.make_graph()

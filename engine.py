@@ -68,7 +68,8 @@ def main():
             "unused": True,
             "bsp_range": 0.15,
             "bsp_depth": 4,
-            "max_monsters_per_room": 3
+            "max_monsters_per_room": 3,
+            "max_items_per_room": 2
     }
 
     mapset_bspcirc = {
@@ -85,7 +86,8 @@ def main():
             "unused": True,
             "bsp_range": 0.25,
             "bsp_depth": 4,
-            "max_monsters_per_room": 3
+            "max_monsters_per_room": 3,
+            "max_items_per_room": 2
     }
 
     mapset_bsprand = {
@@ -102,7 +104,8 @@ def main():
             "unused": True,
             "bsp_range": 0.4,
             "bsp_depth": 4,
-            "max_monsters_per_room": 3
+            "max_monsters_per_room": 3,
+            "max_items_per_room": 2
     }
 
     mapset = mapset_bsprand
@@ -158,10 +161,16 @@ def main():
         game_map = GameMapBSP(map_width, map_height, seed, con=con, debug=debug_f)
         game_map.make_map(player, entities, **mapset)
 
+        # set up time system
+        actors = [e for e in entities if e.ai]
+        timeq = deque(sorted(actors, key=lambda entity: entity.time_to_act))
+        curr_entity = timeq.popleft()
+        next_turn = True
+
         # FOV calculation setup
         render_update = True
 
-        for entity in entities:
+        for entity in actors:
             if entity.ident == 0:
                 entity.fov_map = init_fov_entity0(game_map)
             else:
@@ -169,17 +178,12 @@ def main():
             recompute_fov(game_map, entity, fov_radius, fov_light_walls,
                           fov_algorithm)
 
-        # set up time system
-        timeq = deque(sorted(entities, key=lambda entity: entity.time_to_act))
-        curr_entity = timeq.popleft()
-        next_turn = True
-
         # main game loop
         while True:
 
             # refresh graphics
             for entity in entities:
-                if entity.fov_recompute:
+                if entity.fov_map and entity.fov_recompute:
                     render_update = True
                     recompute_fov(game_map, entity, fov_radius,
                                   fov_light_walls, fov_algorithm)
