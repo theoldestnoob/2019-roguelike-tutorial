@@ -18,7 +18,10 @@ from map_objects.map_graph import MapGraph
 from entity import Entity
 from components.fighter import Fighter
 from components.ai import BasicMonster
+from components.inventory import Inventory
 from render_functions import RenderOrder
+from components.item import Item
+from item_functions import heal
 
 
 class GameMap:
@@ -52,7 +55,7 @@ class GameMap:
         return False
 
     def make_map(self, player, entities, *args, max_monsters_per_room=0,
-                 **kwargs):
+                 max_items_per_room=0, **kwargs):
         '''Make a big empty map with a wall around the edge. Expected to be
         overloaded by any child classes.
         '''
@@ -62,7 +65,8 @@ class GameMap:
         self.create_room(room)
         self.rooms.append(room)
         self.place_player_vip(player, entities[1])
-        self.place_entities(room, entities, max_monsters_per_room)
+        self.place_entities(room, entities, max_monsters_per_room,
+                            max_items_per_room)
 
     def make_graph(self):
         '''Generate graph data about the map and store it in self.graph.'''
@@ -171,9 +175,11 @@ class GameMap:
         vip.x = x + 1
         vip.y = y
 
-    def place_entities(self, room, entities, max_monsters_per_room):
+    def place_entities(self, room, entities, max_monsters_per_room,
+                       max_items_per_room):
         '''Place entities randomly into a room on the map.'''
         number_of_monsters = randint(0, max_monsters_per_room)
+        number_of_items = randint(0, max_items_per_room)
 
         for i in range(number_of_monsters):
             x, y = choice(room.coords)
@@ -181,24 +187,35 @@ class GameMap:
                 if randint(0, 100) < 80:
                     fighter_component = Fighter(hp=10, defense=0, power=3)
                     ai_component = BasicMonster()
+                    inv_component = Inventory(5)
                     m_soul = randint(1, 80)
                     monster = Entity(len(entities), x, y, 'o',
                                      tcod.desaturated_green, "Orc",
                                      blocks=True, soul=m_soul,
                                      fighter=fighter_component,
-                                     ai=ai_component,
+                                     ai=ai_component, inventory=inv_component,
                                      render_order=RenderOrder.ACTOR)
                 else:
                     fighter_component = Fighter(hp=16, defense=1, power=4)
                     ai_component = BasicMonster()
+                    inv_component = Inventory(10)
                     m_soul = randint(60, 120)
                     monster = Entity(len(entities), x, y, 'T',
                                      tcod.darker_green, "Troll", blocks=True,
                                      soul=m_soul, fighter=fighter_component,
-                                     ai=ai_component,
+                                     ai=ai_component, inventory=inv_component,
                                      render_order=RenderOrder.ACTOR)
 
                 entities.append(monster)
+
+        for i in range(number_of_items):
+            x, y = choice(room.coords)
+            if not any([e for e in entities if e.x == x and e.y == y]):
+                item_component = Item(use_function=heal, amount=4)
+                item = Entity(len(entities), x, y, '!', tcod.violet,
+                              "Healing Potion", render_order=RenderOrder.ITEM,
+                              item=item_component)
+                entities.append(item)
 
     def game_map_to_walkable_array(self):
         '''Return a multidimensional array of bools describing map walkability.

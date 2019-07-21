@@ -9,10 +9,11 @@ import tcod
 
 from entity import get_blocking_entities_at_location
 from game_messages import Message
+from game_states import GameStates
 
 
 def parse_input(in_handle, user_in, curr_entity, entities, game_map,
-                mouse_x, mouse_y):
+                mouse_x, mouse_y, game_state, prev_state):
     # set up stuff
     actions = []
     mouse_x = mouse_x
@@ -35,6 +36,10 @@ def parse_input(in_handle, user_in, curr_entity, entities, game_map,
     mouse_motion = user_in.get("mousemotion")
     msg_up = user_in.get("msg_up")
     msg_down = user_in.get("msg_down")
+    pickup = user_in.get("pickup")
+    show_inventory = user_in.get("show_inventory")
+    drop_inventory = user_in.get("drop_inventory")
+    inventory_index = user_in.get("inventory_index")
 
     # put together actions based on user input
     if move:
@@ -98,9 +103,30 @@ def parse_input(in_handle, user_in, curr_entity, entities, game_map,
             else:
                 actions.append({"unpossess": (dest_x, dest_y)})
 
+    if (inventory_index is not None
+            and game_state == GameStates.SHOW_INVENTORY
+            and prev_state != GameStates.FAIL_STATE):
+        if inventory_index < len(curr_entity.inventory.items):
+            item = curr_entity.inventory.items[inventory_index]
+            actions.append({"use_item": item})
+
+    if (inventory_index is not None
+            and game_state == GameStates.DROP_INVENTORY
+            and prev_state != GameStates.FAIL_STATE):
+        if inventory_index < len(curr_entity.inventory.items):
+            item = curr_entity.inventory.items[inventory_index]
+            actions.append({"drop_item": item})
+
+    if curr_entity.ident != 0 and show_inventory:
+        actions.append(user_in)
+
+    if curr_entity.ident != 0 and drop_inventory:
+        actions.append(user_in)
+
     # TODO: I don't like having to pass actions through like this
     if (want_exit or fullscreen or omnivis or switch_char or map_gen
-            or graph_gen or test or msg_up or msg_down):
+            or graph_gen or test or msg_up or msg_down or pickup
+            or inventory_index is not None):
         actions.append(user_in)
 
     if ((show_hyperedges or show_edges or show_vertices)

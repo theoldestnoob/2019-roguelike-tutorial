@@ -17,6 +17,7 @@ from components.fighter import Fighter
 from components.ai import IdleMonster
 from game_messages import Message
 from death_functions import kill_entity
+from game_states import GameStates
 
 
 # TODO: man I have to pass a lot of stuff in and out of these guys
@@ -28,6 +29,7 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
     controlled_entity = controlled_entity
     render_update = False
 
+    # TODO: rewrite to use object features: while len(action) > 0: action = action.popleft()
     for action in actions:
         # turn actions
         message = action.get("message")
@@ -37,6 +39,11 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
         wait = action.get("wait")
         possess = action.get("possess")
         unpossess = action.get("unpossess")
+        pickup = action.get("pickup")
+        item_added = action.get("item_added")
+        use_item = action.get("use_item")
+        drop_item = action.get("drop_item")
+        item_dropped = action.get("item_dropped")
         dead = action.get("dead")
 
         if message:  # {"message": message_string}
@@ -91,6 +98,42 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
             controlled_entity.y = dest_y
             controlled_entity.fov_recompute = True
 
+        if pickup:
+            next_turn = True
+            render_update = True
+            for entity in entities:
+                if (entity.item
+                        and entity.x == controlled_entity.x
+                        and entity.y == controlled_entity.y):
+                    results = controlled_entity.inventory.add_item(entity)
+                    actions.extend(results)
+                    break
+            else:
+                msg_str = "There is nothing here to pick up."
+                message_log.add_message(Message(msg_str, tcod.yellow))
+
+        if item_added:
+            entities.remove(item_added)
+
+        if use_item:
+            render_update = True
+            use_results = controlled_entity.inventory.use(use_item)
+            if any([u_r for u_r in use_results if u_r.get("consumed")]):
+                action_cost = 50
+                next_turn = True
+            actions.extend(use_results)
+
+        if drop_item:
+            render_update = True
+            drop_results = controlled_entity.inventory.drop(drop_item)
+            if any([d_r for d_r in drop_results if d_r.get("item_dropped")]):
+                action_cost = 50
+                next_turn = True
+            actions.extend(drop_results)
+
+        if item_dropped:
+            entities.append(item_dropped)
+
         if dead:  # {"dead": entity}
             render_update = True
             if dead == controlled_entity:
@@ -111,7 +154,7 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
                           screen_width, screen_height, colors,
                           timeq, bar_width, panel_ui_width, panel_ui_height,
                           panel_ui_y, panel_map_width, panel_map_height,
-                          mouse_x, mouse_y, debug_f):
+                          mouse_x, mouse_y, game_state, prev_state, debug_f):
     next_turn = False
     curr_entity = curr_entity
     controlled_entity = controlled_entity
@@ -130,6 +173,8 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
         mousemotion = action.get("mousemotion")
         msg_up = action.get("msg_up")
         msg_down = action.get("msg_down")
+        show_inventory = action.get("show_inventory")
+        drop_inventory = action.get("drop_inventory")
 
         # debug actions
         omnivis = action.get("omnivis")
@@ -142,10 +187,17 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
         test = action.get("test")
 
         if want_exit:  # {"exit": True}
-            want_exit = True
+            if game_state in (GameStates.SHOW_INVENTORY,
+                              GameStates.DROP_INVENTORY):
+                game_state = prev_state
+                want_exit = False
+                render_update = True
+            else:
+                want_exit = True
 
         if fullscreen:  # {"fullscreen": True}
             next_turn = False
+            render_update = True
             tcod.console_set_fullscreen(not tcod.console_is_fullscreen())
 
         # TODO: I'm not super happy about how this works
@@ -163,6 +215,18 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
             if message_log.bottom > 0:
                 message_log.scroll(-1)
                 render_update = True
+
+        if show_inventory:
+            render_update = True
+            next_turn = False
+            prev_state = game_state
+            game_state = GameStates.SHOW_INVENTORY
+
+        if drop_inventory:
+            render_update = True
+            next_turn = False
+            prev_state = game_state
+            game_state = GameStates.DROP_INVENTORY
 
         if omnivis:  # {"omnivis": True}
             next_turn = False
@@ -203,16 +267,20 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
             entities = [player, vip]
             controlled_entity = player
             game_map.make_map(player, entities, **mapset)
-            for entity in entities:
+            # set up time system
+            actors = [e for e in entities if e.ai]
+            timeq = deque(sorted(actors, key=lambda e: e.time_to_act))
+            curr_entity = timeq.popleft()
+            next_turn = True
+            # FOV calculation setup
+            render_update = True
+            for entity in actors:
                 if entity.ident == 0:
                     entity.fov_map = init_fov_entity0(game_map)
                 else:
                     entity.fov_map = initialize_fov(game_map)
-                recompute_fov(game_map, entity, fov_radius,
-                              fov_light_walls, fov_algorithm)
-                print(f"{entity.name} AI: {entity.ai}")
-            timeq = deque(sorted(entities, key=lambda entity: entity.speed))
-            curr_entity = timeq.popleft()
+                recompute_fov(game_map, entity, fov_radius, fov_light_walls,
+                              fov_algorithm)
 
         if graph_gen:  # {"graph_gen": True}
             game_map.make_graph()
@@ -296,4 +364,5 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
             pass
 
     return (next_turn, curr_entity, controlled_entity, entities, player, vip,
-            timeq, omnivision, render_update, want_exit)
+            timeq, omnivision, render_update, want_exit, game_state,
+            prev_state)

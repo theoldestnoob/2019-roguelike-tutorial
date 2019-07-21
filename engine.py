@@ -22,6 +22,7 @@ from components.fighter import Fighter
 from components.ai import IdleMonster
 from action_handlers import handle_entity_actions, handle_player_actions
 from game_messages import MessageLog, Message
+from components.inventory import Inventory
 
 
 def main():
@@ -46,7 +47,7 @@ def main():
     # map_width = 80
     # map_height = 43
     map_width = 140
-    map_height = 120
+    map_height = 140
 
     fov_algorithm = 0
     fov_light_walls = True
@@ -68,7 +69,8 @@ def main():
             "unused": True,
             "bsp_range": 0.15,
             "bsp_depth": 4,
-            "max_monsters_per_room": 3
+            "max_monsters_per_room": 3,
+            "max_items_per_room": 2
     }
 
     mapset_bspcirc = {
@@ -85,7 +87,8 @@ def main():
             "unused": True,
             "bsp_range": 0.25,
             "bsp_depth": 4,
-            "max_monsters_per_room": 3
+            "max_monsters_per_room": 3,
+            "max_items_per_room": 2
     }
 
     mapset_bsprand = {
@@ -102,7 +105,8 @@ def main():
             "unused": True,
             "bsp_range": 0.4,
             "bsp_depth": 4,
-            "max_monsters_per_room": 3
+            "max_monsters_per_room": 3,
+            "max_items_per_room": 26
     }
 
     mapset = mapset_bsprand
@@ -119,15 +123,17 @@ def main():
     vip_fighter = Fighter(hp=30, defense=2, power=5)
     player_ai = IdleMonster()
     vip_ai = IdleMonster()
+    vip_inventory = Inventory(26)
     player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False, soul=1,
                     fighter=player_fighter, ai=player_ai,
                     render_order=RenderOrder.ACTOR, speed=25)
     vip = Entity(1, 0, 0, "&", tcod.yellow, "VIP", blocks=True, soul=10,
-                 fighter=vip_fighter, ai=vip_ai,
+                 fighter=vip_fighter, ai=vip_ai, inventory=vip_inventory,
                  render_order=RenderOrder.ACTOR)
     entities = [player, vip]
     controlled_entity = player
-    game_state = GameStates.PLAYERS_TURN
+    game_state = GameStates.NORMAL_TURN
+    prev_state = GameStates.NORMAL_TURN
 
     tcod.console_set_custom_font(
             "arial10x10.png",
@@ -158,10 +164,16 @@ def main():
         game_map = GameMapBSP(map_width, map_height, seed, con=con, debug=debug_f)
         game_map.make_map(player, entities, **mapset)
 
+        # set up time system
+        actors = [e for e in entities if e.ai]
+        timeq = deque(sorted(actors, key=lambda entity: entity.time_to_act))
+        curr_entity = timeq.popleft()
+        next_turn = True
+
         # FOV calculation setup
         render_update = True
 
-        for entity in entities:
+        for entity in actors:
             if entity.ident == 0:
                 entity.fov_map = init_fov_entity0(game_map)
             else:
@@ -169,17 +181,12 @@ def main():
             recompute_fov(game_map, entity, fov_radius, fov_light_walls,
                           fov_algorithm)
 
-        # set up time system
-        timeq = deque(sorted(entities, key=lambda entity: entity.time_to_act))
-        curr_entity = timeq.popleft()
-        next_turn = True
-
         # main game loop
         while True:
 
             # refresh graphics
             for entity in entities:
-                if entity.fov_recompute:
+                if entity.fov_map and entity.fov_recompute:
                     render_update = True
                     recompute_fov(game_map, entity, fov_radius,
                                   fov_light_walls, fov_algorithm)
@@ -193,7 +200,7 @@ def main():
                            panel_ui_width, panel_ui_height, panel_ui_y,
                            panel_map_width, panel_map_height,
                            colors, message_log,
-                           mouse_x, mouse_y, omnivision)
+                           mouse_x, mouse_y, omnivision, game_state)
                 tcod.console_flush()
                 render_update = False
 
@@ -206,6 +213,7 @@ def main():
                 # get the actions the player wants to take
                 next_turn = False
                 # get user input
+                in_handle.set_game_state(game_state)
                 for event in tcod.event.get():
                     in_handle.dispatch(event)
 
@@ -215,7 +223,8 @@ def main():
                     print(user_in)
 
                 input_r = parse_input(in_handle, user_in, curr_entity,
-                                      entities, game_map, mouse_x, mouse_y)
+                                      entities, game_map, mouse_x, mouse_y,
+                                      game_state, prev_state)
                 actions, mouse_x, mouse_y = input_r
 
                 # process any player-only actions
@@ -233,9 +242,11 @@ def main():
                                               panel_map_width,
                                               panel_map_height,
                                               mouse_x, mouse_y,
+                                              game_state, prev_state,
                                               debug_f)
                 (next_turn, curr_entity, controlled_entity, entities, player,
-                 vip, timeq, omnivision, render_update_p, want_exit) = act_r
+                 vip, timeq, omnivision, render_update_p, want_exit,
+                 game_state, prev_state) = act_r
 
             # if it's not the controlled entity's turn
             elif curr_entity.ai:
