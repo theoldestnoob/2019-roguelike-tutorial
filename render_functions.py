@@ -101,11 +101,10 @@ def render_all(con, panel_ui, panel_map, entities, game_map, curr_entity,
         panel_ui.print(1, 0, namelist, fg=tcod.light_gray, alignment=tcod.LEFT)
 
     # blit UI and map to root console
-    # TODO: change to use panel_ui.blit(con, ...) and map_ui.blit(con, ...)
-    tcod.console_blit(panel_ui, 0, 0, panel_ui_width, panel_ui_height, 0, 0,
-                      panel_ui_y)
-    tcod.console_blit(panel_map, 0, 0, panel_map_width, panel_map_height, 0,
-                      0, 0)
+    panel_ui.blit(con, 0, panel_ui_y,
+                  width=panel_ui.width, height=panel_ui.height)
+    panel_map.blit(con, 0, 0, width=panel_map.width, height=panel_map.height)
+    # display inventory menu if we're interacting with it
     if game_state in (GameStates.SHOW_INVENTORY, GameStates.DROP_INVENTORY):
         if game_state == GameStates.SHOW_INVENTORY:
             m_str = "Press the key next to an item to use it, or Esc to cancel"
