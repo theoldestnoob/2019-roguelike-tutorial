@@ -38,6 +38,7 @@ def parse_input(in_handle, user_in, curr_entity, entities, game_map,
     msg_down = user_in.get("msg_down")
     pickup = user_in.get("pickup")
     show_inventory = user_in.get("show_inventory")
+    drop_inventory = user_in.get("drop_inventory")
     inventory_index = user_in.get("inventory_index")
 
     # put together actions based on user input
@@ -109,7 +110,17 @@ def parse_input(in_handle, user_in, curr_entity, entities, game_map,
             item = curr_entity.inventory.items[inventory_index]
             actions.append({"use_item": item})
 
+    if (inventory_index is not None
+            and game_state == GameStates.DROP_INVENTORY
+            and prev_state != GameStates.FAIL_STATE):
+        if inventory_index < len(curr_entity.inventory.items):
+            item = curr_entity.inventory.items[inventory_index]
+            actions.append({"drop_item": item})
+
     if curr_entity.ident != 0 and show_inventory:
+        actions.append(user_in)
+
+    if curr_entity.ident != 0 and drop_inventory:
         actions.append(user_in)
 
     # TODO: I don't like having to pass actions through like this

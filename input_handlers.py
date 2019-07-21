@@ -25,7 +25,8 @@ class InputHandler(tcod.event.EventDispatch):
             keymap_nomod = normal_keymap_nomod
             keymap_lalt = normal_keymap_lalt
 
-        elif self.state == GameStates.SHOW_INVENTORY:
+        elif self.state in (GameStates.SHOW_INVENTORY,
+                            GameStates.DROP_INVENTORY):
             keymap_nomod = inv_show_keymap_nomod
             keymap_lalt = inv_show_keymap_lalt
             inv_index = event.sym - ord("a")
@@ -87,6 +88,7 @@ normal_keymap_nomod = {
         tcod.event.K_p: {"possess": True},
         tcod.event.K_g: {"pickup": True},
         tcod.event.K_i: {"show_inventory": True},
+        tcod.event.K_d: {"drop_inventory": True},
         tcod.event.K_q: {"msg_up": True},
         tcod.event.K_a: {"msg_down": True},
         tcod.event.K_ESCAPE: {"exit": True},

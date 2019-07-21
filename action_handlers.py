@@ -42,6 +42,8 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
         pickup = action.get("pickup")
         item_added = action.get("item_added")
         use_item = action.get("use_item")
+        drop_item = action.get("drop_item")
+        item_dropped = action.get("item_dropped")
         dead = action.get("dead")
 
         if message:  # {"message": message_string}
@@ -121,6 +123,17 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
                 next_turn = True
             actions.extend(use_results)
 
+        if drop_item:
+            render_update = True
+            drop_results = controlled_entity.inventory.drop(drop_item)
+            if any([d_r for d_r in drop_results if d_r.get("item_dropped")]):
+                action_cost = 50
+                next_turn = True
+            actions.extend(drop_results)
+
+        if item_dropped:
+            entities.append(item_dropped)
+
         if dead:  # {"dead": entity}
             render_update = True
             if dead == controlled_entity:
@@ -161,6 +174,7 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
         msg_up = action.get("msg_up")
         msg_down = action.get("msg_down")
         show_inventory = action.get("show_inventory")
+        drop_inventory = action.get("drop_inventory")
 
         # debug actions
         omnivis = action.get("omnivis")
@@ -173,7 +187,8 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
         test = action.get("test")
 
         if want_exit:  # {"exit": True}
-            if game_state == GameStates.SHOW_INVENTORY:
+            if game_state in (GameStates.SHOW_INVENTORY,
+                              GameStates.DROP_INVENTORY):
                 game_state = prev_state
                 want_exit = False
                 render_update = True
@@ -206,6 +221,12 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
             next_turn = False
             prev_state = game_state
             game_state = GameStates.SHOW_INVENTORY
+
+        if drop_inventory:
+            render_update = True
+            next_turn = False
+            prev_state = game_state
+            game_state = GameStates.DROP_INVENTORY
 
         if omnivis:  # {"omnivis": True}
             next_turn = False

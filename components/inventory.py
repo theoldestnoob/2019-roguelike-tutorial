@@ -56,3 +56,16 @@ class Inventory:
             results.extend(use_results)
 
         return results
+
+    def drop(self, item):
+        results = []
+
+        item.x = self.owner.x
+        item.y = self.owner.y
+
+        self.remove_item(item)
+
+        msg = Message(f"You dropped the {item.name}", tcod.yellow)
+        results.append({"item_dropped": item, "message": msg})
+
+        return results
