@@ -8,6 +8,9 @@ Created on Tue Jun 25 19:35:17 2019
 import tcod
 from enum import Enum
 
+from game_states import GameStates
+from menus import inventory_menu
+
 
 class RenderOrder(Enum):
     CORPSE = 1
@@ -43,7 +46,7 @@ def render_all(con, panel_ui, panel_map, entities, game_map, curr_entity,
                screen_width, screen_height,
                bar_width, panel_ui_width, panel_ui_height, panel_ui_y,
                panel_map_width, panel_map_height,
-               colors, msg_log, mouse_x, mouse_y, omnivision):
+               colors, msg_log, mouse_x, mouse_y, omnivision, game_state):
     # sort our entities so we render them in the right order
     entities_sorted = sorted(entities, key=lambda x: x.render_order.value)
 
@@ -96,7 +99,10 @@ def render_all(con, panel_ui, panel_map, entities, game_map, curr_entity,
                       panel_ui_y)
     tcod.console_blit(panel_map, 0, 0, panel_map_width, panel_map_height, 0,
                       0, 0)
-    # tcod.console_blit(con, 0, 0, screen_width, screen_height, 0, 0, 0)
+    if game_state == GameStates.SHOW_INVENTORY:
+        m_str = "Press the key next to an item to use it, or Esc to cancel.\n"
+        inventory_menu(con, m_str, curr_entity.inventory, 50,
+                       screen_width, screen_height)
 
     # clear map and ui panels for next time
     panel_map.clear()

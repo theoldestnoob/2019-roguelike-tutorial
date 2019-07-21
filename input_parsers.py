@@ -36,6 +36,7 @@ def parse_input(in_handle, user_in, curr_entity, entities, game_map,
     msg_up = user_in.get("msg_up")
     msg_down = user_in.get("msg_down")
     pickup = user_in.get("pickup")
+    show_inventory = user_in.get("show_inventory")
 
     # put together actions based on user input
     if move:
@@ -98,6 +99,9 @@ def parse_input(in_handle, user_in, curr_entity, entities, game_map,
                                         tcod.light_gray)})
             else:
                 actions.append({"unpossess": (dest_x, dest_y)})
+
+    if curr_entity.ident != 0 and show_inventory:
+        actions.append(user_in)
 
     # TODO: I don't like having to pass actions through like this
     if (want_exit or fullscreen or omnivis or switch_char or map_gen

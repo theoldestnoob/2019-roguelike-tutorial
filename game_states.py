@@ -9,6 +9,6 @@ from enum import Enum
 
 
 class GameStates(Enum):
-    PLAYERS_TURN = 1
-    ENEMY_TURN = 2
+    NORMAL_TURN = 1
     FAIL_STATE = 3
+    SHOW_INVENTORY = 4

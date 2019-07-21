@@ -17,6 +17,7 @@ from components.fighter import Fighter
 from components.ai import IdleMonster
 from game_messages import Message
 from death_functions import kill_entity
+from game_states import GameStates
 
 
 # TODO: man I have to pass a lot of stuff in and out of these guys
@@ -131,7 +132,7 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
                           screen_width, screen_height, colors,
                           timeq, bar_width, panel_ui_width, panel_ui_height,
                           panel_ui_y, panel_map_width, panel_map_height,
-                          mouse_x, mouse_y, debug_f):
+                          mouse_x, mouse_y, game_state, prev_state, debug_f):
     next_turn = False
     curr_entity = curr_entity
     controlled_entity = controlled_entity
@@ -150,6 +151,7 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
         mousemotion = action.get("mousemotion")
         msg_up = action.get("msg_up")
         msg_down = action.get("msg_down")
+        show_inventory = action.get("show_inventory")
 
         # debug actions
         omnivis = action.get("omnivis")
@@ -162,10 +164,16 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
         test = action.get("test")
 
         if want_exit:  # {"exit": True}
-            want_exit = True
+            if game_state == GameStates.SHOW_INVENTORY:
+                game_state = prev_state
+                want_exit = False
+                render_update = True
+            else:
+                want_exit = True
 
         if fullscreen:  # {"fullscreen": True}
             next_turn = False
+            render_update = True
             tcod.console_set_fullscreen(not tcod.console_is_fullscreen())
 
         # TODO: I'm not super happy about how this works
@@ -183,6 +191,12 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
             if message_log.bottom > 0:
                 message_log.scroll(-1)
                 render_update = True
+
+        if show_inventory:
+            render_update = True
+            next_turn = False
+            prev_state = game_state
+            game_state = GameStates.SHOW_INVENTORY
 
         if omnivis:  # {"omnivis": True}
             next_turn = False
@@ -320,4 +334,5 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
             pass
 
     return (next_turn, curr_entity, controlled_entity, entities, player, vip,
-            timeq, omnivision, render_update, want_exit)
+            timeq, omnivision, render_update, want_exit, game_state,
+            prev_state)

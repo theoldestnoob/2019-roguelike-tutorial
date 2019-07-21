@@ -132,7 +132,8 @@ def main():
                  render_order=RenderOrder.ACTOR)
     entities = [player, vip]
     controlled_entity = player
-    game_state = GameStates.PLAYERS_TURN
+    game_state = GameStates.NORMAL_TURN
+    prev_state = GameStates.NORMAL_TURN
 
     tcod.console_set_custom_font(
             "arial10x10.png",
@@ -199,7 +200,7 @@ def main():
                            panel_ui_width, panel_ui_height, panel_ui_y,
                            panel_map_width, panel_map_height,
                            colors, message_log,
-                           mouse_x, mouse_y, omnivision)
+                           mouse_x, mouse_y, omnivision, game_state)
                 tcod.console_flush()
                 render_update = False
 
@@ -212,6 +213,7 @@ def main():
                 # get the actions the player wants to take
                 next_turn = False
                 # get user input
+                in_handle.set_game_state(game_state)
                 for event in tcod.event.get():
                     in_handle.dispatch(event)
 
@@ -239,9 +241,11 @@ def main():
                                               panel_map_width,
                                               panel_map_height,
                                               mouse_x, mouse_y,
+                                              game_state, prev_state,
                                               debug_f)
                 (next_turn, curr_entity, controlled_entity, entities, player,
-                 vip, timeq, omnivision, render_update_p, want_exit) = act_r
+                 vip, timeq, omnivision, render_update_p, want_exit,
+                 game_state, prev_state) = act_r
 
             # if it's not the controlled entity's turn
             elif curr_entity.ai:
