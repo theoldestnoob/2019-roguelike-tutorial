@@ -106,7 +106,7 @@ def main():
             "bsp_range": 0.4,
             "bsp_depth": 4,
             "max_monsters_per_room": 3,
-            "max_items_per_room": 2
+            "max_items_per_room": 26
     }
 
     mapset = mapset_bsprand

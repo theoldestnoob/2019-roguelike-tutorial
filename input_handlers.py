@@ -63,6 +63,7 @@ in_keymap_nomod = {
         tcod.event.K_KP_5: {"wait": True},
         tcod.event.K_PERIOD: {"wait": True},
         tcod.event.K_p: {"possess": True},
+        tcod.event.K_g: {"pickup": True},
         tcod.event.K_q: {"msg_up": True},
         tcod.event.K_a: {"msg_down": True},
         tcod.event.K_ESCAPE: {"exit": True},

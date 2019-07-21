@@ -38,6 +38,8 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
         wait = action.get("wait")
         possess = action.get("possess")
         unpossess = action.get("unpossess")
+        pickup = action.get("pickup")
+        item_added = action.get("item_added")
         dead = action.get("dead")
 
         if message:  # {"message": message_string}
@@ -91,6 +93,23 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
             controlled_entity.x = dest_x
             controlled_entity.y = dest_y
             controlled_entity.fov_recompute = True
+
+        if pickup:
+            next_turn = True
+            render_update = True
+            for entity in entities:
+                if (entity.item
+                        and entity.x == controlled_entity.x
+                        and entity.y == controlled_entity.y):
+                    results = controlled_entity.inventory.add_item(entity)
+                    actions.extend(results)
+                    break
+            else:
+                msg_str = "There is nothing here to pick up."
+                message_log.add_message(Message(msg_str, tcod.yellow))
+
+        if item_added:
+            entities.remove(item_added)
 
         if dead:  # {"dead": entity}
             render_update = True
