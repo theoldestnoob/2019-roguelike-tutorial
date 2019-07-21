@@ -9,10 +9,11 @@ import tcod
 
 from entity import get_blocking_entities_at_location
 from game_messages import Message
+from game_states import GameStates
 
 
 def parse_input(in_handle, user_in, curr_entity, entities, game_map,
-                mouse_x, mouse_y):
+                mouse_x, mouse_y, game_state, prev_state):
     # set up stuff
     actions = []
     mouse_x = mouse_x
@@ -100,6 +101,13 @@ def parse_input(in_handle, user_in, curr_entity, entities, game_map,
                                         tcod.light_gray)})
             else:
                 actions.append({"unpossess": (dest_x, dest_y)})
+
+    if (inventory_index is not None
+            and game_state == GameStates.SHOW_INVENTORY
+            and prev_state != GameStates.FAIL_STATE):
+        if inventory_index < len(curr_entity.inventory.items):
+            item = curr_entity.inventory.items[inventory_index]
+            actions.append({"use_item": item})
 
     if curr_entity.ident != 0 and show_inventory:
         actions.append(user_in)

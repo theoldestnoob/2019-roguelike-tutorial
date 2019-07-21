@@ -223,7 +223,8 @@ def main():
                     print(user_in)
 
                 input_r = parse_input(in_handle, user_in, curr_entity,
-                                      entities, game_map, mouse_x, mouse_y)
+                                      entities, game_map, mouse_x, mouse_y,
+                                      game_state, prev_state)
                 actions, mouse_x, mouse_y = input_r
 
                 # process any player-only actions

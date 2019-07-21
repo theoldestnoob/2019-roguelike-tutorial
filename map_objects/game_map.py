@@ -20,6 +20,7 @@ from components.fighter import Fighter
 from components.ai import BasicMonster
 from render_functions import RenderOrder
 from components.item import Item
+from item_functions import heal
 
 
 class GameMap:
@@ -207,7 +208,7 @@ class GameMap:
         for i in range(number_of_items):
             x, y = choice(room.coords)
             if not any([e for e in entities if e.x == x and e.y == y]):
-                item_component = Item()
+                item_component = Item(use_function=heal, amount=4)
                 item = Entity(len(entities), x, y, '!', tcod.violet,
                               "Healing Potion", render_order=RenderOrder.ITEM,
                               item=item_component)

@@ -33,3 +33,26 @@ class Inventory:
             self.items.append(item)
 
         return results
+
+    def remove_item(self, item):
+        self.items.remove(item)
+
+    def use(self, item_entity, **kwargs):
+        results = []
+
+        item_component = item_entity.item
+
+        if item_component.use_function is None:
+            msg = Message("The {item_entity.name} cannot be used", tcod.yellow)
+            results.append({"message": msg})
+        else:
+            kwargs = {**item_component.function_kwargs, **kwargs}
+            use_results = item_component.use_function(self.owner, **kwargs)
+
+            for use_result in use_results:
+                if use_result.get("consumed"):
+                    self.remove_item(item_entity)
+
+            results.extend(use_results)
+
+        return results

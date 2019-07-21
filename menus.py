@@ -15,13 +15,12 @@ def menu(con, header, options, width, screen_width, screen_height):
     # total height for the header (after auto-wrap) and one line per option
     header_height = tcod.console.get_height_rect(width - 2, header)
     height = len(options) + header_height + 2
-    print(f"header: {header_height}, height: {height}")
 
     # console for menu's window
     window = tcod.console.Console(width, height)
 
     # print header and frame
-    #window.draw_rect(0, 0, width, height, 0, fg=tcod.white, bg=tcod.black)
+    # window.draw_rect(0, 0, width, height, 0, fg=tcod.white, bg=tcod.black)
     window.draw_frame(0, header_height, width, height - header_height,
                       fg=tcod.white, bg=tcod.black)
     window.print_box(1, 0, width - 2, header_height, header,

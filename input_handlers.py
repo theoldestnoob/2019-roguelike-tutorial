@@ -116,10 +116,12 @@ inv_show_keymap_lalt = {
 fail_keymap_nomod = {
         tcod.event.K_q: {"msg_up": True},
         tcod.event.K_a: {"msg_down": True},
+        tcod.event.K_i: {"show_inventory": True},
         tcod.event.K_ESCAPE: {"exit": True}
         }
 
 fail_keymap_lalt = {
         tcod.event.K_v: {"omnivis": True},
+        tcod.event.K_c: {"switch_char": True},
         tcod.event.K_RETURN: {"fullscreen": True}
         }

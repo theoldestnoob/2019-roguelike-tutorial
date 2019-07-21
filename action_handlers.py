@@ -41,6 +41,7 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
         unpossess = action.get("unpossess")
         pickup = action.get("pickup")
         item_added = action.get("item_added")
+        use_item = action.get("use_item")
         dead = action.get("dead")
 
         if message:  # {"message": message_string}
@@ -112,6 +113,14 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
         if item_added:
             entities.remove(item_added)
 
+        if use_item:
+            render_update = True
+            use_results = controlled_entity.inventory.use(use_item)
+            if any([u_r for u_r in use_results if u_r.get("consumed")]):
+                action_cost = 50
+                next_turn = True
+            actions.extend(use_results)
+
         if dead:  # {"dead": entity}
             render_update = True
             if dead == controlled_entity:
@@ -152,7 +161,6 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
         msg_up = action.get("msg_up")
         msg_down = action.get("msg_down")
         show_inventory = action.get("show_inventory")
-        inventory_index = action.get("inventory_index")
 
         # debug actions
         omnivis = action.get("omnivis")
@@ -198,13 +206,6 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
             next_turn = False
             prev_state = game_state
             game_state = GameStates.SHOW_INVENTORY
-
-        if (inventory_index is not None
-                and game_state == GameStates.SHOW_INVENTORY
-                and prev_state != GameStates.FAIL_STATE):
-            if inventory_index < len(controlled_entity.inventory.items):
-                item = controlled_entity.inventory.items[inventory_index]
-                print(f"item: {item}")
 
         if omnivis:  # {"omnivis": True}
             next_turn = False
