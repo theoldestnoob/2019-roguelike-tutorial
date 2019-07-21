@@ -18,6 +18,7 @@ from map_objects.map_graph import MapGraph
 from entity import Entity
 from components.fighter import Fighter
 from components.ai import BasicMonster
+from components.inventory import Inventory
 from render_functions import RenderOrder
 from components.item import Item
 from item_functions import heal
@@ -186,21 +187,23 @@ class GameMap:
                 if randint(0, 100) < 80:
                     fighter_component = Fighter(hp=10, defense=0, power=3)
                     ai_component = BasicMonster()
+                    inv_component = Inventory(5)
                     m_soul = randint(1, 80)
                     monster = Entity(len(entities), x, y, 'o',
                                      tcod.desaturated_green, "Orc",
                                      blocks=True, soul=m_soul,
                                      fighter=fighter_component,
-                                     ai=ai_component,
+                                     ai=ai_component, inventory=inv_component,
                                      render_order=RenderOrder.ACTOR)
                 else:
                     fighter_component = Fighter(hp=16, defense=1, power=4)
                     ai_component = BasicMonster()
+                    inv_component = Inventory(10)
                     m_soul = randint(60, 120)
                     monster = Entity(len(entities), x, y, 'T',
                                      tcod.darker_green, "Troll", blocks=True,
                                      soul=m_soul, fighter=fighter_component,
-                                     ai=ai_component,
+                                     ai=ai_component, inventory=inv_component,
                                      render_order=RenderOrder.ACTOR)
 
                 entities.append(monster)
