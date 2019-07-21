@@ -152,6 +152,7 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
         msg_up = action.get("msg_up")
         msg_down = action.get("msg_down")
         show_inventory = action.get("show_inventory")
+        inventory_index = action.get("inventory_index")
 
         # debug actions
         omnivis = action.get("omnivis")
@@ -198,6 +199,13 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
             prev_state = game_state
             game_state = GameStates.SHOW_INVENTORY
 
+        if (inventory_index is not None
+                and game_state == GameStates.SHOW_INVENTORY
+                and prev_state != GameStates.FAIL_STATE):
+            if inventory_index < len(controlled_entity.inventory.items):
+                item = controlled_entity.inventory.items[inventory_index]
+                print(f"item: {item}")
+
         if omnivis:  # {"omnivis": True}
             next_turn = False
             render_update = True
@@ -239,7 +247,7 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
             game_map.make_map(player, entities, **mapset)
             # set up time system
             actors = [e for e in entities if e.ai]
-            timeq = deque(sorted(actors, key=lambda entity: entity.time_to_act))
+            timeq = deque(sorted(actors, key=lambda e: e.time_to_act))
             curr_entity = timeq.popleft()
             next_turn = True
             # FOV calculation setup

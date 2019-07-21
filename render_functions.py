@@ -100,7 +100,7 @@ def render_all(con, panel_ui, panel_map, entities, game_map, curr_entity,
     tcod.console_blit(panel_map, 0, 0, panel_map_width, panel_map_height, 0,
                       0, 0)
     if game_state == GameStates.SHOW_INVENTORY:
-        m_str = "Press the key next to an item to use it, or Esc to cancel.\n"
+        m_str = "Press the key next to an item to use it, or Esc to cancel."
         inventory_menu(con, m_str, curr_entity.inventory, 50,
                        screen_width, screen_height)
 

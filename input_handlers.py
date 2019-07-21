@@ -28,6 +28,9 @@ class InputHandler(tcod.event.EventDispatch):
         elif self.state == GameStates.SHOW_INVENTORY:
             keymap_nomod = inv_show_keymap_nomod
             keymap_lalt = inv_show_keymap_lalt
+            inv_index = event.sym - ord("a")
+            if 0 <= inv_index < 26:
+                self._user_in_q.append({"inventory_index": inv_index})
 
         elif self.state == GameStates.FAIL_STATE:
             keymap_nomod = fail_keymap_nomod

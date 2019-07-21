@@ -13,21 +13,26 @@ def menu(con, header, options, width, screen_width, screen_height):
         raise ValueError("Cannot have a menu with more than 26 options.")
 
     # total height for the header (after auto-wrap) and one line per option
-    header_height = tcod.console.get_height_rect(width, header)
-    height = len(options) + header_height - 1
+    header_height = tcod.console.get_height_rect(width - 2, header)
+    height = len(options) + header_height + 2
     print(f"header: {header_height}, height: {height}")
 
     # console for menu's window
     window = tcod.console.Console(width, height)
 
     # print header and frame
-    window.print_frame(0, 0, width, height, header)
+    #window.draw_rect(0, 0, width, height, 0, fg=tcod.white, bg=tcod.black)
+    window.draw_frame(0, header_height, width, height - header_height,
+                      fg=tcod.white, bg=tcod.black)
+    window.print_box(1, 0, width - 2, header_height, header,
+                     fg=tcod.white, bg=tcod.black)
 
     # print options in frame
-    y = header_height - 2
+    y = header_height + 1
     letter_index = ord("a")
     for option_text in options:
-        window.print(1, y, f"({chr(letter_index)}) {option_text}", tcod.white)
+        window.print(1, y, f"({chr(letter_index)}) {option_text}",
+                     fg=tcod.white, bg=tcod.black)
         y += 1
         letter_index += 1
 

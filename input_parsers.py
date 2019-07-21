@@ -37,6 +37,7 @@ def parse_input(in_handle, user_in, curr_entity, entities, game_map,
     msg_down = user_in.get("msg_down")
     pickup = user_in.get("pickup")
     show_inventory = user_in.get("show_inventory")
+    inventory_index = user_in.get("inventory_index")
 
     # put together actions based on user input
     if move:
@@ -105,7 +106,8 @@ def parse_input(in_handle, user_in, curr_entity, entities, game_map,
 
     # TODO: I don't like having to pass actions through like this
     if (want_exit or fullscreen or omnivis or switch_char or map_gen
-            or graph_gen or test or msg_up or msg_down or pickup):
+            or graph_gen or test or msg_up or msg_down or pickup
+            or inventory_index is not None):
         actions.append(user_in)
 
     if ((show_hyperedges or show_edges or show_vertices)
