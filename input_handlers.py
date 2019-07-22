@@ -37,6 +37,10 @@ class InputHandler(tcod.event.EventDispatch):
             keymap_nomod = fail_keymap_nomod
             keymap_lalt = fail_keymap_lalt
 
+        elif self.state == GameStates.TARGETING:
+            keymap_nomod = target_keymap_nomod
+            keymap_lalt = target_keymap_lalt
+
         # check and process any mapped modified keys
         if (event.mod & tcod.event.KMOD_LALT
                 and event.sym in keymap_lalt.keys()):
@@ -48,6 +52,14 @@ class InputHandler(tcod.event.EventDispatch):
     def ev_mousemotion(self, event):
         x, y = event.tile
         self._user_in_q.append({"mousemotion": (x, y)})
+
+    def ev_mousebuttondown(self, event):
+        if self.state == GameStates.TARGETING:
+            x, y = event.tile
+            if event.button == tcod.event.BUTTON_RIGHT:
+                self._user_in_q.append({"cancel_target": True})
+            elif event.button == tcod.event.BUTTON_LEFT:
+                self._user_in_q.append({"in_target": (x, y)})
 
     def get_user_input(self):
         if self._user_in_q:
@@ -112,6 +124,14 @@ inv_show_keymap_nomod = {
         }
 
 inv_show_keymap_lalt = {
+        tcod.event.K_RETURN: {"fullscreen": True}
+        }
+
+target_keymap_nomod = {
+        tcod.event.K_ESCAPE: {"cancel_target": True}
+        }
+
+target_keymap_lalt = {
         tcod.event.K_RETURN: {"fullscreen": True}
         }
 

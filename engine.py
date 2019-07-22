@@ -181,6 +181,9 @@ def main():
             recompute_fov(game_map, entity, fov_radius, fov_light_walls,
                           fov_algorithm)
 
+        # TODO: there has to be a better way to handle targeting than this
+        targeting_item = None
+
         # main game loop
         while True:
 
@@ -222,9 +225,9 @@ def main():
                 if debug_f and user_in:
                     print(user_in)
 
-                input_r = parse_input(in_handle, user_in, curr_entity,
+                input_r = parse_input(con, in_handle, user_in, curr_entity,
                                       entities, game_map, mouse_x, mouse_y,
-                                      game_state, prev_state)
+                                      game_state, prev_state, targeting_item)
                 actions, mouse_x, mouse_y = input_r
 
                 # process any player-only actions
@@ -259,9 +262,11 @@ def main():
             # process turn actions, modify game state, and get results
             act_r = handle_entity_actions(actions, in_handle, entities,
                                           game_map, con, message_log,
-                                          controlled_entity, debug_f)
+                                          controlled_entity, game_state,
+                                          prev_state, targeting_item, debug_f)
 
-            action_cost, next_turn, controlled_entity, render_update_e = act_r
+            (action_cost, next_turn, controlled_entity, render_update_e,
+             game_state, prev_state, targeting_item) = act_r
 
             render_update = render_update_p or render_update_e
 
