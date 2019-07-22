@@ -225,7 +225,8 @@ def main():
                 if debug_f and user_in:
                     print(user_in)
 
-                input_r = parse_input(con, in_handle, user_in, curr_entity,
+                input_r = parse_input(panel_map, in_handle, user_in,
+                                      curr_entity,
                                       entities, game_map, mouse_x, mouse_y,
                                       game_state, prev_state, targeting_item)
                 actions, mouse_x, mouse_y = input_r
