@@ -10,10 +10,11 @@ import tcod
 from entity import get_blocking_entities_at_location
 from game_messages import Message
 from game_states import GameStates
+from render_functions import get_map_offset, get_console_offset
 
 
-def parse_input(in_handle, user_in, curr_entity, entities, game_map,
-                mouse_x, mouse_y, game_state, prev_state):
+def parse_input(console, in_handle, user_in, curr_entity, entities, game_map,
+                mouse_x, mouse_y, game_state, prev_state, targeting_item):
     # set up stuff
     actions = []
     mouse_x = mouse_x
@@ -40,6 +41,8 @@ def parse_input(in_handle, user_in, curr_entity, entities, game_map,
     show_inventory = user_in.get("show_inventory")
     drop_inventory = user_in.get("drop_inventory")
     inventory_index = user_in.get("inventory_index")
+    in_target = user_in.get("in_target")
+    cancel_target = user_in.get("cancel_target")
 
     # put together actions based on user input
     if move:
@@ -123,10 +126,22 @@ def parse_input(in_handle, user_in, curr_entity, entities, game_map,
     if curr_entity.ident != 0 and drop_inventory:
         actions.append(user_in)
 
+    if in_target and game_state == GameStates.TARGETING:
+        x, y = in_target
+        map_x, map_y = get_map_offset(console, game_map, curr_entity)
+        con_x, con_y = get_console_offset(console, game_map)
+        x_off = map_x - con_x
+        y_off = map_y - con_y
+        x += x_off
+        y += y_off
+        targeting_item.item.target_x = x
+        targeting_item.item.target_y = y
+        actions.append({"use_item": targeting_item})
+
     # TODO: I don't like having to pass actions through like this
     if (want_exit or fullscreen or omnivis or switch_char or map_gen
             or graph_gen or test or msg_up or msg_down or pickup
-            or inventory_index is not None):
+            or inventory_index is not None or cancel_target):
         actions.append(user_in)
 
     if ((show_hyperedges or show_edges or show_vertices)

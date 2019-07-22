@@ -6,6 +6,13 @@ Created on Tue Jun 25 22:11:50 2019
 """
 
 
+class Coord:
+    '''Coordinate pair. Used as a hack for some pathfinding functions.'''
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+
 class Space:
     '''Collection of coordinates with some helpful methods that allow testing
     for intersection, adjacency, etc. Inherited by all other geometric spaces.

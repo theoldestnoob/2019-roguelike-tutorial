@@ -21,7 +21,8 @@ from components.ai import BasicMonster
 from components.inventory import Inventory
 from render_functions import RenderOrder
 from components.item import Item
-from item_functions import heal
+from item_functions import heal, cast_lightning, cast_fireball, cast_confuse
+from game_messages import Message
 
 
 class GameMap:
@@ -211,10 +212,43 @@ class GameMap:
         for i in range(number_of_items):
             x, y = choice(room.coords)
             if not any([e for e in entities if e.x == x and e.y == y]):
-                item_component = Item(use_function=heal, amount=4)
-                item = Entity(len(entities), x, y, '!', tcod.violet,
-                              "Healing Potion", render_order=RenderOrder.ITEM,
-                              item=item_component)
+                item_chance = randint(0, 100)
+                if item_chance < 70:
+                    item_component = Item(use_function=heal, amount=4)
+                    item = Entity(len(entities), x, y, '!', tcod.violet,
+                                  "Healing Potion",
+                                  render_order=RenderOrder.ITEM,
+                                  item=item_component)
+                elif item_chance < 80:
+                    msg_str = (f"Left-click a target tile for the fireball, "
+                               f"or right-click to cancel.")
+                    msg = Message(msg_str, tcod.light_cyan)
+                    item_component = Item(use_function=cast_fireball,
+                                          targeting=True,
+                                          targeting_message=msg,
+                                          damage=12, radius=3)
+                    item = Entity(len(entities), x, y, "#", tcod.red,
+                                  "Fireball Scroll",
+                                  render_order=RenderOrder.ITEM,
+                                  item=item_component)
+                elif item_chance < 90:
+                    msg_str = (f"Left-click an enemy to confuse it, "
+                               f"or right-click to cancel")
+                    msg = Message(msg_str, tcod.light_cyan)
+                    item_component = Item(use_function=cast_confuse,
+                                          targeting=True,
+                                          targeting_message=msg)
+                    item = Entity(len(entities), x, y, "#", tcod.light_pink,
+                                  "Confusion Scroll",
+                                  render_order=RenderOrder.ITEM,
+                                  item=item_component)
+                else:
+                    item_component = Item(use_function=cast_lightning,
+                                          damage=20, max_range=5)
+                    item = Entity(len(entities), x, y, "#", tcod.yellow,
+                                  "Lightning Scroll",
+                                  render_order=RenderOrder.ITEM,
+                                  item=item_component)
                 entities.append(item)
 
     def game_map_to_walkable_array(self):

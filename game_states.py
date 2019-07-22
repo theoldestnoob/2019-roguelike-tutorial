@@ -13,3 +13,4 @@ class GameStates(Enum):
     FAIL_STATE = 2
     SHOW_INVENTORY = 3
     DROP_INVENTORY = 4
+    TARGETING = 5

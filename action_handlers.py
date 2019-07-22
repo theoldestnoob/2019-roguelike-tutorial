@@ -23,11 +23,15 @@ from game_states import GameStates
 # TODO: man I have to pass a lot of stuff in and out of these guys
 #       there must be a better way?
 def handle_entity_actions(actions, in_handle, entities, game_map, console,
-                          message_log, controlled_entity, debug_f):
+                          message_log, controlled_entity, game_state,
+                          prev_state, targeting_item, debug_f):
     action_cost = 0
     next_turn = True
     controlled_entity = controlled_entity
     render_update = False
+    game_state = game_state
+    prev_state = prev_state
+    targeting_item = targeting_item
 
     # TODO: rewrite to use object features: while len(action) > 0: action = action.popleft()
     for action in actions:
@@ -44,6 +48,8 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
         use_item = action.get("use_item")
         drop_item = action.get("drop_item")
         item_dropped = action.get("item_dropped")
+        targeting = action.get("targeting")
+        cancel_target = action.get("cancel_target")
         dead = action.get("dead")
 
         if message:  # {"message": message_string}
@@ -98,7 +104,7 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
             controlled_entity.y = dest_y
             controlled_entity.fov_recompute = True
 
-        if pickup:
+        if pickup and controlled_entity.inventory:
             next_turn = True
             render_update = True
             for entity in entities:
@@ -117,10 +123,19 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
 
         if use_item:
             render_update = True
-            use_results = controlled_entity.inventory.use(use_item)
+            use_results = controlled_entity.inventory.use(use_item,
+                                                          entities=entities)
             if any([u_r for u_r in use_results if u_r.get("consumed")]):
                 action_cost = 50
                 next_turn = True
+                # TODO: hack to clear targeting after item use, don't like it
+                if use_item is targeting_item:
+                    targeting_item = None
+                    game_state = prev_state
+            # TODO: hack to clear targeting after item use, don't like it
+            else:
+                use_item.item.target_x = None
+                use_item.item.target_y = None
             actions.extend(use_results)
 
         if drop_item:
@@ -134,6 +149,22 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
         if item_dropped:
             entities.append(item_dropped)
 
+        # TODO: There has to be a better way to handle targeting than this
+        if targeting:
+            render_update = True
+            next_turn = False
+            prev_state = GameStates.NORMAL_TURN
+            game_state = GameStates.TARGETING
+            targeting_item = targeting
+            message_log.add_message(targeting_item.item.targeting_message)
+
+        if cancel_target:
+            game_state = prev_state
+            render_update = True
+            next_turn = False
+            message_log.add_message(Message("Targeting cancelled",
+                                            tcod.light_cyan))
+
         if dead:  # {"dead": entity}
             render_update = True
             if dead == controlled_entity:
@@ -144,7 +175,8 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
             message = kill_entity(dead)
             message_log.add_message(message)
 
-    return (action_cost, next_turn, controlled_entity, render_update)
+    return (action_cost, next_turn, controlled_entity, render_update,
+            game_state, prev_state, targeting_item)
 
 
 def handle_player_actions(actions, in_handle, entities, game_map, console,

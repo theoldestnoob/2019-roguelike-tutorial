@@ -81,7 +81,13 @@ class Entity:
         dy = other.y - self.y
         return (math.sqrt(dx ** 2 + dy ** 2))
 
+    def distance(self, x, y):
+        '''Return the distance between Entity and (x, y).'''
+        return (math.sqrt((x - self.x) ** 2 + (y - self.y) ** 2))
+
     def move_astar(self, target, entities, game_map):
+        '''Calculate the A* path toward a target Entity and take the first
+        move along the path towards it.'''
         # set up numpy array for use in tcod astar path calculation
         map_array = game_map.game_map_to_numpy_array()
 
