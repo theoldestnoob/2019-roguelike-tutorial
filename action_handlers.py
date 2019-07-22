@@ -117,7 +117,8 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
 
         if use_item:
             render_update = True
-            use_results = controlled_entity.inventory.use(use_item)
+            use_results = controlled_entity.inventory.use(use_item,
+                                                          entities=entities)
             if any([u_r for u_r in use_results if u_r.get("consumed")]):
                 action_cost = 50
                 next_turn = True
