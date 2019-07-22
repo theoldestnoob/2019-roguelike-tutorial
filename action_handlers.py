@@ -98,7 +98,7 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
             controlled_entity.y = dest_y
             controlled_entity.fov_recompute = True
 
-        if pickup:
+        if pickup and controlled_entity.inventory:
             next_turn = True
             render_update = True
             for entity in entities:
