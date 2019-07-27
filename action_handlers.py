@@ -181,12 +181,15 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
 
 def handle_player_actions(actions, in_handle, entities, game_map, console,
                           panel_ui, panel_map, curr_entity, controlled_entity,
-                          player, vip, omnivision, mapset, message_log,
-                          fov_radius, fov_light_walls, fov_algorithm,
-                          screen_width, screen_height, colors,
-                          timeq, bar_width, panel_ui_width, panel_ui_height,
-                          panel_ui_y, panel_map_width, panel_map_height,
-                          mouse_x, mouse_y, game_state, prev_state, debug_f):
+                          player, vip, omnivision, message_log,
+                          mouse_x, mouse_y, timeq, game_state, prev_state,
+                          constants, debug_f):
+    # pull constants
+    mapset = constants["mapset"]
+    fov_radius = constants["fov_radius"]
+    fov_light_walls = constants["fov_light_walls"]
+    fov_algorithm = constants["fov_algorithm"]
+    # setup stuff
     next_turn = False
     curr_entity = curr_entity
     controlled_entity = controlled_entity
@@ -213,9 +216,6 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
         switch_char = action.get("switch_char")
         map_gen = action.get("map_gen")
         graph_gen = action.get("graph_gen")
-        show_vertices = action.get("show_vertices")
-        show_hyperedges = action.get("show_hyperedges")
-        show_edges = action.get("show_edges")
         test = action.get("test")
 
         if want_exit:  # {"exit": True}
@@ -317,7 +317,17 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
         if graph_gen:  # {"graph_gen": True}
             game_map.make_graph()
 
-        if show_vertices:  # {"show_vertices": True}
+        if test:  # {"test": True}
+            pass
+
+    return (next_turn, curr_entity, controlled_entity, entities, player, vip,
+            timeq, omnivision, render_update, want_exit, game_state,
+            prev_state)
+
+
+''' Bunch of stuff pulled out of handle_player_actions to make it less awful:
+
+            if show_vertices:  # {"show_vertices": True}
             for vertex in game_map.graph.vertices:
                 display_space(console, vertex.space, tcod.green)
                 tcod.console_flush()
@@ -391,10 +401,4 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
                            omnivision)
                 tcod.console_flush()
             render_update = True
-
-        if test:  # {"test": True}
-            pass
-
-    return (next_turn, curr_entity, controlled_entity, entities, player, vip,
-            timeq, omnivision, render_update, want_exit, game_state,
-            prev_state)
+'''

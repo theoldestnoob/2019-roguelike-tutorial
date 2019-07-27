@@ -9,6 +9,7 @@ import tcod
 import tcod.event
 from collections import deque
 
+from loader_functions.initialize_new_game import get_constants
 from entity import Entity
 from input_handlers import InputHandler
 from input_parsers import parse_input
@@ -26,97 +27,10 @@ from components.inventory import Inventory
 
 
 def main():
-    # "global" variables
     debug_f = True
-    seed = "testseed"
-    screen_width = 80
-    screen_height = 50
-
-    bar_width = 20
-    panel_ui_width = screen_width
-    panel_ui_height = 7
-    panel_ui_y = screen_height - panel_ui_height
-
-    message_x = bar_width + 2
-    message_width = screen_width - bar_width - 2
-    message_height = panel_ui_height - 1
-
-    panel_map_width = 80
-    panel_map_height = 43
-
-    # map_width = 80
-    # map_height = 43
-    map_width = 140
-    map_height = 140
-
-    fov_algorithm = 0
-    fov_light_walls = True
-    fov_radius = 10
     omnivision = False
-
-    # various map settings - TODO: move to other module
-    mapset_bsprect = {
-            "room_max_size": 15,
-            "room_min_size": 8,
-            "min_rooms": 8,
-            "max_rooms": 30,
-            "ratio_vh": 1,
-            "ratio_hv": 1,
-            "ratio_d": 0,
-            "hall_rand": False,
-            "circ_rooms": 0,
-            "rect_rooms": 1,
-            "unused": True,
-            "bsp_range": 0.15,
-            "bsp_depth": 4,
-            "max_monsters_per_room": 3,
-            "max_items_per_room": 2
-    }
-
-    mapset_bspcirc = {
-            "room_max_size": 26,
-            "room_min_size": 8,
-            "min_rooms": 8,
-            "max_rooms": 30,
-            "ratio_vh": 0,
-            "ratio_hv": 0,
-            "ratio_d": 1,
-            "hall_rand": True,
-            "circ_rooms": 1,
-            "rect_rooms": 0,
-            "unused": True,
-            "bsp_range": 0.25,
-            "bsp_depth": 4,
-            "max_monsters_per_room": 3,
-            "max_items_per_room": 2
-    }
-
-    mapset_bsprand = {
-            "room_max_size": 20,
-            "room_min_size": 6,
-            "min_rooms": 5,
-            "max_rooms": 30,
-            "ratio_vh": 1,
-            "ratio_hv": 1,
-            "ratio_d": 1,
-            "hall_rand": True,
-            "circ_rooms": 1,
-            "rect_rooms": 1,
-            "unused": True,
-            "bsp_range": 0.4,
-            "bsp_depth": 4,
-            "max_monsters_per_room": 3,
-            "max_items_per_room": 26
-    }
-
-    mapset = mapset_bsprand
-
-    colors = {
-            "dark_wall": tcod.Color(0, 0, 100),
-            "dark_ground": tcod.Color(50, 50, 150),
-            "light_wall": tcod.Color(130, 110, 50),
-            "light_ground": tcod.Color(200, 180, 50)
-    }
+    # get our big dict of settings
+    constants = get_constants()
 
     # setup object instantiation
     player_fighter = Fighter(hp=1, defense=0, power=0)
@@ -142,27 +56,31 @@ def main():
 
     in_handle = InputHandler()
 
-    message_log = MessageLog(message_x, message_width, message_height, 100)
+    message_log = MessageLog(constants["message_x"],
+                             constants["message_width"],
+                             constants["message_height"], 100)
     mouse_x = 0
     mouse_y = 0
 
     # open tcod console context
     with tcod.console_init_root(
-            screen_width, screen_height,
-            "libtcod tutorial revised",
-            fullscreen=False,
-            renderer=tcod.RENDERER_SDL2,
-            vsync=False) as con:
+            constants["screen_width"], constants["screen_height"],
+            constants["window_title"], fullscreen=False,
+            renderer=tcod.RENDERER_SDL2, vsync=False) as root_console:
 
         # set up ui
-        panel_ui = tcod.console.Console(panel_ui_width, panel_ui_height)
-        panel_map = tcod.console.Console(panel_map_width, panel_map_height)
+        panel_ui = tcod.console.Console(constants["panel_ui_width"],
+                                        constants["panel_ui_height"])
+        panel_map = tcod.console.Console(constants["panel_map_width"],
+                                         constants["panel_map_height"])
 
         # create initial game map
         # game_map = GameMap(map_width, map_height, seed, con=con, debug=debug_f)
         # game_map = GameMapRandomRooms(map_width, map_height, seed, con=con, debug=debug_f)
-        game_map = GameMapBSP(map_width, map_height, seed, con=con, debug=debug_f)
-        game_map.make_map(player, entities, **mapset)
+        game_map = GameMapBSP(constants["map_width"], constants["map_height"],
+                              constants["seed"], con=root_console,
+                              debug=debug_f)
+        game_map.make_map(player, entities, **constants["mapset"])
 
         # set up time system
         actors = [e for e in entities if e.ai]
@@ -178,8 +96,9 @@ def main():
                 entity.fov_map = init_fov_entity0(game_map)
             else:
                 entity.fov_map = initialize_fov(game_map)
-            recompute_fov(game_map, entity, fov_radius, fov_light_walls,
-                          fov_algorithm)
+            recompute_fov(game_map, entity, constants["fov_radius"],
+                          constants["fov_light_walls"],
+                          constants["fov_algorithm"])
 
         # TODO: there has to be a better way to handle targeting than this
         targeting_item = None
@@ -191,19 +110,16 @@ def main():
             for entity in entities:
                 if entity.fov_map and entity.fov_recompute:
                     render_update = True
-                    recompute_fov(game_map, entity, fov_radius,
-                                  fov_light_walls, fov_algorithm)
+                    recompute_fov(game_map, entity, constants["fov_radius"],
+                                  constants["fov_light_walls"],
+                                  constants["fov_algorithm"])
                     entity.fov_recompute = False
             if render_update:
                 if debug_f:
                     print("RENDER UPDATE")
-                render_all(con, panel_ui, panel_map, entities, game_map,
-                           controlled_entity,
-                           screen_width, screen_height, bar_width,
-                           panel_ui_width, panel_ui_height, panel_ui_y,
-                           panel_map_width, panel_map_height,
-                           colors, message_log,
-                           mouse_x, mouse_y, omnivision, game_state)
+                render_all(root_console, panel_ui, panel_map, entities,
+                           game_map, controlled_entity, constants, omnivision,
+                           message_log, mouse_x, mouse_y, game_state)
                 tcod.console_flush()
                 render_update = False
 
@@ -233,21 +149,13 @@ def main():
 
                 # process any player-only actions
                 act_r = handle_player_actions(actions, in_handle, entities,
-                                              game_map, con, panel_ui,
-                                              panel_map,
+                                              game_map, root_console,
+                                              panel_ui, panel_map,
                                               curr_entity, controlled_entity,
-                                              player, vip, omnivision, mapset,
-                                              message_log,
-                                              fov_radius, fov_light_walls,
-                                              fov_algorithm, screen_width,
-                                              screen_height, colors, timeq,
-                                              bar_width, panel_ui_width,
-                                              panel_ui_height, panel_ui_y,
-                                              panel_map_width,
-                                              panel_map_height,
-                                              mouse_x, mouse_y,
-                                              game_state, prev_state,
-                                              debug_f)
+                                              player, vip, omnivision,
+                                              message_log, mouse_x, mouse_y,
+                                              timeq, game_state, prev_state,
+                                              constants, debug_f)
                 (next_turn, curr_entity, controlled_entity, entities, player,
                  vip, timeq, omnivision, render_update_p, want_exit,
                  game_state, prev_state) = act_r
@@ -262,7 +170,7 @@ def main():
 
             # process turn actions, modify game state, and get results
             act_r = handle_entity_actions(actions, in_handle, entities,
-                                          game_map, con, message_log,
+                                          game_map, root_console, message_log,
                                           controlled_entity, game_state,
                                           prev_state, targeting_item, debug_f)
 
