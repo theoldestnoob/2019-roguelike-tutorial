@@ -196,6 +196,9 @@ def play_game(constants, root_console, panel_ui, panel_map, debug_f,
 
         # process turn results
         if want_exit:
+            save_game(player, vip, entities, controlled_entity, curr_entity,
+                      game_state, prev_state, message_log, game_map, timeq,
+                      next_turn, render_update, targeting_item)
             return True
 
         if debug_f and results:

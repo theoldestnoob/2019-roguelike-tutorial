@@ -65,11 +65,13 @@ def main_menu(console, background_image, screen_width, screen_height):
     menu(console, "", options, 24, screen_width, screen_height)
 
 
-def message_box(con, message, width, screen_width, screen_height):
+def message_box(con, message, width, screen_width, screen_height,
+                msg_fg=tcod.white, msg_bg=tcod.black,
+                frame_fg=tcod.white, frame_bg=tcod.black):
     height = con.get_height_rect(0, 0, width, screen_height, message)
     rect_x = screen_width // 2 - width // 2
     rect_y = screen_height // 2 - height // 2
     con.draw_frame(rect_x - 1, rect_y - 1, width + 2, height + 2,
-                   fg=tcod.white, bg=tcod.black)
+                   fg=frame_fg, bg=frame_bg)
     con.print_box(rect_x, rect_y, width, height, message,
-                  fg=tcod.white, bg=tcod.black)
+                  fg=msg_fg, bg=msg_bg)
