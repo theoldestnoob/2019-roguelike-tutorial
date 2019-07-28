@@ -7,60 +7,34 @@ Created on Tue Jun 18 20:28:25 2019
 
 import tcod
 import tcod.event
-from collections import deque
 
 from loader_functions.initialize_new_game import get_constants
-from entity import Entity
+from loader_functions.initialize_new_game import get_game_variables
 from input_handlers import InputHandler
 from input_parsers import parse_input
-from render_functions import render_all, RenderOrder
+from render_functions import render_all
 from game_states import GameStates
-from map_objects.game_map import GameMap
-from map_objects.game_map_bsp import GameMapBSP
-from map_objects.game_map_randomrooms import GameMapRandomRooms
-from fov_functions import initialize_fov, init_fov_entity0, recompute_fov
-from components.fighter import Fighter
-from components.ai import IdleMonster
+from fov_functions import recompute_fov
 from action_handlers import handle_entity_actions, handle_player_actions
-from game_messages import MessageLog, Message
-from components.inventory import Inventory
+from game_messages import Message
 
 
 def main():
+    # game "constants" / "globals" setup
     debug_f = True
     omnivision = False
-    # get our big dict of settings
     constants = get_constants()
 
-    # setup object instantiation
-    player_fighter = Fighter(hp=1, defense=0, power=0)
-    vip_fighter = Fighter(hp=30, defense=2, power=5)
-    player_ai = IdleMonster()
-    vip_ai = IdleMonster()
-    vip_inventory = Inventory(26)
-    player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False, soul=1,
-                    fighter=player_fighter, ai=player_ai,
-                    render_order=RenderOrder.ACTOR, speed=25)
-    vip = Entity(1, 0, 0, "&", tcod.yellow, "VIP", blocks=True, soul=10,
-                 fighter=vip_fighter, ai=vip_ai, inventory=vip_inventory,
-                 render_order=RenderOrder.ACTOR)
-    entities = [player, vip]
-    controlled_entity = player
-    game_state = GameStates.NORMAL_TURN
-    prev_state = GameStates.NORMAL_TURN
+    # input handling setup
+    in_handle = InputHandler()
+    mouse_x = 0
+    mouse_y = 0
 
+    # set tcod font
     tcod.console_set_custom_font(
             "arial10x10.png",
             tcod.FONT_TYPE_GREYSCALE | tcod.FONT_LAYOUT_TCOD
             )
-
-    in_handle = InputHandler()
-
-    message_log = MessageLog(constants["message_x"],
-                             constants["message_width"],
-                             constants["message_height"], 100)
-    mouse_x = 0
-    mouse_y = 0
 
     # open tcod console context
     with tcod.console_init_root(
@@ -74,34 +48,11 @@ def main():
         panel_map = tcod.console.Console(constants["panel_map_width"],
                                          constants["panel_map_height"])
 
-        # create initial game map
-        # game_map = GameMap(map_width, map_height, seed, con=con, debug=debug_f)
-        # game_map = GameMapRandomRooms(map_width, map_height, seed, con=con, debug=debug_f)
-        game_map = GameMapBSP(constants["map_width"], constants["map_height"],
-                              constants["seed"], con=root_console,
-                              debug=debug_f)
-        game_map.make_map(player, entities, **constants["mapset"])
-
-        # set up time system
-        actors = [e for e in entities if e.ai]
-        timeq = deque(sorted(actors, key=lambda entity: entity.time_to_act))
-        curr_entity = timeq.popleft()
-        next_turn = True
-
-        # FOV calculation setup
-        render_update = True
-
-        for entity in actors:
-            if entity.ident == 0:
-                entity.fov_map = init_fov_entity0(game_map)
-            else:
-                entity.fov_map = initialize_fov(game_map)
-            recompute_fov(game_map, entity, constants["fov_radius"],
-                          constants["fov_light_walls"],
-                          constants["fov_algorithm"])
-
-        # TODO: there has to be a better way to handle targeting than this
-        targeting_item = None
+        # set up game "runtime global" variables
+        g_var = get_game_variables(constants, root_console, panel_map, debug_f)
+        (player, vip, entities, controlled_entity, curr_entity,
+         game_state, prev_state, message_log, game_map, timeq,
+         next_turn, render_update, targeting_item) = g_var
 
         # main game loop
         while True:
