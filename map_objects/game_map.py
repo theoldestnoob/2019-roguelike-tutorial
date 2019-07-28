@@ -190,8 +190,9 @@ class GameMap:
                     ai_component = BasicMonster()
                     inv_component = Inventory(5)
                     m_soul = randint(1, 80)
+                    m_name = "Orc" + str(len(entities))
                     monster = Entity(len(entities), x, y, 'o',
-                                     tcod.desaturated_green, "Orc",
+                                     tcod.desaturated_green, m_name,
                                      blocks=True, soul=m_soul,
                                      fighter=fighter_component,
                                      ai=ai_component, inventory=inv_component,
@@ -201,8 +202,9 @@ class GameMap:
                     ai_component = BasicMonster()
                     inv_component = Inventory(10)
                     m_soul = randint(60, 120)
+                    m_name = "Troll" + str(len(entities))
                     monster = Entity(len(entities), x, y, 'T',
-                                     tcod.darker_green, "Troll", blocks=True,
+                                     tcod.darker_green, m_name, blocks=True,
                                      soul=m_soul, fighter=fighter_component,
                                      ai=ai_component, inventory=inv_component,
                                      render_order=RenderOrder.ACTOR)

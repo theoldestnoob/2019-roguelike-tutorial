@@ -93,7 +93,7 @@ def main():
                 elif load_save:
                     # load game "runtime global" variables from save file
                     try:
-                        g_var = load_game()
+                        g_var = load_game(constants)
                     except FileNotFoundError:
                         show_load_error_message = True
 
@@ -118,6 +118,8 @@ def play_game(constants, root_console, panel_ui, panel_map, debug_f,
               player, vip, entities, controlled_entity, curr_entity,
               game_state, prev_state, message_log, game_map, timeq,
               next_turn, render_update, targeting_item):
+    # always update rendering upon entry
+    render_update = True
     # main game loop
     while True:
 
@@ -181,12 +183,12 @@ def play_game(constants, root_console, panel_ui, panel_map, debug_f,
             actions = curr_entity.ai.take_turn(vip, game_map, entities)
 
         if debug_f and actions:
-            print(f"{curr_entity}: {actions}")
+            print(f"{curr_entity.name} - {curr_entity}: {actions}")
 
         # process turn actions, modify game state, and get results
         act_r = handle_entity_actions(actions, in_handle, entities,
                                       game_map, root_console, message_log,
-                                      controlled_entity, game_state,
+                                      controlled_entity, player, game_state,
                                       prev_state, targeting_item, debug_f)
 
         (action_cost, next_turn, controlled_entity, render_update_e,

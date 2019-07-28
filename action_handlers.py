@@ -23,7 +23,7 @@ from game_states import GameStates
 # TODO: man I have to pass a lot of stuff in and out of these guys
 #       there must be a better way?
 def handle_entity_actions(actions, in_handle, entities, game_map, console,
-                          message_log, controlled_entity, game_state,
+                          message_log, controlled_entity, player, game_state,
                           prev_state, targeting_item, debug_f):
     action_cost = 0
     next_turn = True
@@ -99,7 +99,8 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
             dest_x, dest_y = unpossess
             result_str = f"You stop possessing the {controlled_entity.name}!"
             message_log.add_message(Message(result_str, tcod.light_gray))
-            controlled_entity = entities[0]
+            # controlled_entity = entities[0]
+            controlled_entity = player
             controlled_entity.x = dest_x
             controlled_entity.y = dest_y
             controlled_entity.fov_recompute = True

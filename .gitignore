@@ -6,3 +6,6 @@ pyvenv.cfg
 __pycache__
 algorithms.txt
 todo.txt
+savegame.bak
+savegame.dat
+savegame.dir
