@@ -9,8 +9,9 @@ from enum import Enum
 
 
 class GameStates(Enum):
-    NORMAL_TURN = 1
-    FAIL_STATE = 2
-    SHOW_INVENTORY = 3
-    DROP_INVENTORY = 4
-    TARGETING = 5
+    MAIN_MENU = 1
+    NORMAL_TURN = 2
+    FAIL_STATE = 3
+    SHOW_INVENTORY = 4
+    DROP_INVENTORY = 5
+    TARGETING = 6

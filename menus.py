@@ -50,3 +50,28 @@ def inventory_menu(con, header, inventory, inventory_width,
         options = [item.name for item in inventory.items]
 
     menu(con, header, options, inventory_width, screen_width, screen_height)
+
+
+def main_menu(console, background_image, screen_width, screen_height):
+    background_image.blit_2x(console, 0, 0)
+    console.print(screen_width // 2, screen_height // 2 - 4,
+                  "GAME TITLE TO GO HERE",
+                  fg=tcod.light_yellow, alignment=tcod.CENTER)
+    console.print(screen_width // 2, screen_height // 2 - 2,
+                  "by theoldestnoob",
+                  fg=tcod.light_yellow, alignment=tcod.CENTER)
+    options = ["Play a new game", "Continue last game", "Quit"]
+
+    menu(console, "", options, 24, screen_width, screen_height)
+
+
+def message_box(con, message, width, screen_width, screen_height,
+                msg_fg=tcod.white, msg_bg=tcod.black,
+                frame_fg=tcod.white, frame_bg=tcod.black):
+    height = con.get_height_rect(0, 0, width, screen_height, message)
+    rect_x = screen_width // 2 - width // 2
+    rect_y = screen_height // 2 - height // 2
+    con.draw_frame(rect_x - 1, rect_y - 1, width + 2, height + 2,
+                   fg=frame_fg, bg=frame_bg)
+    con.print_box(rect_x, rect_y, width, height, message,
+                  fg=msg_fg, bg=msg_bg)

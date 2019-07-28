@@ -50,10 +50,13 @@ def mouseover_names(console, game_map, mouse_x, mouse_y, entities, curr_entity,
 
 
 def render_all(con, panel_ui, panel_map, entities, game_map, curr_entity,
-               screen_width, screen_height,
-               bar_width, panel_ui_width, panel_ui_height, panel_ui_y,
-               panel_map_width, panel_map_height,
-               colors, msg_log, mouse_x, mouse_y, omnivision, game_state):
+               constants, omnivision, msg_log, mouse_x, mouse_y, game_state):
+    # pull our constants out into variables
+    screen_width = constants["screen_width"]
+    screen_height = constants["screen_height"]
+    bar_width = constants["bar_width"]
+    panel_ui_y = constants["panel_ui_y"]
+    colors = constants["colors"]
     # sort our entities so we render them in the right order
     entities_sorted = sorted(entities, key=lambda x: x.render_order.value)
 
