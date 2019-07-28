@@ -15,6 +15,7 @@ from fov_functions import initialize_fov, init_fov_entity0, recompute_fov
 from entity import Entity
 from components.fighter import Fighter
 from components.ai import IdleMonster
+from components.inventory import Inventory
 from game_messages import Message
 from death_functions import kill_entity
 from game_states import GameStates
@@ -291,11 +292,13 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
             vip_fighter = Fighter(hp=30, defense=2, power=5)
             player_ai = IdleMonster()
             vip_ai = IdleMonster()
+            vip_inventory = Inventory(26)
             player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False,
                             ai=player_ai, render_order=RenderOrder.ACTOR,
                             fighter=player_fighter, speed=25, soul=1)
             vip = Entity(1, 0, 0, "&", tcod.yellow, "VIP", blocks=True,
                          fighter=vip_fighter, ai=vip_ai, soul=10,
+                         inventory=vip_inventory,
                          render_order=RenderOrder.ACTOR)
             entities = [player, vip]
             controlled_entity = player
