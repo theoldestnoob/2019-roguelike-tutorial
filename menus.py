@@ -63,3 +63,13 @@ def main_menu(console, background_image, screen_width, screen_height):
     options = ["Play a new game", "Continue last game", "Quit"]
 
     menu(console, "", options, 24, screen_width, screen_height)
+
+
+def message_box(con, message, width, screen_width, screen_height):
+    height = con.get_height_rect(0, 0, width, screen_height, message)
+    rect_x = screen_width // 2 - width // 2
+    rect_y = screen_height // 2 - height // 2
+    con.draw_frame(rect_x - 1, rect_y - 1, width + 2, height + 2,
+                   fg=tcod.white, bg=tcod.black)
+    con.print_box(rect_x, rect_y, width, height, message,
+                  fg=tcod.white, bg=tcod.black)

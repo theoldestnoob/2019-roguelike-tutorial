@@ -10,6 +10,7 @@ import tcod.event
 
 from loader_functions.initialize_new_game import get_constants
 from loader_functions.initialize_new_game import get_game_variables
+from loader_functions.data_loaders import save_game, load_game
 from input_handlers import InputHandler
 from input_parsers import parse_input
 from render_functions import render_all
@@ -17,7 +18,7 @@ from game_states import GameStates
 from fov_functions import recompute_fov
 from action_handlers import handle_entity_actions, handle_player_actions
 from game_messages import Message
-from menus import main_menu
+from menus import main_menu, message_box
 
 
 def main():
@@ -28,6 +29,7 @@ def main():
 
     # initial game state
     game_state = GameStates.MAIN_MENU
+    show_load_error_message = False
 
     # input handling setup
     in_handle = InputHandler()
@@ -60,6 +62,11 @@ def main():
                           constants["screen_width"],
                           constants["screen_height"])
 
+                if show_load_error_message:
+                    message_box(root_console, "No save game to load", 50,
+                                constants["screen_width"],
+                                constants["screen_height"])
+
                 tcod.console_flush()
 
                 for event in tcod.event.get():
@@ -69,21 +76,35 @@ def main():
 
                 want_exit = user_in.get("exit")
                 new_game = user_in.get("new_game")
-                load_game = user_in.get("load_game")
+                load_save = user_in.get("load_game")
 
-                if want_exit:
+                if (show_load_error_message
+                        and (new_game or load_save or want_exit)):
+                    show_load_error_message = False
+                elif want_exit:
                     return
                 elif new_game:
-                    game_state = GameStates.NORMAL_TURN
+                    # set up game "runtime global" variables from scratch
+                    g_var = get_game_variables(constants, root_console,
+                                               panel_map, debug_f)
+                    (player, vip, entities, controlled_entity, curr_entity,
+                     game_state, prev_state, message_log, game_map, timeq,
+                     next_turn, render_update, targeting_item) = g_var
+                elif load_save:
+                    # load game "runtime global" variables from save file
+                    try:
+                        g_var = load_game()
+                    except FileNotFoundError:
+                        show_load_error_message = True
+
+                    if not show_load_error_message:
+                        (player, vip, entities, controlled_entity, curr_entity,
+                         game_state, prev_state, message_log, game_map, timeq,
+                         next_turn, render_update, targeting_item) = g_var
+                    else:
+                        game_state = GameStates.MAIN_MENU
 
             else:
-                # set up game "runtime global" variables
-                g_var = get_game_variables(constants, root_console, panel_map,
-                                           debug_f)
-                (player, vip, entities, controlled_entity, curr_entity,
-                 game_state, prev_state, message_log, game_map, timeq,
-                 next_turn, render_update, targeting_item) = g_var
-    
                 play_game(constants, root_console, panel_ui, panel_map, debug_f,
                           omnivision, in_handle, mouse_x, mouse_y,
                           player, vip, entities, controlled_entity, curr_entity,
