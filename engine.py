@@ -17,6 +17,7 @@ from game_states import GameStates
 from fov_functions import recompute_fov
 from action_handlers import handle_entity_actions, handle_player_actions
 from game_messages import Message
+from menus import main_menu
 
 
 def main():
@@ -24,6 +25,9 @@ def main():
     debug_f = True
     omnivision = False
     constants = get_constants()
+
+    # initial game state
+    game_state = GameStates.MAIN_MENU
 
     # input handling setup
     in_handle = InputHandler()
@@ -36,29 +40,56 @@ def main():
             tcod.FONT_TYPE_GREYSCALE | tcod.FONT_LAYOUT_TCOD
             )
 
+    # set up ui elements
+    panel_ui = tcod.console.Console(constants["panel_ui_width"],
+                                    constants["panel_ui_height"])
+    panel_map = tcod.console.Console(constants["panel_map_width"],
+                                     constants["panel_map_height"])
+    main_menu_bg = tcod.image_load("menu_background1.png")
+
     # open tcod console context
     with tcod.console_init_root(
             constants["screen_width"], constants["screen_height"],
             constants["window_title"], fullscreen=False,
             renderer=tcod.RENDERER_SDL2, vsync=False) as root_console:
 
-        # set up ui
-        panel_ui = tcod.console.Console(constants["panel_ui_width"],
-                                        constants["panel_ui_height"])
-        panel_map = tcod.console.Console(constants["panel_map_width"],
-                                         constants["panel_map_height"])
+        while True:
+            if game_state == GameStates.MAIN_MENU:
+                in_handle.set_game_state(game_state)
+                main_menu(root_console, main_menu_bg,
+                          constants["screen_width"],
+                          constants["screen_height"])
 
-        # set up game "runtime global" variables
-        g_var = get_game_variables(constants, root_console, panel_map, debug_f)
-        (player, vip, entities, controlled_entity, curr_entity,
-         game_state, prev_state, message_log, game_map, timeq,
-         next_turn, render_update, targeting_item) = g_var
+                tcod.console_flush()
 
-        play_game(constants, root_console, panel_ui, panel_map, debug_f,
-                  omnivision, in_handle, mouse_x, mouse_y,
-                  player, vip, entities, controlled_entity, curr_entity,
-                  game_state, prev_state, message_log, game_map, timeq,
-                  next_turn, render_update, targeting_item)
+                for event in tcod.event.get():
+                    in_handle.dispatch(event)
+
+                user_in = in_handle.get_user_input()
+
+                want_exit = user_in.get("exit")
+                new_game = user_in.get("new_game")
+                load_game = user_in.get("load_game")
+
+                if want_exit:
+                    return
+                elif new_game:
+                    game_state = GameStates.NORMAL_TURN
+
+            else:
+                # set up game "runtime global" variables
+                g_var = get_game_variables(constants, root_console, panel_map,
+                                           debug_f)
+                (player, vip, entities, controlled_entity, curr_entity,
+                 game_state, prev_state, message_log, game_map, timeq,
+                 next_turn, render_update, targeting_item) = g_var
+    
+                play_game(constants, root_console, panel_ui, panel_map, debug_f,
+                          omnivision, in_handle, mouse_x, mouse_y,
+                          player, vip, entities, controlled_entity, curr_entity,
+                          game_state, prev_state, message_log, game_map, timeq,
+                          next_turn, render_update, targeting_item)
+                game_state = GameStates.MAIN_MENU
 
 
 def play_game(constants, root_console, panel_ui, panel_map, debug_f,

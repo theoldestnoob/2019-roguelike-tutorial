@@ -54,10 +54,10 @@ def inventory_menu(con, header, inventory, inventory_width,
 
 def main_menu(console, background_image, screen_width, screen_height):
     background_image.blit_2x(console, 0, 0)
-    console.print(screen_width / 2, screen_height / 2 - 4,
+    console.print(screen_width // 2, screen_height // 2 - 4,
                   "GAME TITLE TO GO HERE",
                   fg=tcod.light_yellow, alignment=tcod.CENTER)
-    console.print(screen_width / 2, screen_height / 2 - 2,
+    console.print(screen_width // 2, screen_height // 2 - 2,
                   "by theoldestnoob",
                   fg=tcod.light_yellow, alignment=tcod.CENTER)
     options = ["Play a new game", "Continue last game", "Quit"]

@@ -41,6 +41,10 @@ class InputHandler(tcod.event.EventDispatch):
             keymap_nomod = target_keymap_nomod
             keymap_lalt = target_keymap_lalt
 
+        elif self.state == GameStates.MAIN_MENU:
+            keymap_nomod = menu_keymap_nomod
+            keymap_lalt = menu_keymap_lalt
+
         # check and process any mapped modified keys
         if (event.mod & tcod.event.KMOD_LALT
                 and event.sym in keymap_lalt.keys()):
@@ -145,5 +149,16 @@ fail_keymap_nomod = {
 fail_keymap_lalt = {
         tcod.event.K_v: {"omnivis": True},
         tcod.event.K_c: {"switch_char": True},
+        tcod.event.K_RETURN: {"fullscreen": True}
+        }
+
+menu_keymap_nomod = {
+        tcod.event.K_ESCAPE: {"exit": True},
+        tcod.event.K_a: {"new_game": True},
+        tcod.event.K_b: {"load_game": True},
+        tcod.event.K_c: {"exit": True}
+        }
+
+menu_keymap_lalt = {
         tcod.event.K_RETURN: {"fullscreen": True}
         }
