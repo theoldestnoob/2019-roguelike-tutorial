@@ -16,10 +16,11 @@ from map_objects.game_map import GameMap
 from map_objects.game_map_bsp import GameMapBSP
 from map_objects.game_map_randomrooms import GameMapRandomRooms
 from fov_functions import initialize_fov, init_fov_entity0, recompute_fov
+from game_messages import MessageLog
 from components.fighter import Fighter
 from components.ai import IdleMonster
-from game_messages import MessageLog
 from components.inventory import Inventory
+from components.level import Level
 
 
 def get_constants():
@@ -154,12 +155,13 @@ def get_game_variables(constants, root_console, panel_map, debug_f):
     player_ai = IdleMonster()
     vip_ai = IdleMonster()
     vip_inventory = Inventory(26)
+    vip_level = Level()
     player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False, soul=1,
                     fighter=player_fighter, ai=player_ai,
                     render_order=RenderOrder.ACTOR, speed=25)
     vip = Entity(1, 0, 0, "&", tcod.yellow, "VIP", blocks=True, soul=10,
                  fighter=vip_fighter, ai=vip_ai, inventory=vip_inventory,
-                 render_order=RenderOrder.ACTOR)
+                 render_order=RenderOrder.ACTOR, level=vip_level)
     entities = [player, vip]
     controlled_entity = player
     game_state = GameStates.NORMAL_TURN

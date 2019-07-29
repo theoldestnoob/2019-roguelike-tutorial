@@ -189,7 +189,8 @@ class GameMap:
             x, y = choice(room.coords)
             if not any([e for e in entities if e.x == x and e.y == y]):
                 if randint(0, 100) < 80:
-                    fighter_component = Fighter(hp=10, defense=0, power=3)
+                    fighter_component = Fighter(hp=10, defense=0, power=3,
+                                                xp=35)
                     ai_component = BasicMonster()
                     inv_component = Inventory(5)
                     m_soul = randint(1, 80)
@@ -201,7 +202,8 @@ class GameMap:
                                      ai=ai_component, inventory=inv_component,
                                      render_order=RenderOrder.ACTOR)
                 else:
-                    fighter_component = Fighter(hp=16, defense=1, power=4)
+                    fighter_component = Fighter(hp=16, defense=1, power=4,
+                                                xp=100)
                     ai_component = BasicMonster()
                     inv_component = Inventory(10)
                     m_soul = randint(60, 120)

@@ -52,6 +52,7 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
         targeting = action.get("targeting")
         cancel_target = action.get("cancel_target")
         dead = action.get("dead")
+        xp = action.get("xp")
 
         if message:  # {"message": message_string}
             render_update = True
@@ -78,6 +79,10 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
             next_turn = True
             entity, target = melee
             melee_results = entity.fighter.attack(target)
+            for action in melee_results:
+                xp = action.get("xp")
+                if xp:
+                    action["xp"] = [entity, xp[1]]
             actions.extend(melee_results)
 
         if wait:  # {"wait": int_time}
@@ -176,6 +181,21 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
                 controlled_entity.fov_recompute = True
             message = kill_entity(dead)
             message_log.add_message(message)
+
+        if xp:  # {"xp": [entity, xp]}
+            print(xp)
+            entity, xp_gain = xp
+            print(entity)
+            print(xp_gain)
+            if entity is not None and entity.level:
+                level_up = entity.level.add_xp(xp_gain)
+                msg_str = f"{entity.name} gains {xp_gain} experience points."
+                msg = Message(msg_str, tcod.white)
+                message_log.add_message(msg)
+                if level_up:
+                    msg_str = (f"{entity.name} grows stronger!  They have "
+                               f"reached level {entity.level.current_level}!")
+                    message_log.add_message(Message(msg_str, tcod.yellow))
 
     return (action_cost, next_turn, controlled_entity, render_update,
             game_state, prev_state, targeting_item)
