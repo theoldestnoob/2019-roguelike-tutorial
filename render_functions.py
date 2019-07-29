@@ -84,6 +84,9 @@ def render_all(con, panel_ui, panel_map, entities, game_map, curr_entity,
                             omnivision)
 
     # draw UI panel
+    # Dungeon Level
+    panel_ui.print(1, 3, f"Dungeon Level: {game_map.dlevel}", tcod.white)
+
     # HP bar
     render_bar(panel_ui, 1, 1, bar_width, "HP", curr_entity.fighter.hp,
                curr_entity.fighter.max_hp, tcod.light_red, tcod.darker_red)
