@@ -173,7 +173,7 @@ def get_game_variables(constants, root_console, panel_map, debug_f):
     # game_map = GameMap(map_width, map_height, seed, con=con, debug=debug_f)
     # game_map = GameMapRandomRooms(map_width, map_height, seed, con=con, debug=debug_f)
     game_map = GameMapBSP(constants["map_width"], constants["map_height"],
-                          constants["seed"], con=root_console,
+                          constants["seed"], dlevel=1, con=root_console,
                           debug=debug_f)
     game_map.make_map(player, entities, **constants["mapset"])
 

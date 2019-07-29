@@ -17,7 +17,8 @@ class Entity:
     """
     def __init__(self, ident, x, y, char, color, name, soul=0, blocks=False,
                  fov_map=None, fighter=None, ai=None, speed=10,
-                 render_order=RenderOrder.CORPSE, item=None, inventory=None):
+                 render_order=RenderOrder.CORPSE, item=None, inventory=None,
+                 stairs=None):
         # every entity has an ident and a name
         # TODO: add component for insubstantiality, or just test on blocks
         #       for if we can walk into stuff or not, or add a variable for
@@ -52,6 +53,9 @@ class Entity:
         self.inventory = inventory
         if self.inventory:
             self.inventory.owner = self
+        self.stairs = stairs
+        if self.stairs:
+            self.stairs.owner = self
 
     def move(self, dx, dy):
         '''Change Entity location by dx, dy.'''

@@ -13,9 +13,10 @@ from menus import inventory_menu
 
 
 class RenderOrder(Enum):
-    CORPSE = 1
-    ITEM = 2
-    ACTOR = 3
+    STAIRS = 1
+    CORPSE = 2
+    ITEM = 3
+    ACTOR = 4
 
 
 def render_bar(panel, x, y, total_width, name, value, maximum, bar_color,
@@ -172,7 +173,9 @@ def gray_map(console):
 
 
 def draw_entity(console, game_map, entity, curr_entity, omnivision):
-    if curr_entity.fov_map.fov[entity.y][entity.x] or omnivision:
+    if ((entity.stairs and curr_entity.ident in game_map.tiles[entity.x][entity.y].explored)
+            or curr_entity.fov_map.fov[entity.y][entity.x]
+            or omnivision):
         map_x, map_y = get_map_offset(console, game_map, curr_entity)
         con_x, con_y = get_console_offset(console, game_map)
         x_off = map_x - con_x
