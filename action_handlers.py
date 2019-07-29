@@ -212,6 +212,7 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
         msg_down = action.get("msg_down")
         show_inventory = action.get("show_inventory")
         drop_inventory = action.get("drop_inventory")
+        take_stairs = action.get("take_stairs")
 
         # debug actions
         omnivis = action.get("omnivis")
@@ -261,6 +262,33 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
             next_turn = False
             prev_state = game_state
             game_state = GameStates.DROP_INVENTORY
+
+        if take_stairs:
+            for entity in entities:
+                if (entity.stairs and entity.x == controlled_entity.x
+                        and entity.y == controlled_entity.y):
+                    game_map.dlevel += 1
+                    game_map.tiles = game_map.initialize_tiles()
+                    entities = [player, controlled_entity]
+                    game_map.make_map(player, entities, **mapset)
+                    # set up time system
+                    actors = [e for e in entities if e.ai]
+                    timeq = deque(sorted(actors, key=lambda e: e.time_to_act))
+                    curr_entity = timeq.popleft()
+                    next_turn = True
+                    # FOV calculation setup
+                    render_update = True
+                    for entity in actors:
+                        if entity.ident == 0:
+                            entity.fov_map = init_fov_entity0(game_map)
+                        else:
+                            entity.fov_map = initialize_fov(game_map)
+                        recompute_fov(game_map, entity, fov_radius,
+                                      fov_light_walls, fov_algorithm)
+                    break
+            else:
+                msg = Message("There are no stairs here.", tcod.yellow)
+                message_log.add_message(msg)
 
         if omnivis:  # {"omnivis": True}
             next_turn = False

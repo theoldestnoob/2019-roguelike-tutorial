@@ -25,7 +25,7 @@ class GameMapBSP(GameMap):
                  max_monsters_per_room=0, max_items_per_room=0, **kwargs):
         map_width = self.width - 1
         map_height = self.height - 1
-        randseed(self.seed)
+        randseed(str(self.seed) + str(self.dlevel))
         self.rect_rooms = rect_rooms
         self.circ_rooms = circ_rooms
 
