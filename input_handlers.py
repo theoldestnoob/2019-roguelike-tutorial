@@ -31,7 +31,6 @@ class InputHandler(tcod.event.EventDispatch):
 
         elif self.state in (GameStates.SHOW_INVENTORY,
                             GameStates.DROP_INVENTORY):
-            keymap_nomod = inv_show_keymap_nomod
             inv_index = event.sym - ord("a")
             if 0 <= inv_index < 26:
                 self._user_in_q.append({"inventory_index": inv_index})
@@ -45,6 +44,9 @@ class InputHandler(tcod.event.EventDispatch):
 
         elif self.state == GameStates.MAIN_MENU:
             keymap_nomod = menu_keymap_nomod
+
+        elif self.state == GameStates.LEVEL_UP:
+            keymap_nomod = level_up_keymap_nomod
 
         if keymap_nomod is None:
             keymap_nomod = default_keymap_nomod
@@ -129,6 +131,7 @@ normal_keymap_nomod = {
         tcod.event.K_i: {"show_inventory": True},
         tcod.event.K_d: {"drop_inventory": True},
         tcod.event.K_GREATER: {"take_stairs": True},
+        tcod.event.K_c: {"show_character_screen": True},
         tcod.event.K_q: {"msg_up": True},
         tcod.event.K_a: {"msg_down": True},
         tcod.event.K_ESCAPE: {"exit": True},
@@ -149,10 +152,6 @@ normal_keymap_lalt = {
 
 normal_keymap_shift = {
         tcod.event.K_PERIOD: {"take_stairs": True}
-        }
-
-inv_show_keymap_nomod = {
-        tcod.event.K_ESCAPE: {"exit": True}
         }
 
 target_keymap_nomod = {
@@ -177,4 +176,11 @@ menu_keymap_nomod = {
         tcod.event.K_a: {"new_game": True},
         tcod.event.K_b: {"load_game": True},
         tcod.event.K_c: {"exit": True}
+        }
+
+level_up_keymap_nomod = {
+        tcod.event.K_ESCAPE: {"exit": True},
+        tcod.event.K_a: {"level_up": "hp"},
+        tcod.event.K_b: {"level_up": "str"},
+        tcod.event.K_c: {"level_up": "def"}
         }
