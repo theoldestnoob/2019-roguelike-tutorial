@@ -19,6 +19,7 @@ from entity import Entity
 from components.fighter import Fighter
 from components.ai import BasicMonster
 from components.inventory import Inventory
+from components.stairs import Stairs
 from render_functions import RenderOrder
 from components.item import Item
 from item_functions import heal, cast_lightning, cast_fireball, cast_confuse
@@ -30,10 +31,11 @@ class GameMap:
     used by all GameMap subclasses. By itself just creates one room that fills
     the map with a 1-width wall around the edge.
     '''
-    def __init__(self, width, height, seed, con=None, debug=False):
+    def __init__(self, width, height, seed, dlevel=1, con=None, debug=False):
         self.width = width
         self.height = height
         self.tiles = self.initialize_tiles()
+        self.dlevel = dlevel
         self.seed = seed
         self.con = con
         self.debug = debug
@@ -182,11 +184,13 @@ class GameMap:
         number_of_monsters = randint(0, max_monsters_per_room)
         number_of_items = randint(0, max_items_per_room)
 
+        # place monsters
         for i in range(number_of_monsters):
             x, y = choice(room.coords)
             if not any([e for e in entities if e.x == x and e.y == y]):
                 if randint(0, 100) < 80:
-                    fighter_component = Fighter(hp=10, defense=0, power=3)
+                    fighter_component = Fighter(hp=10, defense=0, power=3,
+                                                xp=135)
                     ai_component = BasicMonster()
                     inv_component = Inventory(5)
                     m_soul = randint(1, 80)
@@ -198,7 +202,8 @@ class GameMap:
                                      ai=ai_component, inventory=inv_component,
                                      render_order=RenderOrder.ACTOR)
                 else:
-                    fighter_component = Fighter(hp=16, defense=1, power=4)
+                    fighter_component = Fighter(hp=16, defense=1, power=4,
+                                                xp=200)
                     ai_component = BasicMonster()
                     inv_component = Inventory(10)
                     m_soul = randint(60, 120)
@@ -211,6 +216,7 @@ class GameMap:
 
                 entities.append(monster)
 
+        # place items
         for i in range(number_of_items):
             x, y = choice(room.coords)
             if not any([e for e in entities if e.x == x and e.y == y]):
@@ -252,6 +258,15 @@ class GameMap:
                                   render_order=RenderOrder.ITEM,
                                   item=item_component)
                 entities.append(item)
+
+    def place_stairs_down(self, room, entities):
+        '''Place stairs down to next level in room.'''
+        stairs_component = Stairs(self.dlevel + 1)
+        x, y = room.center()
+        down_stairs = Entity(len(entities), x, y, ">", tcod.white,
+                             "Stairs Down", render_order=RenderOrder.STAIRS,
+                             stairs=stairs_component)
+        entities.append(down_stairs)
 
     def game_map_to_walkable_array(self):
         '''Return a multidimensional array of bools describing map walkability.

@@ -9,13 +9,14 @@ import tcod
 from enum import Enum
 
 from game_states import GameStates
-from menus import inventory_menu
+from menus import inventory_menu, level_up_menu, character_screen
 
 
 class RenderOrder(Enum):
-    CORPSE = 1
-    ITEM = 2
-    ACTOR = 3
+    STAIRS = 1
+    CORPSE = 2
+    ITEM = 3
+    ACTOR = 4
 
 
 def render_bar(panel, x, y, total_width, name, value, maximum, bar_color,
@@ -83,6 +84,9 @@ def render_all(con, panel_ui, panel_map, entities, game_map, curr_entity,
                             omnivision)
 
     # draw UI panel
+    # Dungeon Level
+    panel_ui.print(1, 3, f"Dungeon Level: {game_map.dlevel}", tcod.white)
+
     # HP bar
     render_bar(panel_ui, 1, 1, bar_width, "HP", curr_entity.fighter.hp,
                curr_entity.fighter.max_hp, tcod.light_red, tcod.darker_red)
@@ -115,6 +119,12 @@ def render_all(con, panel_ui, panel_map, entities, game_map, curr_entity,
             m_str = "Press the key next to an item to drop it, or Esc to cancel"
         inventory_menu(con, m_str, curr_entity.inventory, 50,
                        screen_width, screen_height)
+    # display level up menu if we've leveled up
+    elif game_state == GameStates.LEVEL_UP:
+        level_up_menu(con, "Level up! Choose a stat to raise!", curr_entity,
+                      40, screen_width, screen_height)
+    elif game_state == GameStates.CHARACTER_SCREEN:
+        character_screen(con, curr_entity, 30, 10, screen_width, screen_height)
 
     # clear map and ui panels for next time
     panel_map.clear()
@@ -172,7 +182,9 @@ def gray_map(console):
 
 
 def draw_entity(console, game_map, entity, curr_entity, omnivision):
-    if curr_entity.fov_map.fov[entity.y][entity.x] or omnivision:
+    if ((entity.stairs and curr_entity.ident in game_map.tiles[entity.x][entity.y].explored)
+            or curr_entity.fov_map.fov[entity.y][entity.x]
+            or omnivision):
         map_x, map_y = get_map_offset(console, game_map, curr_entity)
         con_x, con_y = get_console_offset(console, game_map)
         x_off = map_x - con_x

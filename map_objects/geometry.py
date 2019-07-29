@@ -55,6 +55,11 @@ class Space:
                         return True
         return False
 
+    # TODO: add functional "center" function
+    def center(self):
+        middle = self.coords[len(self.coords) // 2]
+        return (middle.x, middle.y)
+
 
 class Rect(Space):
     '''Rectangular Space, some methods are faster than the generics.'''

@@ -43,6 +43,9 @@ def parse_input(console, in_handle, user_in, curr_entity, entities, game_map,
     inventory_index = user_in.get("inventory_index")
     in_target = user_in.get("in_target")
     cancel_target = user_in.get("cancel_target")
+    take_stairs = user_in.get("take_stairs")
+    level_up = user_in.get("level_up")
+    show_character_screen = user_in.get("show_character_screen")
 
     # put together actions based on user input
     if move:
@@ -138,10 +141,18 @@ def parse_input(console, in_handle, user_in, curr_entity, entities, game_map,
         targeting_item.item.target_y = y
         actions.append({"use_item": targeting_item})
 
+    if level_up:
+        print(level_up)
+        choice = level_up
+        actions.append({"level_up": (curr_entity, choice)})
+
+    if show_character_screen:
+        actions.append({"show_character_screen": True})
+
     # TODO: I don't like having to pass actions through like this
     if (want_exit or fullscreen or omnivis or switch_char or map_gen
             or graph_gen or test or msg_up or msg_down or pickup
-            or inventory_index is not None or cancel_target):
+            or inventory_index is not None or cancel_target or take_stairs):
         actions.append(user_in)
 
     if ((show_hyperedges or show_edges or show_vertices)

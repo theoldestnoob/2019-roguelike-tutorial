@@ -25,7 +25,7 @@ class GameMapBSP(GameMap):
                  max_monsters_per_room=0, max_items_per_room=0, **kwargs):
         map_width = self.width - 1
         map_height = self.height - 1
-        randseed(self.seed)
+        randseed(str(self.seed) + str(self.dlevel))
         self.rect_rooms = rect_rooms
         self.circ_rooms = circ_rooms
 
@@ -52,6 +52,7 @@ class GameMapBSP(GameMap):
             if room is not self.rooms[0]:
                 self.place_entities(room, entities, max_monsters_per_room,
                                     max_items_per_room)
+        self.place_stairs_down(self.rooms[-1], entities)
 
     def partition(self, space, parts, bsp_depth, bsp_range,
                   room_min_size, room_max_size):

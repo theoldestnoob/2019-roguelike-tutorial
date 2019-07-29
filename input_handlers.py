@@ -20,15 +20,17 @@ class InputHandler(tcod.event.EventDispatch):
         raise SystemExit()
 
     def ev_keydown(self, event):
+        keymap_nomod = None
+        keymap_lalt = None
+        keymap_shift = None
         # get key mapping depending on game state
         if self.state == GameStates.NORMAL_TURN:
             keymap_nomod = normal_keymap_nomod
             keymap_lalt = normal_keymap_lalt
+            keymap_shift = normal_keymap_shift
 
         elif self.state in (GameStates.SHOW_INVENTORY,
                             GameStates.DROP_INVENTORY):
-            keymap_nomod = inv_show_keymap_nomod
-            keymap_lalt = inv_show_keymap_lalt
             inv_index = event.sym - ord("a")
             if 0 <= inv_index < 26:
                 self._user_in_q.append({"inventory_index": inv_index})
@@ -39,16 +41,27 @@ class InputHandler(tcod.event.EventDispatch):
 
         elif self.state == GameStates.TARGETING:
             keymap_nomod = target_keymap_nomod
-            keymap_lalt = target_keymap_lalt
 
         elif self.state == GameStates.MAIN_MENU:
             keymap_nomod = menu_keymap_nomod
-            keymap_lalt = menu_keymap_lalt
+
+        elif self.state == GameStates.LEVEL_UP:
+            keymap_nomod = level_up_keymap_nomod
+
+        if keymap_nomod is None:
+            keymap_nomod = default_keymap_nomod
+        if keymap_lalt is None:
+            keymap_lalt = default_keymap_lalt
+        if keymap_shift is None:
+            keymap_shift = default_keymap_shift
 
         # check and process any mapped modified keys
         if (event.mod & tcod.event.KMOD_LALT
                 and event.sym in keymap_lalt.keys()):
             self._user_in_q.append(keymap_lalt[event.sym])
+        elif (event.mod & tcod.event.KMOD_SHIFT
+              and event.sym in keymap_shift.keys()):
+            self._user_in_q.append(keymap_shift[event.sym])
         # if no mapped modified keys, push the nomod action to our queue
         elif event.sym in keymap_nomod.keys():
             self._user_in_q.append(keymap_nomod[event.sym])
@@ -78,6 +91,18 @@ class InputHandler(tcod.event.EventDispatch):
         self.state = state
 
 
+null_keymap = {}
+
+default_keymap_nomod = {
+        tcod.event.K_ESCAPE: {"exit": True}
+        }
+
+default_keymap_lalt = {
+        tcod.event.K_RETURN: {"fullscreen": True}
+        }
+
+default_keymap_shift = null_keymap
+
 normal_keymap_nomod = {
         tcod.event.K_UP: {"move": (0, -1)},
         tcod.event.K_DOWN: {"move": (0, 1)},
@@ -105,6 +130,8 @@ normal_keymap_nomod = {
         tcod.event.K_g: {"pickup": True},
         tcod.event.K_i: {"show_inventory": True},
         tcod.event.K_d: {"drop_inventory": True},
+        tcod.event.K_GREATER: {"take_stairs": True},
+        tcod.event.K_c: {"show_character_screen": True},
         tcod.event.K_q: {"msg_up": True},
         tcod.event.K_a: {"msg_down": True},
         tcod.event.K_ESCAPE: {"exit": True},
@@ -123,20 +150,12 @@ normal_keymap_lalt = {
         tcod.event.K_b: {"show_edges": True}
         }
 
-inv_show_keymap_nomod = {
-        tcod.event.K_ESCAPE: {"exit": True}
-        }
-
-inv_show_keymap_lalt = {
-        tcod.event.K_RETURN: {"fullscreen": True}
+normal_keymap_shift = {
+        tcod.event.K_PERIOD: {"take_stairs": True}
         }
 
 target_keymap_nomod = {
         tcod.event.K_ESCAPE: {"cancel_target": True}
-        }
-
-target_keymap_lalt = {
-        tcod.event.K_RETURN: {"fullscreen": True}
         }
 
 fail_keymap_nomod = {
@@ -159,6 +178,9 @@ menu_keymap_nomod = {
         tcod.event.K_c: {"exit": True}
         }
 
-menu_keymap_lalt = {
-        tcod.event.K_RETURN: {"fullscreen": True}
+level_up_keymap_nomod = {
+        tcod.event.K_ESCAPE: {"exit": True},
+        tcod.event.K_a: {"level_up": "hp"},
+        tcod.event.K_b: {"level_up": "str"},
+        tcod.event.K_c: {"level_up": "def"}
         }

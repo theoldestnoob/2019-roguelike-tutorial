@@ -65,6 +65,46 @@ def main_menu(console, background_image, screen_width, screen_height):
     menu(console, "", options, 24, screen_width, screen_height)
 
 
+def level_up_menu(console, header, entity, menu_width,
+                  screen_width, screen_height):
+    options = [f"Constitution (+20 HP, from {entity.fighter.max_hp})",
+               f"Strength (+1 attack, from {entity.fighter.power})",
+               f"Agility (+1 defense, from {entity.fighter.defense})"]
+    menu(console, header, options, menu_width, screen_width, screen_height)
+
+
+def character_screen(console, entity, ch_width, ch_height,
+                     screen_width, screen_height):
+    window = tcod.console.Console(ch_width, ch_height)
+    window.draw_frame(0, 0, ch_width, ch_height, fg=tcod.white, bg=tcod.black)
+    if entity.level:
+        ch_level = entity.level.current_level
+        ch_xp = entity.level.current_xp
+        ch_xp_to_next = entity.level.xp_to_next_level
+    else:
+        ch_level = "N/A"
+        ch_xp = "N/A"
+        ch_xp_to_next = "N/A"
+    if entity.fighter:
+        ch_maxhp = entity.fighter.max_hp
+        ch_atk = entity.fighter.power
+        ch_def = entity.fighter.defense
+    else:
+        ch_maxhp = "N/A"
+        ch_atk = "N/A"
+        ch_def = "N/A"
+    window.print(1, 1, "Character Information")
+    window.print(1, 2, f"Level: {ch_level}")
+    window.print(1, 3, f"Experience: {ch_xp}")
+    window.print(1, 4, f"XP to Level: {ch_xp_to_next}")
+    window.print(1, 6, f"Maximum HP: {ch_maxhp}")
+    window.print(1, 7, f"Attack: {ch_atk}")
+    window.print(1, 8, f"Defense: {ch_def}")
+    x = screen_width // 2 - ch_width // 2
+    y = screen_height // 2 - ch_height // 2
+    window.blit(console, dest_x=x, dest_y=y)
+
+
 def message_box(con, message, width, screen_width, screen_height,
                 msg_fg=tcod.white, msg_bg=tcod.black,
                 frame_fg=tcod.white, frame_bg=tcod.black):

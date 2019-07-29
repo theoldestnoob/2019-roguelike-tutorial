@@ -52,6 +52,8 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
         targeting = action.get("targeting")
         cancel_target = action.get("cancel_target")
         dead = action.get("dead")
+        xp = action.get("xp")
+        level_up = action.get("level_up")
 
         if message:  # {"message": message_string}
             render_update = True
@@ -78,6 +80,10 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
             next_turn = True
             entity, target = melee
             melee_results = entity.fighter.attack(target)
+            for action in melee_results:
+                xp = action.get("xp")
+                if xp:
+                    action["xp"] = [entity, xp[1]]
             actions.extend(melee_results)
 
         if wait:  # {"wait": int_time}
@@ -177,6 +183,34 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
             message = kill_entity(dead)
             message_log.add_message(message)
 
+        if xp:  # {"xp": [entity, xp]}
+            entity, xp_gain = xp
+            if entity is not None and entity.level:
+                level_from_xp = entity.level.add_xp(xp_gain)
+                msg_str = f"{entity.name} gains {xp_gain} experience points."
+                msg = Message(msg_str, tcod.white)
+                message_log.add_message(msg)
+                if level_from_xp:
+                    msg_str = (f"{entity.name} grows stronger!  They have "
+                               f"reached level {entity.level.current_level}!")
+                    message_log.add_message(Message(msg_str, tcod.yellow))
+                    if entity is controlled_entity:
+                        prev_state = game_state
+                        game_state = GameStates.LEVEL_UP
+
+        if level_up:  # {"level_up": [entity, ("hp"|"str"|"def")]}
+            entity, choice = level_up
+            if choice == "hp":
+                entity.fighter.max_hp += 20
+                entity.fighter.hp += 20
+            elif choice == "str":
+                entity.fighter.power += 1
+            elif choice == "def":
+                entity.fighter.defense += 1
+            game_state = prev_state
+            render_update = True
+            next_turn = False
+
     return (action_cost, next_turn, controlled_entity, render_update,
             game_state, prev_state, targeting_item)
 
@@ -212,6 +246,8 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
         msg_down = action.get("msg_down")
         show_inventory = action.get("show_inventory")
         drop_inventory = action.get("drop_inventory")
+        take_stairs = action.get("take_stairs")
+        show_character_screen = action.get("show_character_screen")
 
         # debug actions
         omnivis = action.get("omnivis")
@@ -222,7 +258,8 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
 
         if want_exit:  # {"exit": True}
             if game_state in (GameStates.SHOW_INVENTORY,
-                              GameStates.DROP_INVENTORY):
+                              GameStates.DROP_INVENTORY,
+                              GameStates.CHARACTER_SCREEN):
                 game_state = prev_state
                 want_exit = False
                 render_update = True
@@ -261,6 +298,39 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
             next_turn = False
             prev_state = game_state
             game_state = GameStates.DROP_INVENTORY
+
+        if take_stairs:
+            for entity in entities:
+                if (entity.stairs and entity.x == controlled_entity.x
+                        and entity.y == controlled_entity.y):
+                    game_map.dlevel += 1
+                    game_map.tiles = game_map.initialize_tiles()
+                    entities = [player, controlled_entity]
+                    game_map.make_map(player, entities, **mapset)
+                    # set up time system
+                    actors = [e for e in entities if e.ai]
+                    timeq = deque(sorted(actors, key=lambda e: e.time_to_act))
+                    curr_entity = timeq.popleft()
+                    next_turn = True
+                    # FOV calculation setup
+                    render_update = True
+                    for entity in actors:
+                        if entity.ident == 0:
+                            entity.fov_map = init_fov_entity0(game_map)
+                        else:
+                            entity.fov_map = initialize_fov(game_map)
+                        recompute_fov(game_map, entity, fov_radius,
+                                      fov_light_walls, fov_algorithm)
+                    break
+            else:
+                msg = Message("There are no stairs here.", tcod.yellow)
+                message_log.add_message(msg)
+
+        if show_character_screen:
+            render_update = True
+            next_turn = False
+            prev_state = game_state
+            game_state = GameStates.CHARACTER_SCREEN
 
         if omnivis:  # {"omnivis": True}
             next_turn = False
