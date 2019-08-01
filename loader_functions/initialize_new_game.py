@@ -70,9 +70,7 @@ def get_constants():
             "rect_rooms": 1,
             "unused": True,
             "bsp_range": 0.15,
-            "bsp_depth": 4,
-            "max_monsters_per_room": 3,
-            "max_items_per_room": 2
+            "bsp_depth": 4
     }
 
     mapset_bspcirc = {
@@ -88,9 +86,7 @@ def get_constants():
             "rect_rooms": 0,
             "unused": True,
             "bsp_range": 0.25,
-            "bsp_depth": 4,
-            "max_monsters_per_room": 3,
-            "max_items_per_room": 2
+            "bsp_depth": 4
     }
 
     mapset_bsprand = {
@@ -106,9 +102,7 @@ def get_constants():
             "rect_rooms": 1,
             "unused": True,
             "bsp_range": 0.4,
-            "bsp_depth": 4,
-            "max_monsters_per_room": 3,
-            "max_items_per_room": 26
+            "bsp_depth": 4
     }
 
     colors = {
@@ -151,7 +145,7 @@ def get_game_variables(constants, root_console, panel_map, debug_f):
 
     # object setup
     player_fighter = Fighter(hp=1, defense=0, power=0)
-    vip_fighter = Fighter(hp=30, defense=2, power=5)
+    vip_fighter = Fighter(hp=100, defense=1, power=4)
     player_ai = IdleMonster()
     vip_ai = IdleMonster()
     vip_inventory = Inventory(26)

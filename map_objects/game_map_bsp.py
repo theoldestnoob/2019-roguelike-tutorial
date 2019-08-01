@@ -50,8 +50,7 @@ class GameMapBSP(GameMap):
         self.place_player_vip(player, entities[1])
         for room in self.rooms:
             if room is not self.rooms[0]:
-                self.place_entities(room, entities, max_monsters_per_room,
-                                    max_items_per_room)
+                self.place_entities(room, entities)
         self.place_stairs_down(self.rooms[-1], entities)
 
     def partition(self, space, parts, bsp_depth, bsp_range,
