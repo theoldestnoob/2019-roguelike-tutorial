@@ -205,8 +205,8 @@ class GameMap:
             if not any([e for e in entities if e.x == x and e.y == y]):
                 monster_choice = random_choice_from_dict(monster_chances)
                 if monster_choice == "orc":
-                    fighter_component = Fighter(hp=10, defense=0, power=3,
-                                                xp=135)
+                    fighter_component = Fighter(hp=20, defense=0, power=4,
+                                                xp=35)
                     ai_component = BasicMonster()
                     inv_component = Inventory(5)
                     m_soul = randint(1, 80)
@@ -218,8 +218,8 @@ class GameMap:
                                      ai=ai_component, inventory=inv_component,
                                      render_order=RenderOrder.ACTOR)
                 else:
-                    fighter_component = Fighter(hp=16, defense=1, power=4,
-                                                xp=200)
+                    fighter_component = Fighter(hp=30, defense=2, power=8,
+                                                xp=100)
                     ai_component = BasicMonster()
                     inv_component = Inventory(10)
                     m_soul = randint(60, 120)
@@ -238,7 +238,7 @@ class GameMap:
             if not any([e for e in entities if e.x == x and e.y == y]):
                 item_choice = random_choice_from_dict(item_chances)
                 if item_choice == "healing_potion":
-                    item_component = Item(use_function=heal, amount=4)
+                    item_component = Item(use_function=heal, amount=40)
                     item = Entity(len(entities), x, y, '!', tcod.violet,
                                   "Healing Potion",
                                   render_order=RenderOrder.ITEM,
@@ -250,7 +250,7 @@ class GameMap:
                     item_component = Item(use_function=cast_fireball,
                                           targeting=True,
                                           targeting_message=msg,
-                                          damage=12, radius=3)
+                                          damage=25, radius=3)
                     item = Entity(len(entities), x, y, "#", tcod.red,
                                   "Fireball Scroll",
                                   render_order=RenderOrder.ITEM,
@@ -268,7 +268,7 @@ class GameMap:
                                   item=item_component)
                 else:
                     item_component = Item(use_function=cast_lightning,
-                                          damage=20, max_range=5)
+                                          damage=40, max_range=5)
                     item = Entity(len(entities), x, y, "#", tcod.yellow,
                                   "Lightning Scroll",
                                   render_order=RenderOrder.ITEM,
