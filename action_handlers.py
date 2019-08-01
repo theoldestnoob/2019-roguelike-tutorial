@@ -54,6 +54,7 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
         dead = action.get("dead")
         xp = action.get("xp")
         level_up = action.get("level_up")
+        equip = action.get("equip")
 
         if message:  # {"message": message_string}
             render_update = True
@@ -201,15 +202,37 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
         if level_up:  # {"level_up": [entity, ("hp"|"str"|"def")]}
             entity, choice = level_up
             if choice == "hp":
-                entity.fighter.max_hp += 20
+                entity.fighter.base_max_hp += 20
                 entity.fighter.hp += 20
             elif choice == "str":
-                entity.fighter.power += 1
+                entity.fighter.base_power += 1
             elif choice == "def":
-                entity.fighter.defense += 1
+                entity.fighter.base_defense += 1
             game_state = prev_state
             render_update = True
             next_turn = False
+
+        if equip:  # {"equip": [entity, item]}
+            entity, item = equip
+            equip_results = entity.equipment.toggle_equip(item)
+
+            for equip_result in equip_results:
+                # {"equipped": [entity, item]}
+                # {"dequipped": [entity, item]}
+                equipped = equip_result.get("equipped")
+                dequipped = equip_result.get("dequipped")
+                if dequipped:
+                    entity, item = dequipped
+                    msg_str = f"{entity.name} dequipped the {item.name}"
+                    message_log.add_message(Message(msg_str, tcod.white))
+                if equipped:
+                    entity, item = equipped
+                    msg_str = f"{entity.name} equipped the {item.name}"
+                    message_log.add_message(Message(msg_str, tcod.white))
+                if dequipped or equipped:
+                    next_turn = True
+                    render_update = True
+                    action_cost = 50
 
     return (action_cost, next_turn, controlled_entity, render_update,
             game_state, prev_state, targeting_item)
