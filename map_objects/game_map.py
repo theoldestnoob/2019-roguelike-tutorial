@@ -24,6 +24,7 @@ from render_functions import RenderOrder
 from components.item import Item
 from item_functions import heal, cast_lightning, cast_fireball, cast_confuse
 from game_messages import Message
+from random_utils import random_choice_from_dict
 
 
 class GameMap:
@@ -180,15 +181,20 @@ class GameMap:
 
     def place_entities(self, room, entities, max_monsters_per_room,
                        max_items_per_room):
-        '''Place entities randomly into a room on the map.'''
+        '''Place monsters and items randomly into a room on the map.'''
         number_of_monsters = randint(0, max_monsters_per_room)
         number_of_items = randint(0, max_items_per_room)
+
+        monster_chances = {"orc": 80, "troll": 20}
+        item_chances = {"healing_potion": 70, "lightning_scroll": 10,
+                        "fireball_scroll": 10, "confusion_scroll": 10}
 
         # place monsters
         for i in range(number_of_monsters):
             x, y = choice(room.coords)
             if not any([e for e in entities if e.x == x and e.y == y]):
-                if randint(0, 100) < 80:
+                monster_choice = random_choice_from_dict(monster_chances)
+                if monster_choice == "orc":
                     fighter_component = Fighter(hp=10, defense=0, power=3,
                                                 xp=135)
                     ai_component = BasicMonster()
@@ -220,14 +226,14 @@ class GameMap:
         for i in range(number_of_items):
             x, y = choice(room.coords)
             if not any([e for e in entities if e.x == x and e.y == y]):
-                item_chance = randint(0, 100)
-                if item_chance < 70:
+                item_choice = random_choice_from_dict(item_chances)
+                if item_choice == "healing_potion":
                     item_component = Item(use_function=heal, amount=4)
                     item = Entity(len(entities), x, y, '!', tcod.violet,
                                   "Healing Potion",
                                   render_order=RenderOrder.ITEM,
                                   item=item_component)
-                elif item_chance < 80:
+                elif item_choice == "fireball_scroll":
                     msg_str = (f"Left-click a target tile for the fireball, "
                                f"or right-click to cancel.")
                     msg = Message(msg_str, tcod.light_cyan)
@@ -239,7 +245,7 @@ class GameMap:
                                   "Fireball Scroll",
                                   render_order=RenderOrder.ITEM,
                                   item=item_component)
-                elif item_chance < 90:
+                elif item_choice == "confusion_scroll":
                     msg_str = (f"Left-click an enemy to confuse it, "
                                f"or right-click to cancel")
                     msg = Message(msg_str, tcod.light_cyan)
