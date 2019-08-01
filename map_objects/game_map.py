@@ -186,9 +186,18 @@ class GameMap:
         number_of_monsters = randint(0, max_monsters_per_room)
         number_of_items = randint(0, max_items_per_room)
 
-        monster_chances = {"orc": 80, "troll": 20}
-        item_chances = {"healing_potion": 70, "lightning_scroll": 10,
-                        "fireball_scroll": 10, "confusion_scroll": 10}
+        monster_chances = {
+                "orc": 80,
+                "troll": from_dungeon_level([[15, 3], [30, 5], [60, 7]],
+                                            self.dlevel)
+                }
+        item_chances = {"healing_potion": 35,
+                        "lightning_scroll": from_dungeon_level([[25, 4]],
+                                                               self.dlevel),
+                        "fireball_scroll": from_dungeon_level([[25, 6]],
+                                                              self.dlevel),
+                        "confusion_scroll": from_dungeon_level([[10, 2]],
+                                                               self.dlevel)}
 
         # place monsters
         for i in range(number_of_monsters):
