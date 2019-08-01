@@ -43,8 +43,13 @@ class Inventory:
         item_component = item_entity.item
 
         if item_component.use_function is None:
-            msg = Message("The {item_entity.name} cannot be used", tcod.yellow)
-            results.append({"message": msg})
+            equippable_component = item_entity.equippable
+            if equippable_component:
+                results.append({"equip": [self.owner, item_entity]})
+            else:
+                msg_str = "The {item_entity.name} cannot be used"
+                msg = Message(msg_str, tcod.yellow)
+                results.append({"message": msg})
         else:
             if (item_component.targeting and
                     not (item_component.target_x or item_component.target_y)):
@@ -67,6 +72,11 @@ class Inventory:
 
     def drop(self, item):
         results = []
+
+        # TODO: rewrite as part of equipment slot overhaul
+        if (self.owner.equipment.main_hand == item
+                or self.owner.equipment.off_hand == item):
+            self.owner.equipment.toggle_equip(item)
 
         item.x = self.owner.x
         item.y = self.owner.y

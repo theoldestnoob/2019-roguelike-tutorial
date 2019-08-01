@@ -21,6 +21,9 @@ from components.fighter import Fighter
 from components.ai import IdleMonster
 from components.inventory import Inventory
 from components.level import Level
+from components.equipment import Equipment
+from components.equippable import Equippable
+from equipment_slots import EquipmentSlots
 
 
 def get_constants():
@@ -145,19 +148,26 @@ def get_game_variables(constants, root_console, panel_map, debug_f):
 
     # object setup
     player_fighter = Fighter(hp=1, defense=0, power=0)
-    vip_fighter = Fighter(hp=100, defense=1, power=4)
+    vip_fighter = Fighter(hp=100, defense=1, power=2)
     player_ai = IdleMonster()
     vip_ai = IdleMonster()
     vip_inventory = Inventory(26)
     vip_level = Level()
+    vip_equipment = Equipment()
     player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False, soul=1,
                     fighter=player_fighter, ai=player_ai,
                     render_order=RenderOrder.ACTOR, speed=25)
     vip = Entity(1, 0, 0, "&", tcod.yellow, "VIP", blocks=True, soul=10,
                  fighter=vip_fighter, ai=vip_ai, inventory=vip_inventory,
-                 render_order=RenderOrder.ACTOR, level=vip_level)
+                 render_order=RenderOrder.ACTOR, level=vip_level,
+                 equipment=vip_equipment)
     entities = [player, vip]
     controlled_entity = player
+    equippable_component = Equippable(EquipmentSlots.MAIN_HAND, power_bonus=2)
+    dagger = Entity(2, 0, 0, "-", tcod.sky, "Dagger",
+                    equippable=equippable_component)
+    vip.inventory.add_item(dagger)
+    vip.equipment.toggle_equip(dagger)
     game_state = GameStates.NORMAL_TURN
     prev_state = GameStates.NORMAL_TURN
 

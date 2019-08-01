@@ -9,6 +9,7 @@ import math
 import tcod
 
 from render_functions import RenderOrder
+from components.item import Item
 
 
 class Entity:
@@ -18,7 +19,7 @@ class Entity:
     def __init__(self, ident, x, y, char, color, name, soul=0, blocks=False,
                  fov_map=None, fighter=None, ai=None, speed=10,
                  render_order=RenderOrder.CORPSE, item=None, inventory=None,
-                 stairs=None, level=None):
+                 stairs=None, level=None, equipment=None, equippable=None):
         # every entity has an ident and a name
         # TODO: add component for insubstantiality, or just test on blocks
         #       for if we can walk into stuff or not, or add a variable for
@@ -59,6 +60,16 @@ class Entity:
         self.level = level
         if self.level:
             self.level.owner = self
+        self.equipment = equipment
+        if self.equipment:
+            self.equipment.owner = self
+        self.equippable = equippable
+        if self.equippable:
+            self.equippable.owner = self
+            if not self.item:
+                item = Item()
+                self.item = item
+                self.item.owner = self
 
     def move(self, dx, dy):
         '''Change Entity location by dx, dy.'''

@@ -20,6 +20,8 @@ from components.fighter import Fighter
 from components.ai import BasicMonster
 from components.inventory import Inventory
 from components.stairs import Stairs
+from components.equipment import EquipmentSlots
+from components.equippable import Equippable
 from render_functions import RenderOrder
 from components.item import Item
 from item_functions import heal, cast_lightning, cast_fireball, cast_confuse
@@ -192,6 +194,8 @@ class GameMap:
                                             self.dlevel)
                 }
         item_chances = {"healing_potion": 35,
+                        "sword": from_dungeon_level([[5, 4]], self.dlevel),
+                        "shield": from_dungeon_level([[15, 8]], self.dlevel),
                         "lightning_scroll": from_dungeon_level([[25, 4]],
                                                                self.dlevel),
                         "fireball_scroll": from_dungeon_level([[25, 6]],
@@ -243,6 +247,16 @@ class GameMap:
                                   "Healing Potion",
                                   render_order=RenderOrder.ITEM,
                                   item=item_component)
+                elif item_choice == "sword":
+                    equippable_component = Equippable(EquipmentSlots.MAIN_HAND,
+                                                      power_bonus=3)
+                    item = Entity(len(entities), x, y, "/", tcod.sky, "Sword",
+                                  equippable=equippable_component)
+                elif item_choice == "shield":
+                    equippable_component = Equippable(EquipmentSlots.OFF_HAND,
+                                                      defense_bonus=1)
+                    item = Entity(len(entities), x, y, "[", tcod.dark_orange,
+                                  "Shield", equippable=equippable_component)
                 elif item_choice == "fireball_scroll":
                     msg_str = (f"Left-click a target tile for the fireball, "
                                f"or right-click to cancel.")
