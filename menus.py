@@ -94,12 +94,13 @@ def character_screen(console, entity, ch_width, ch_height,
         ch_atk = "N/A"
         ch_def = "N/A"
     window.print(1, 1, "Character Information")
-    window.print(1, 2, f"Level: {ch_level}")
-    window.print(1, 3, f"Experience: {ch_xp}")
-    window.print(1, 4, f"XP to Level: {ch_xp_to_next}")
-    window.print(1, 6, f"Maximum HP: {ch_maxhp}")
-    window.print(1, 7, f"Attack: {ch_atk}")
-    window.print(1, 8, f"Defense: {ch_def}")
+    window.print(1, 2, f"Name: {entity.name}")
+    window.print(1, 3, f"Level: {ch_level}")
+    window.print(1, 4, f"Experience: {ch_xp}")
+    window.print(1, 5, f"XP to Level: {ch_xp_to_next}")
+    window.print(1, 7, f"Maximum HP: {ch_maxhp}")
+    window.print(1, 8, f"Attack: {ch_atk}")
+    window.print(1, 9, f"Defense: {ch_def}")
     x = screen_width // 2 - ch_width // 2
     y = screen_height // 2 - ch_height // 2
     window.blit(console, dest_x=x, dest_y=y)

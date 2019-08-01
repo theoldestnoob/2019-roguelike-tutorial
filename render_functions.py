@@ -124,7 +124,7 @@ def render_all(con, panel_ui, panel_map, entities, game_map, curr_entity,
         level_up_menu(con, "Level up! Choose a stat to raise!", curr_entity,
                       40, screen_width, screen_height)
     elif game_state == GameStates.CHARACTER_SCREEN:
-        character_screen(con, curr_entity, 30, 10, screen_width, screen_height)
+        character_screen(con, curr_entity, 30, 11, screen_width, screen_height)
 
     # clear map and ui panels for next time
     panel_map.clear()
