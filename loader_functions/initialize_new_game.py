@@ -56,8 +56,8 @@ def get_constants():
     omnivision = False
 
     # map settings
-    map_width = 100
-    map_height = 60
+    map_width = 80
+    map_height = 43
 
     # various map settings - TODO: move to other module
     mapset_bsprect = {
@@ -154,7 +154,8 @@ def get_game_variables(constants, root_console, panel_map, debug_f):
     vip_inventory = Inventory(26)
     vip_level = Level()
     vip_equipment = Equipment()
-    player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False, soul=1,
+    player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False,
+                    aetherial=True, soul=1,
                     fighter=player_fighter, ai=player_ai,
                     render_order=RenderOrder.ACTOR, speed=25)
     vip = Entity(1, 0, 0, "&", tcod.yellow, "VIP", blocks=True, soul=10,

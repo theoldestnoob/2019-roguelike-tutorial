@@ -16,8 +16,8 @@ class Entity:
     """
     A generic object to represent players, enemies, items, etc.
     """
-    def __init__(self, ident, x, y, char, color, name, soul=0, blocks=False,
-                 fov_map=None, fighter=None, ai=None, speed=10,
+    def __init__(self, ident, x, y, char, color, name, soul=0, aetherial=False,
+                 blocks=False, fov_map=None, fighter=None, ai=None, speed=10,
                  render_order=RenderOrder.CORPSE, item=None, inventory=None,
                  stairs=None, level=None, equipment=None, equippable=None):
         # every entity has an ident and a name
@@ -34,8 +34,9 @@ class Entity:
         self.render_order = render_order
         # TODO: move to "soul" component with other soul-related attributes
         self.soul = soul
+        self.aetherial = aetherial
         self.blocks = blocks
-        # TODO: move to "fov" component?
+        # TODO: move to "fov" component and add fov range?
         self.fov_recompute = False
         self.fov_map = fov_map
         # TODO: move to "actor" component? bundle in "ai" component?
