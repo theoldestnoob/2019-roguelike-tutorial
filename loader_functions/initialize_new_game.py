@@ -17,6 +17,7 @@ from map_objects.game_map_bsp import GameMapBSP
 from map_objects.game_map_randomrooms import GameMapRandomRooms
 from fov_functions import initialize_fov, init_fov_aetherial, recompute_fov
 from game_messages import MessageLog
+from components.soul import Soul
 from components.fighter import Fighter
 from components.ai import IdleMonster
 from components.inventory import Inventory
@@ -147,6 +148,8 @@ def get_constants():
 def get_game_variables(constants, root_console, panel_map, debug_f):
 
     # object setup
+    player_soul = Soul("@", tcod.white)
+    vip_soul = Soul("@", tcod.azure)
     player_fighter = Fighter(hp=1, defense=0, power=0)
     vip_fighter = Fighter(hp=100, defense=1, power=2)
     player_ai = IdleMonster()
@@ -155,10 +158,10 @@ def get_game_variables(constants, root_console, panel_map, debug_f):
     vip_level = Level()
     vip_equipment = Equipment()
     player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False,
-                    aetherial=True, soul=1,
+                    aetherial=True, soul=player_soul,
                     fighter=player_fighter, ai=player_ai,
                     render_order=RenderOrder.ACTOR, speed=25)
-    vip = Entity(1, 0, 0, "&", tcod.yellow, "VIP", blocks=True, soul=10,
+    vip = Entity(1, 0, 0, "&", tcod.yellow, "VIP", blocks=True, soul=vip_soul,
                  fighter=vip_fighter, ai=vip_ai, inventory=vip_inventory,
                  render_order=RenderOrder.ACTOR, level=vip_level,
                  equipment=vip_equipment)

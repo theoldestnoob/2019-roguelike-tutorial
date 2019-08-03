@@ -94,7 +94,7 @@ def parse_input(console, in_handle, user_in, curr_entity, entities, game_map,
                                                    dest_x, dest_y)
         # if currently aetherial, we're not possessing anyone
         if curr_entity.aetherial:
-            if target and target.soul > 0:
+            if target and target.soul:
                 actions.append({"possess": target})
             else:
                 actions.append({"message":

@@ -16,6 +16,7 @@ from map_objects.geometry import line_lerp_orthogonal
 from map_objects.tile import Tile
 from map_objects.map_graph import MapGraph
 from entity import Entity
+from components.soul import Soul
 from components.fighter import Fighter
 from components.ai import BasicMonster
 from components.inventory import Inventory
@@ -213,7 +214,9 @@ class GameMap:
                                                 xp=35)
                     ai_component = BasicMonster()
                     inv_component = Inventory(5)
-                    m_soul = randint(1, 80)
+                    soul_char = choice([".", "*", "+"])
+                    soul_color = choice([tcod.red, tcod.orange, tcod.yellow])
+                    m_soul = Soul(soul_char, soul_color)
                     m_name = "Orc" + str(len(entities))
                     monster = Entity(len(entities), x, y, 'o',
                                      tcod.desaturated_green, m_name,
@@ -226,7 +229,9 @@ class GameMap:
                                                 xp=100)
                     ai_component = BasicMonster()
                     inv_component = Inventory(10)
-                    m_soul = randint(60, 120)
+                    soul_char = choice(["*", "+"])
+                    soul_color = choice([tcod.orange, tcod.yellow, tcod.green])
+                    m_soul = Soul(soul_char, soul_color)
                     m_name = "Troll" + str(len(entities))
                     monster = Entity(len(entities), x, y, 'T',
                                      tcod.darker_green, m_name, blocks=True,

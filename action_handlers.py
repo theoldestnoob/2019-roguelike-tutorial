@@ -13,6 +13,7 @@ from collections import deque
 from render_functions import RenderOrder
 from fov_functions import initialize_fov, init_fov_aetherial, recompute_fov
 from entity import Entity
+from components.soul import Soul
 from components.fighter import Fighter
 from components.ai import IdleMonster
 from components.inventory import Inventory
@@ -369,7 +370,7 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
             else:
                 controlled_entity = entities[index]
             # only switch to controllable entities
-            while controlled_entity.soul <= 0:
+            while not controlled_entity.soul:
                 index = controlled_entity.ident + 1
                 if index >= len(entities):
                     controlled_entity = entities[0]
@@ -381,16 +382,18 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
             render_update = True
             game_map.seed = randint(0, 99999)
             game_map.tiles = game_map.initialize_tiles()
+            player_soul = Soul("@", tcod.white)
             player_fighter = Fighter(hp=1, defense=0, power=0)
+            vip_soul = Soul("@", tcod.azure)
             vip_fighter = Fighter(hp=30, defense=2, power=5)
             player_ai = IdleMonster()
             vip_ai = IdleMonster()
             vip_inventory = Inventory(26)
             player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False,
                             ai=player_ai, render_order=RenderOrder.ACTOR,
-                            fighter=player_fighter, speed=25, soul=1)
+                            fighter=player_fighter, speed=25, soul=player_soul)
             vip = Entity(1, 0, 0, "&", tcod.yellow, "VIP", blocks=True,
-                         fighter=vip_fighter, ai=vip_ai, soul=10,
+                         fighter=vip_fighter, ai=vip_ai, soul=vip_soul,
                          inventory=vip_inventory,
                          render_order=RenderOrder.ACTOR)
             entities = [player, vip]

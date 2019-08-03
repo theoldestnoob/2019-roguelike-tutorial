@@ -16,7 +16,8 @@ class Entity:
     """
     A generic object to represent players, enemies, items, etc.
     """
-    def __init__(self, ident, x, y, char, color, name, soul=0, aetherial=False,
+    def __init__(self, ident, x, y, char, color, name, soul=None,
+                 aetherial=False,
                  blocks=False, fov_map=None, fighter=None, ai=None, speed=10,
                  render_order=RenderOrder.CORPSE, item=None, inventory=None,
                  stairs=None, level=None, equipment=None, equippable=None):
@@ -32,8 +33,6 @@ class Entity:
         self.char = char
         self.color = color
         self.render_order = render_order
-        # TODO: move to "soul" component with other soul-related attributes
-        self.soul = soul
         self.aetherial = aetherial
         self.blocks = blocks
         # TODO: move to "fov" component and add fov range?
@@ -43,6 +42,9 @@ class Entity:
         self.speed = speed
         self.time_to_act = int(100 / speed)
         # Entity components
+        self.soul = soul
+        if self.soul:
+            self.soul.owner = self
         self.fighter = fighter
         if self.fighter:
             self.fighter.owner = self
