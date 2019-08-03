@@ -10,8 +10,8 @@ import tcod.event
 from random import randint
 from collections import deque
 
-from render_functions import RenderOrder, display_space, render_all
-from fov_functions import initialize_fov, init_fov_entity0, recompute_fov
+from render_functions import RenderOrder
+from fov_functions import initialize_fov, init_fov_aetherial, recompute_fov
 from entity import Entity
 from components.fighter import Fighter
 from components.ai import IdleMonster
@@ -339,7 +339,7 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
                     render_update = True
                     for entity in actors:
                         if entity.ident == 0:
-                            entity.fov_map = init_fov_entity0(game_map)
+                            entity.fov_map = init_fov_aetherial(game_map)
                         else:
                             entity.fov_map = initialize_fov(game_map)
                         recompute_fov(game_map, entity, fov_radius,
@@ -405,7 +405,7 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
             render_update = True
             for entity in actors:
                 if entity.ident == 0:
-                    entity.fov_map = init_fov_entity0(game_map)
+                    entity.fov_map = init_fov_aetherial(game_map)
                 else:
                     entity.fov_map = initialize_fov(game_map)
                 recompute_fov(game_map, entity, fov_radius, fov_light_walls,

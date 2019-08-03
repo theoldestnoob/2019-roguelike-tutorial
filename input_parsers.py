@@ -52,8 +52,8 @@ def parse_input(console, in_handle, user_in, curr_entity, entities, game_map,
         dx, dy = move
         dest_x = curr_entity.x + dx
         dest_y = curr_entity.y + dy
-        # entity 0 can move through walls
-        if curr_entity.ident == 0:
+        # aetherial entities can move through walls
+        if curr_entity.aetherial:
             target = get_blocking_entities_at_location(entities,
                                                        dest_x, dest_y)
             if target:
@@ -92,8 +92,8 @@ def parse_input(console, in_handle, user_in, curr_entity, entities, game_map,
         dest_y = curr_entity.y + dy
         target = get_blocking_entities_at_location(entities,
                                                    dest_x, dest_y)
-        # if currently entity 0, we're not possessing anyone
-        if curr_entity.ident == 0:
+        # if currently aetherial, we're not possessing anyone
+        if curr_entity.aetherial:
             if target and target.soul > 0:
                 actions.append({"possess": target})
             else:
@@ -123,10 +123,10 @@ def parse_input(console, in_handle, user_in, curr_entity, entities, game_map,
             item = curr_entity.inventory.items[inventory_index]
             actions.append({"drop_item": item})
 
-    if curr_entity.ident != 0 and show_inventory:
+    if curr_entity.inventory and show_inventory:
         actions.append(user_in)
 
-    if curr_entity.ident != 0 and drop_inventory:
+    if curr_entity.inventory and drop_inventory:
         actions.append(user_in)
 
     if in_target and game_state == GameStates.TARGETING:
