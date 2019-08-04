@@ -19,7 +19,7 @@ def initialize_fov(game_map):
     return fov_map
 
 
-def init_fov_aetherial(game_map):
+def init_fov_etheric(game_map):
 
     fov_map = tcod.map.Map(width=game_map.width, height=game_map.height)
     fov_map.transparent[:] = True

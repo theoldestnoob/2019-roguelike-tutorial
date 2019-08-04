@@ -15,7 +15,7 @@ from game_states import GameStates
 from map_objects.game_map import GameMap
 from map_objects.game_map_bsp import GameMapBSP
 from map_objects.game_map_randomrooms import GameMapRandomRooms
-from fov_functions import initialize_fov, init_fov_aetherial, recompute_fov
+from fov_functions import initialize_fov, init_fov_etheric, recompute_fov
 from game_messages import MessageLog
 from components.soul import Soul
 from components.fighter import Fighter
@@ -158,7 +158,7 @@ def get_game_variables(constants, root_console, panel_map, debug_f):
     vip_level = Level()
     vip_equipment = Equipment()
     player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False,
-                    aetherial=True, soul=player_soul,
+                    etheric=True, soul=player_soul,
                     fighter=player_fighter, ai=player_ai,
                     render_order=RenderOrder.ACTOR, speed=25)
     vip = Entity(1, 0, 0, "&", tcod.yellow, "VIP", blocks=True, soul=vip_soul,
@@ -197,8 +197,8 @@ def get_game_variables(constants, root_console, panel_map, debug_f):
     render_update = True
 
     for entity in actors:
-        if entity.aetherial:
-            entity.fov_map = init_fov_aetherial(game_map)
+        if entity.etheric:
+            entity.fov_map = init_fov_etheric(game_map)
         else:
             entity.fov_map = initialize_fov(game_map)
         recompute_fov(game_map, entity, constants["fov_radius"],

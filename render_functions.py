@@ -62,7 +62,7 @@ def render_all(con, panel_ui, panel_map, entities, game_map, curr_entity,
     entities_sorted = sorted(entities, key=lambda x: x.render_order.value)
 
     # if we're currently controlling entity 0, we see things differently
-    if curr_entity.aetherial:
+    if curr_entity.etheric:
         gray_map(panel_map)
         for entity in entities_sorted:
             if entity == curr_entity:
@@ -74,12 +74,12 @@ def render_all(con, panel_ui, panel_map, entities, game_map, curr_entity,
     # otherwise, we see things normally:
     else:
         # draw all the tiles in the game map
-        if not curr_entity.aetherial:
+        if not curr_entity.etheric:
             draw_map(panel_map, game_map, curr_entity, colors, omnivision)
 
         # draw all the entities in the list, except for entity 0
         for entity in entities_sorted:
-            if not entity.aetherial:
+            if not entity.etheric:
                 draw_entity(panel_map, game_map, entity, curr_entity,
                             omnivision)
 

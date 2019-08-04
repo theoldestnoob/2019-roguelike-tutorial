@@ -11,7 +11,7 @@ from random import randint
 from collections import deque
 
 from render_functions import RenderOrder
-from fov_functions import initialize_fov, init_fov_aetherial, recompute_fov
+from fov_functions import initialize_fov, init_fov_etheric, recompute_fov
 from entity import Entity
 from components.soul import Soul
 from components.fighter import Fighter
@@ -340,7 +340,7 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
                     render_update = True
                     for entity in actors:
                         if entity.ident == 0:
-                            entity.fov_map = init_fov_aetherial(game_map)
+                            entity.fov_map = init_fov_etheric(game_map)
                         else:
                             entity.fov_map = initialize_fov(game_map)
                         recompute_fov(game_map, entity, fov_radius,
@@ -408,7 +408,7 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
             render_update = True
             for entity in actors:
                 if entity.ident == 0:
-                    entity.fov_map = init_fov_aetherial(game_map)
+                    entity.fov_map = init_fov_etheric(game_map)
                 else:
                     entity.fov_map = initialize_fov(game_map)
                 recompute_fov(game_map, entity, fov_radius, fov_light_walls,
