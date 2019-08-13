@@ -45,6 +45,7 @@ def handle_entity_actions(actions, in_handle, entities, timeq, game_map,
         melee = action.get("melee")
         wait = action.get("wait")
         spawn_etheric = action.get("spawn_etheric")
+        despawn_etheric = action.get("despawn_etheric")
         possess = action.get("possess")
         unpossess = action.get("unpossess")
         pickup = action.get("pickup")
@@ -106,7 +107,7 @@ def handle_entity_actions(actions, in_handle, entities, timeq, game_map,
             etheric_ai = IdleMonster()
             possessor = Entity(len(entities), dest_x, dest_y,
                                spawner.gnosis.char, spawner.gnosis.color,
-                               spawner.name, blocks=False,
+                               "EBody", blocks=False,
                                etheric=True, soul=etheric_soul,
                                fighter=etheric_fighter, ai=etheric_ai,
                                render_order=RenderOrder.ACTOR,
@@ -122,6 +123,16 @@ def handle_entity_actions(actions, in_handle, entities, timeq, game_map,
             else:
                 timeq.append(possessor)
             controlled_entity = possessor
+
+        if despawn_etheric:  # {"despawn_etheric": entity}
+            action_cost = 50
+            next_turn = True
+            render_update = True
+            entity = despawn_etheric
+            owner = entity.owner
+            controlled_entity = owner
+            entities.remove(entity)
+            entity.speed = 0
 
         if possess:  # {"possess": (entity, target)}
             action_cost = 100

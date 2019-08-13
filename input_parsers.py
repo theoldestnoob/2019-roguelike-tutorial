@@ -105,7 +105,7 @@ def parse_input(console, in_handle, user_in, curr_entity, entities, game_map,
         elif curr_entity.etheric:
             if target:
                 if target is curr_entity.owner:
-                    pass
+                    actions.append({"despawn_etheric": curr_entity})
                 else:
                     actions.append({"possess": (curr_entity, target)})
             else:
