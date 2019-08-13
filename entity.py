@@ -17,7 +17,7 @@ class Entity:
     A generic object to represent players, enemies, items, etc.
     """
     def __init__(self, ident, x, y, char, color, name, soul=None,
-                 etheric=False, gnosis=None, possessor=False,
+                 etheric=False, gnosis=None, possessor=None,
                  blocks=False, fov_map=None, fighter=None, ai=None, speed=10,
                  render_order=RenderOrder.CORPSE, item=None, inventory=None,
                  stairs=None, level=None, equipment=None, equippable=None):
@@ -137,8 +137,16 @@ class Entity:
 
 
 def get_blocking_entities_at_location(entities, dest_x, dest_y):
-    '''Return the first Entity in entities list on map at dest_x, dest_y.'''
+    '''Return the first Entity in entities that blocks at dest_x, dest_y.'''
     for entity in entities:
         if entity.blocks and entity.x == dest_x and entity.y == dest_y:
+            return entity
+    return None
+
+
+def get_souled_entities_at_location(entities, dest_x, dest_y):
+    '''Return the first Entity in entities with a soul at dest_x, dest_y'''
+    for entity in entities:
+        if entity.soul and entity.x == dest_x and entity.y == dest_y:
             return entity
     return None

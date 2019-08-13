@@ -186,7 +186,7 @@ def play_game(constants, root_console, panel_ui, panel_map, debug_f,
             print(f"{curr_entity.name} - {curr_entity}: {actions}")
 
         # process turn actions, modify game state, and get results
-        act_r = handle_entity_actions(actions, in_handle, entities,
+        act_r = handle_entity_actions(actions, in_handle, entities, timeq,
                                       game_map, root_console, message_log,
                                       controlled_entity, player, game_state,
                                       prev_state, targeting_item, debug_f)
