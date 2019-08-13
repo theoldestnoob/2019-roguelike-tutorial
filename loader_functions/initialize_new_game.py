@@ -156,10 +156,6 @@ def get_game_variables(constants, root_console, panel_map, debug_f):
     player_level = Level()
     player_equipment = Equipment()
     player_gnosis = Gnosis()
-    '''player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False,
-                    etheric=True, soul=player_soul,
-                    fighter=player_fighter, ai=player_ai,
-                    render_order=RenderOrder.ACTOR, speed=25)'''
     player = Entity(0, 0, 0, "&", tcod.yellow, "Player", blocks=True,
                     soul=player_soul, gnosis=player_gnosis,
                     fighter=player_fighter, ai=player_ai,

@@ -15,6 +15,7 @@ from fov_functions import initialize_fov, init_fov_etheric, recompute_fov
 from entity import Entity
 from components.soul import Soul
 from components.gnosis import Gnosis
+from components.etheric import Etheric
 from components.fighter import Fighter
 from components.ai import IdleMonster
 from components.inventory import Inventory
@@ -103,12 +104,14 @@ def handle_entity_actions(actions, in_handle, entities, timeq, game_map,
             result_str = f"You manifest your etheric body!"
             message_log.add_message(Message(result_str, tcod.light_gray))
             etheric_soul = Soul(spawner.gnosis.char, spawner.gnosis.color)
+            etheric_body = Etheric(move_range=spawner.gnosis.move_range,
+                                   duration=spawner.gnosis.duration)
             etheric_fighter = Fighter(hp=1, defense=0, power=0)
             etheric_ai = IdleMonster()
             possessor = Entity(len(entities), dest_x, dest_y,
                                spawner.gnosis.char, spawner.gnosis.color,
                                "EBody", blocks=False,
-                               etheric=True, soul=etheric_soul,
+                               etheric=etheric_body, soul=etheric_soul,
                                fighter=etheric_fighter, ai=etheric_ai,
                                render_order=RenderOrder.ACTOR,
                                speed=spawner.gnosis.speed)

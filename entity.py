@@ -17,7 +17,7 @@ class Entity:
     A generic object to represent players, enemies, items, etc.
     """
     def __init__(self, ident, x, y, char, color, name, soul=None,
-                 etheric=False, gnosis=None, possessor=None,
+                 etheric=None, gnosis=None, possessor=None,
                  blocks=False, fov_map=None, fighter=None, ai=None, speed=10,
                  render_order=RenderOrder.CORPSE, item=None, inventory=None,
                  stairs=None, level=None, equipment=None, equippable=None):
@@ -33,7 +33,6 @@ class Entity:
         self.char = char
         self.color = color
         self.render_order = render_order
-        self.etheric = etheric
         self.possessor = possessor
         self.blocks = blocks
         # TODO: move to "fov" component and add fov range?
@@ -49,6 +48,9 @@ class Entity:
         self.gnosis = gnosis
         if self.gnosis:
             self.gnosis.owner = self
+        self.etheric = etheric
+        if self.etheric:
+            self.etheric.owner = self
         self.fighter = fighter
         if self.fighter:
             self.fighter.owner = self
