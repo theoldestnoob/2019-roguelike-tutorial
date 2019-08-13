@@ -61,14 +61,11 @@ def render_all(con, panel_ui, panel_map, entities, game_map, curr_entity,
     # sort our entities so we render them in the right order
     entities_sorted = sorted(entities, key=lambda x: x.render_order.value)
 
-    # if we're currently controlling entity 0, we see things differently
+    # if we're currently controlling an etheric entity, things look different
     if curr_entity.etheric:
         gray_map(panel_map)
         for entity in entities_sorted:
-            if entity == curr_entity:
-                draw_entity(panel_map, game_map, entity, curr_entity,
-                            omnivision)
-            elif entity.soul:
+            if entity.soul:
                 draw_soul(panel_map, game_map, entity, curr_entity, omnivision)
 
     # otherwise, we see things normally:

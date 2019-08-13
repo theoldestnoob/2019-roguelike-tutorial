@@ -10,7 +10,7 @@ import tcod
 
 class Gnosis():
     def __init__(self, char="@", color=tcod.white, speed=25, fov_range=10,
-                 move_range=10, duration=250):
+                 move_range=10, duration=500):
         self.char = char
         self.color = color
         self.speed = speed
