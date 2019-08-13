@@ -18,6 +18,7 @@ from map_objects.game_map_randomrooms import GameMapRandomRooms
 from fov_functions import initialize_fov, init_fov_etheric, recompute_fov
 from game_messages import MessageLog
 from components.soul import Soul
+from components.gnosis import Gnosis
 from components.fighter import Fighter
 from components.ai import IdleMonster
 from components.inventory import Inventory
@@ -157,6 +158,7 @@ def get_game_variables(constants, root_console, panel_map, debug_f):
     vip_inventory = Inventory(26)
     vip_level = Level()
     vip_equipment = Equipment()
+    vip_gnosis = Gnosis()
     player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False,
                     etheric=True, soul=player_soul,
                     fighter=player_fighter, ai=player_ai,
@@ -164,7 +166,7 @@ def get_game_variables(constants, root_console, panel_map, debug_f):
     vip = Entity(1, 0, 0, "&", tcod.yellow, "VIP", blocks=True, soul=vip_soul,
                  fighter=vip_fighter, ai=vip_ai, inventory=vip_inventory,
                  render_order=RenderOrder.ACTOR, level=vip_level,
-                 equipment=vip_equipment)
+                 equipment=vip_equipment, gnosis=vip_gnosis)
     entities = [player, vip]
     controlled_entity = player
     equippable_component = Equippable(EquipmentSlots.MAIN_HAND, power_bonus=2)
