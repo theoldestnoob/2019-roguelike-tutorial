@@ -16,8 +16,9 @@ class Entity:
     """
     A generic object to represent players, enemies, items, etc.
     """
-    def __init__(self, ident, x, y, char, color, name, soul=0, blocks=False,
-                 fov_map=None, fighter=None, ai=None, speed=10,
+    def __init__(self, ident, x, y, char, color, name, soul=None,
+                 etheric=None, gnosis=None, possessor=None,
+                 blocks=False, fov_map=None, fighter=None, ai=None, speed=10,
                  render_order=RenderOrder.CORPSE, item=None, inventory=None,
                  stairs=None, level=None, equipment=None, equippable=None):
         # every entity has an ident and a name
@@ -32,16 +33,24 @@ class Entity:
         self.char = char
         self.color = color
         self.render_order = render_order
-        # TODO: move to "soul" component with other soul-related attributes
-        self.soul = soul
+        self.possessor = possessor
         self.blocks = blocks
-        # TODO: move to "fov" component?
+        # TODO: move to "fov" component and add fov range?
         self.fov_recompute = False
         self.fov_map = fov_map
         # TODO: move to "actor" component? bundle in "ai" component?
         self.speed = speed
         self.time_to_act = int(100 / speed)
         # Entity components
+        self.soul = soul
+        if self.soul:
+            self.soul.owner = self
+        self.gnosis = gnosis
+        if self.gnosis:
+            self.gnosis.owner = self
+        self.etheric = etheric
+        if self.etheric:
+            self.etheric.owner = self
         self.fighter = fighter
         if self.fighter:
             self.fighter.owner = self
@@ -130,8 +139,16 @@ class Entity:
 
 
 def get_blocking_entities_at_location(entities, dest_x, dest_y):
-    '''Return the first Entity in entities list on map at dest_x, dest_y.'''
+    '''Return the first Entity in entities that blocks at dest_x, dest_y.'''
     for entity in entities:
         if entity.blocks and entity.x == dest_x and entity.y == dest_y:
+            return entity
+    return None
+
+
+def get_souled_entities_at_location(entities, dest_x, dest_y):
+    '''Return the first Entity in entities with a soul at dest_x, dest_y'''
+    for entity in entities:
+        if entity.soul and entity.x == dest_x and entity.y == dest_y:
             return entity
     return None

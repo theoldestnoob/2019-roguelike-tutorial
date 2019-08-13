@@ -10,9 +10,12 @@ import tcod.event
 from random import randint
 from collections import deque
 
-from render_functions import RenderOrder, display_space, render_all
-from fov_functions import initialize_fov, init_fov_entity0, recompute_fov
+from render_functions import RenderOrder
+from fov_functions import initialize_fov, init_fov_etheric, recompute_fov
 from entity import Entity
+from components.soul import Soul
+from components.gnosis import Gnosis
+from components.etheric import Etheric
 from components.fighter import Fighter
 from components.ai import IdleMonster
 from components.inventory import Inventory
@@ -23,9 +26,9 @@ from game_states import GameStates
 
 # TODO: man I have to pass a lot of stuff in and out of these guys
 #       there must be a better way?
-def handle_entity_actions(actions, in_handle, entities, game_map, console,
-                          message_log, controlled_entity, player, game_state,
-                          prev_state, targeting_item, debug_f):
+def handle_entity_actions(actions, in_handle, entities, timeq, game_map,
+                          console, message_log, controlled_entity, player,
+                          game_state, prev_state, targeting_item, debug_f):
     action_cost = 0
     next_turn = True
     controlled_entity = controlled_entity
@@ -42,6 +45,8 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
         move_astar = action.get("move_astar")
         melee = action.get("melee")
         wait = action.get("wait")
+        spawn_etheric = action.get("spawn_etheric")
+        despawn_etheric = action.get("despawn_etheric")
         possess = action.get("possess")
         unpossess = action.get("unpossess")
         pickup = action.get("pickup")
@@ -91,27 +96,69 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
             action_cost = wait
             next_turn = True
 
-        if possess:  # {"possess": target}
+        if spawn_etheric:  # {"spawn_etheric": (entity, dest_x, dest_y)}
             action_cost = 100
             next_turn = True
             render_update = True
-            target = possess
+            spawner, dest_x, dest_y = spawn_etheric
+            result_str = f"You manifest your etheric body!"
+            message_log.add_message(Message(result_str, tcod.light_gray))
+            etheric_soul = Soul(spawner.gnosis.char, spawner.gnosis.color)
+            etheric_body = Etheric(move_range=spawner.gnosis.move_range,
+                                   duration=spawner.gnosis.duration)
+            etheric_fighter = Fighter(hp=1, defense=0, power=0)
+            etheric_ai = IdleMonster()
+            possessor = Entity(len(entities), dest_x, dest_y,
+                               spawner.gnosis.char, spawner.gnosis.color,
+                               "EBody", blocks=False,
+                               etheric=etheric_body, soul=etheric_soul,
+                               fighter=etheric_fighter, ai=etheric_ai,
+                               render_order=RenderOrder.ACTOR,
+                               speed=spawner.gnosis.speed)
+            possessor.owner = spawner
+            possessor.fov_map = init_fov_etheric(game_map)
+            possessor.fov_recompute = True
+            entities.append(possessor)
+            for index, entity in enumerate(timeq):
+                if entity.time_to_act > possessor.time_to_act:
+                    timeq.insert(index, possessor)
+                    break
+            else:
+                timeq.append(possessor)
+            controlled_entity = possessor
+
+        if despawn_etheric:  # {"despawn_etheric": entity}
+            action_cost = 50
+            next_turn = True
+            render_update = True
+            entity = despawn_etheric
+            owner = entity.owner
+            controlled_entity = owner
+            entities.remove(entity)
+            entity.speed = 0
+
+        if possess:  # {"possess": (entity, target)}
+            action_cost = 100
+            next_turn = True
+            render_update = True
+            possessor, target = possess
             result_str = f"You possess the {target.name}!"
             message_log.add_message(Message(result_str, tcod.light_gray))
+            target.possessor = possessor
             controlled_entity = target
 
-        if unpossess:  # {"unpossess": (dest_x, dest_y)}
+        if unpossess:  # {"unpossess": (entity, dest_x, dest_y)}
             action_cost = 100
             next_turn = True
             render_update = True
-            dest_x, dest_y = unpossess
+            entity, dest_x, dest_y = unpossess
             result_str = f"You stop possessing the {controlled_entity.name}!"
             message_log.add_message(Message(result_str, tcod.light_gray))
-            # controlled_entity = entities[0]
-            controlled_entity = player
+            controlled_entity = entity.possessor
             controlled_entity.x = dest_x
             controlled_entity.y = dest_y
             controlled_entity.fov_recompute = True
+            entity.possessor = None
 
         if pickup and controlled_entity.inventory:
             next_turn = True
@@ -240,7 +287,7 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
 
 def handle_player_actions(actions, in_handle, entities, game_map, console,
                           panel_ui, panel_map, curr_entity, controlled_entity,
-                          player, vip, omnivision, message_log,
+                          player, omnivision, message_log,
                           mouse_x, mouse_y, timeq, game_state, prev_state,
                           constants, debug_f):
     # pull constants
@@ -253,7 +300,6 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
     curr_entity = curr_entity
     controlled_entity = controlled_entity
     player = player
-    vip = vip
     entities = entities
     omnivision = omnivision
     timeq = timeq
@@ -338,10 +384,7 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
                     # FOV calculation setup
                     render_update = True
                     for entity in actors:
-                        if entity.ident == 0:
-                            entity.fov_map = init_fov_entity0(game_map)
-                        else:
-                            entity.fov_map = initialize_fov(game_map)
+                        entity.fov_map = initialize_fov(game_map)
                         recompute_fov(game_map, entity, fov_radius,
                                       fov_light_walls, fov_algorithm)
                     break
@@ -369,7 +412,7 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
             else:
                 controlled_entity = entities[index]
             # only switch to controllable entities
-            while controlled_entity.soul <= 0:
+            while not controlled_entity.soul:
                 index = controlled_entity.ident + 1
                 if index >= len(entities):
                     controlled_entity = entities[0]
@@ -381,19 +424,17 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
             render_update = True
             game_map.seed = randint(0, 99999)
             game_map.tiles = game_map.initialize_tiles()
-            player_fighter = Fighter(hp=1, defense=0, power=0)
-            vip_fighter = Fighter(hp=30, defense=2, power=5)
+            player_soul = Soul("@", tcod.azure)
+            player_gnosis = Gnosis()
+            player_fighter = Fighter(hp=30, defense=2, power=5)
             player_ai = IdleMonster()
-            vip_ai = IdleMonster()
-            vip_inventory = Inventory(26)
-            player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False,
-                            ai=player_ai, render_order=RenderOrder.ACTOR,
-                            fighter=player_fighter, speed=25, soul=1)
-            vip = Entity(1, 0, 0, "&", tcod.yellow, "VIP", blocks=True,
-                         fighter=vip_fighter, ai=vip_ai, soul=10,
-                         inventory=vip_inventory,
-                         render_order=RenderOrder.ACTOR)
-            entities = [player, vip]
+            player_inventory = Inventory(26)
+            player = Entity(0, 0, 0, "&", tcod.yellow, "Player", blocks=True,
+                            fighter=player_fighter, ai=player_ai,
+                            soul=player_soul, gnosis=player_gnosis,
+                            inventory=player_inventory,
+                            render_order=RenderOrder.ACTOR)
+            entities = [player]
             controlled_entity = player
             game_map.make_map(player, entities, **mapset)
             # set up time system
@@ -405,7 +446,7 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
             render_update = True
             for entity in actors:
                 if entity.ident == 0:
-                    entity.fov_map = init_fov_entity0(game_map)
+                    entity.fov_map = init_fov_etheric(game_map)
                 else:
                     entity.fov_map = initialize_fov(game_map)
                 recompute_fov(game_map, entity, fov_radius, fov_light_walls,
@@ -417,7 +458,7 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
         if test:  # {"test": True}
             pass
 
-    return (next_turn, curr_entity, controlled_entity, entities, player, vip,
+    return (next_turn, curr_entity, controlled_entity, entities, player,
             timeq, omnivision, render_update, want_exit, game_state,
             prev_state)
 

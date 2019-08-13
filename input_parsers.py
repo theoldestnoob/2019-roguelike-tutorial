@@ -8,6 +8,7 @@ Created on Fri Jul 12 22:14:46 2019
 import tcod
 
 from entity import get_blocking_entities_at_location
+from entity import get_souled_entities_at_location
 from game_messages import Message
 from game_states import GameStates
 from render_functions import get_map_offset, get_console_offset
@@ -52,8 +53,8 @@ def parse_input(console, in_handle, user_in, curr_entity, entities, game_map,
         dx, dy = move
         dest_x = curr_entity.x + dx
         dest_y = curr_entity.y + dy
-        # entity 0 can move through walls
-        if curr_entity.ident == 0:
+        # etheric entities can move through walls
+        if curr_entity.etheric:
             target = get_blocking_entities_at_location(entities,
                                                        dest_x, dest_y)
             if target:
@@ -90,24 +91,34 @@ def parse_input(console, in_handle, user_in, curr_entity, entities, game_map,
         dx, dy = move
         dest_x = curr_entity.x + dx
         dest_y = curr_entity.y + dy
-        target = get_blocking_entities_at_location(entities,
-                                                   dest_x, dest_y)
-        # if currently entity 0, we're not possessing anyone
-        if curr_entity.ident == 0:
-            if target and target.soul > 0:
-                actions.append({"possess": target})
+        target = get_souled_entities_at_location(entities, dest_x, dest_y)
+        # if currently have gnosis, spawn our etheric body
+        if curr_entity.gnosis:
+            if target:
+                msg_str = (f"Your etheric body cannot manifest "
+                           f"in space occupied by another soul!")
+                actions.append({"message": Message(msg_str, tcod.light_gray)})
             else:
-                actions.append({"message":
-                                Message(f"Nothing there to possess!",
-                                        tcod.light_gray)})
+                actions.append({"spawn_etheric": (curr_entity,
+                                                  dest_x, dest_y)})
+        # if currently etheric, we're not possessing anyone
+        elif curr_entity.etheric:
+            if target:
+                if target is curr_entity.owner:
+                    actions.append({"despawn_etheric": curr_entity})
+                else:
+                    actions.append({"possess": (curr_entity, target)})
+            else:
+                msg_str = "You cannot possess that with no soul!"
+                actions.append({"message": Message(msg_str, tcod.light_gray)})
         # otherwise, we are possessing someone and want to leave
         else:
             if target:
-                actions.append({"message":
-                                Message(f"That space is already occupied!",
-                                        tcod.light_gray)})
+                msg_str = (f"Your etheric body cannot manifest "
+                           f"in space occupied by another soul!")
+                actions.append({"message": Message(msg_str, tcod.light_gray)})
             else:
-                actions.append({"unpossess": (dest_x, dest_y)})
+                actions.append({"unpossess": (curr_entity, dest_x, dest_y)})
 
     if (inventory_index is not None
             and game_state == GameStates.SHOW_INVENTORY
@@ -123,10 +134,10 @@ def parse_input(console, in_handle, user_in, curr_entity, entities, game_map,
             item = curr_entity.inventory.items[inventory_index]
             actions.append({"drop_item": item})
 
-    if curr_entity.ident != 0 and show_inventory:
+    if curr_entity.inventory and show_inventory:
         actions.append(user_in)
 
-    if curr_entity.ident != 0 and drop_inventory:
+    if curr_entity.inventory and drop_inventory:
         actions.append(user_in)
 
     if in_target and game_state == GameStates.TARGETING:

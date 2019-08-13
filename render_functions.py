@@ -61,25 +61,22 @@ def render_all(con, panel_ui, panel_map, entities, game_map, curr_entity,
     # sort our entities so we render them in the right order
     entities_sorted = sorted(entities, key=lambda x: x.render_order.value)
 
-    # if we're currently controlling entity 0, we see things differently
-    if curr_entity.ident == 0:
+    # if we're currently controlling an etheric entity, things look different
+    if curr_entity.etheric:
         gray_map(panel_map)
         for entity in entities_sorted:
-            if entity == curr_entity:
-                draw_entity(panel_map, game_map, entity, curr_entity,
-                            omnivision)
-            elif entity.soul > 0:
+            if entity.soul:
                 draw_soul(panel_map, game_map, entity, curr_entity, omnivision)
 
     # otherwise, we see things normally:
     else:
         # draw all the tiles in the game map
-        if curr_entity.ident != 0:
+        if not curr_entity.etheric:
             draw_map(panel_map, game_map, curr_entity, colors, omnivision)
 
         # draw all the entities in the list, except for entity 0
         for entity in entities_sorted:
-            if entity.ident != 0:
+            if not entity.etheric:
                 draw_entity(panel_map, game_map, entity, curr_entity,
                             omnivision)
 
@@ -196,14 +193,13 @@ def draw_entity(console, game_map, entity, curr_entity, omnivision):
 def draw_soul(console, game_map, entity, curr_entity, omnivision):
     map_x, map_y = get_map_offset(console, game_map, curr_entity)
     if curr_entity.fov_map.fov[entity.y][entity.x] or omnivision:
-        soul_char = get_soul_char(entity.soul)
-        soul_color = get_soul_color(entity.soul)
         map_x, map_y = get_map_offset(console, game_map, curr_entity)
         con_x, con_y = get_console_offset(console, game_map)
         x_off = map_x - con_x
         y_off = map_y - con_y
-        console.default_fg = soul_color
-        console.put_char(entity.x - x_off, entity.y - y_off, ord(soul_char))
+        console.default_fg = entity.soul.color
+        console.put_char(entity.x - x_off, entity.y - y_off,
+                         ord(entity.soul.char))
 
 
 def clear_entity(console, entity):

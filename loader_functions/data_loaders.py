@@ -10,7 +10,7 @@ import os
 from collections import deque
 
 
-def save_game(player, vip, entities, controlled_entity, curr_entity,
+def save_game(player, entities, controlled_entity, curr_entity,
               game_state, prev_state, message_log, game_map, timeq,
               next_turn, render_update, targeting_item):
     # build a list of entity indices from timeq to store
@@ -20,7 +20,6 @@ def save_game(player, vip, entities, controlled_entity, curr_entity,
     # store all of our game data
     with shelve.open("savegame", "n") as data_file:
         data_file["player_index"] = entities.index(player)
-        data_file["vip_index"] = entities.index(vip)
         data_file["controlled_entity_index"] = entities.index(controlled_entity)
         data_file["current_entity_index"] = entities.index(curr_entity)
         data_file["entities"] = entities
@@ -42,7 +41,6 @@ def load_game(constants):
     # get all of our game data from the shelf
     with shelve.open("savegame", "r") as data_file:
         player_index = data_file["player_index"]
-        vip_index = data_file["vip_index"]
         controlled_entity_index = data_file["controlled_entity_index"]
         current_entity_index = data_file["current_entity_index"]
         entities = data_file["entities"]
@@ -57,7 +55,6 @@ def load_game(constants):
 
     # assign entities from indices
     player = entities[player_index]
-    vip = entities[vip_index]
     controlled_entity = entities[controlled_entity_index]
     current_entity = entities[current_entity_index]
 
@@ -66,6 +63,6 @@ def load_game(constants):
     for index in timeq_indices:
         timeq.append(entities[index])
 
-    return (player, vip, entities, controlled_entity, current_entity,
+    return (player, entities, controlled_entity, current_entity,
             game_state, prev_state, message_log, game_map, timeq,
             next_turn, render_update, targeting_item)

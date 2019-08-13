@@ -39,9 +39,9 @@ def cast_lightning(*args, **kwargs):
     target = None
     closest_distance = max_range + 1
 
-    # find closest entity that isn't the caster and isn't entity 0
+    # find closest entity that isn't the caster and isn't etheric
     for entity in entities:
-        if (entity.fighter and entity is not caster and entity.ident != 0
+        if (entity.fighter and entity is not caster and not entity.etheric
                 and caster.fov_map.fov[entity.y][entity.x]):
             distance = caster.distance_to(entity)
             if distance < closest_distance:
@@ -81,7 +81,7 @@ def cast_fireball(*args, **kwargs):
         msg = Message(msg_str, tcod.orange)
         results.append({"consumed": True, "message": msg})
         for entity in entities:
-            if (entity.fighter and entity.ident != 0
+            if (entity.fighter and not entity.etheric
                     and entity.distance(target_x, target_y) <= radius):
                 msg_str = (f"The {entity.name} gets burned "
                            f"for {damage} hit points.")

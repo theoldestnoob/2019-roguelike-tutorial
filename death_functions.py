@@ -20,7 +20,7 @@ def kill_entity(entity):
     entity.blocks = False
     entity.fighter = None
     entity.ai = None
-    entity.soul = 0
+    entity.soul = None
     entity.name = f"remains of {entity.name}"
     entity.render_order = RenderOrder.CORPSE
     entity.speed = 0
