@@ -87,7 +87,7 @@ def main():
                     # set up game "runtime global" variables from scratch
                     g_var = get_game_variables(constants, root_console,
                                                panel_map, debug_f)
-                    (player, vip, entities, controlled_entity, curr_entity,
+                    (player, entities, controlled_entity, curr_entity,
                      game_state, prev_state, message_log, game_map, timeq,
                      next_turn, render_update, targeting_item) = g_var
                 elif load_save:
@@ -98,7 +98,7 @@ def main():
                         show_load_error_message = True
 
                     if not show_load_error_message:
-                        (player, vip, entities, controlled_entity, curr_entity,
+                        (player, entities, controlled_entity, curr_entity,
                          game_state, prev_state, message_log, game_map, timeq,
                          next_turn, render_update, targeting_item) = g_var
                     else:
@@ -107,7 +107,7 @@ def main():
             else:
                 play_game(constants, root_console, panel_ui, panel_map, debug_f,
                           omnivision, in_handle, mouse_x, mouse_y,
-                          player, vip, entities, controlled_entity, curr_entity,
+                          player, entities, controlled_entity, curr_entity,
                           game_state, prev_state, message_log, game_map, timeq,
                           next_turn, render_update, targeting_item)
                 game_state = GameStates.MAIN_MENU
@@ -115,7 +115,7 @@ def main():
 
 def play_game(constants, root_console, panel_ui, panel_map, debug_f,
               omnivision, in_handle, mouse_x, mouse_y,
-              player, vip, entities, controlled_entity, curr_entity,
+              player, entities, controlled_entity, curr_entity,
               game_state, prev_state, message_log, game_map, timeq,
               next_turn, render_update, targeting_item):
     # always update rendering upon entry
@@ -169,18 +169,18 @@ def play_game(constants, root_console, panel_ui, panel_map, debug_f,
                                           game_map, root_console,
                                           panel_ui, panel_map,
                                           curr_entity, controlled_entity,
-                                          player, vip, omnivision,
+                                          player, omnivision,
                                           message_log, mouse_x, mouse_y,
                                           timeq, game_state, prev_state,
                                           constants, debug_f)
             (next_turn, curr_entity, controlled_entity, entities, player,
-             vip, timeq, omnivision, render_update_p, want_exit,
+             timeq, omnivision, render_update_p, want_exit,
              game_state, prev_state) = act_r
 
         # if it's not the controlled entity's turn
         elif curr_entity.ai:
             # get the actions the entity wants to take
-            actions = curr_entity.ai.take_turn(vip, game_map, entities)
+            actions = curr_entity.ai.take_turn(player, game_map, entities)
 
         if debug_f and actions:
             print(f"{curr_entity.name} - {curr_entity}: {actions}")
@@ -198,7 +198,7 @@ def play_game(constants, root_console, panel_ui, panel_map, debug_f,
 
         # process turn results
         if want_exit:
-            save_game(player, vip, entities, controlled_entity, curr_entity,
+            save_game(player, entities, controlled_entity, curr_entity,
                       game_state, prev_state, message_log, game_map, timeq,
                       next_turn, render_update, targeting_item)
             return True
@@ -207,7 +207,7 @@ def play_game(constants, root_console, panel_ui, panel_map, debug_f,
             print(results)
 
         # TODO: check for and handle failure states
-        if ((not vip.fighter or vip.fighter.hp <= 0)
+        if ((not player.fighter or player.fighter.hp <= 0)
                 and game_state != GameStates.FAIL_STATE):
             message_log.add_message(Message("Oh no you lose!", tcod.red))
             game_state = GameStates.FAIL_STATE

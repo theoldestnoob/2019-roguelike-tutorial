@@ -14,6 +14,7 @@ from render_functions import RenderOrder
 from fov_functions import initialize_fov, init_fov_etheric, recompute_fov
 from entity import Entity
 from components.soul import Soul
+from components.gnosis import Gnosis
 from components.fighter import Fighter
 from components.ai import IdleMonster
 from components.inventory import Inventory
@@ -241,7 +242,7 @@ def handle_entity_actions(actions, in_handle, entities, game_map, console,
 
 def handle_player_actions(actions, in_handle, entities, game_map, console,
                           panel_ui, panel_map, curr_entity, controlled_entity,
-                          player, vip, omnivision, message_log,
+                          player, omnivision, message_log,
                           mouse_x, mouse_y, timeq, game_state, prev_state,
                           constants, debug_f):
     # pull constants
@@ -254,7 +255,6 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
     curr_entity = curr_entity
     controlled_entity = controlled_entity
     player = player
-    vip = vip
     entities = entities
     omnivision = omnivision
     timeq = timeq
@@ -382,21 +382,17 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
             render_update = True
             game_map.seed = randint(0, 99999)
             game_map.tiles = game_map.initialize_tiles()
-            player_soul = Soul("@", tcod.white)
-            player_fighter = Fighter(hp=1, defense=0, power=0)
-            vip_soul = Soul("@", tcod.azure)
-            vip_fighter = Fighter(hp=30, defense=2, power=5)
+            player_soul = Soul("@", tcod.azure)
+            player_gnosis = Gnosis()
+            player_fighter = Fighter(hp=30, defense=2, power=5)
             player_ai = IdleMonster()
-            vip_ai = IdleMonster()
-            vip_inventory = Inventory(26)
-            player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False,
-                            ai=player_ai, render_order=RenderOrder.ACTOR,
-                            fighter=player_fighter, speed=25, soul=player_soul)
-            vip = Entity(1, 0, 0, "&", tcod.yellow, "VIP", blocks=True,
-                         fighter=vip_fighter, ai=vip_ai, soul=vip_soul,
-                         inventory=vip_inventory,
-                         render_order=RenderOrder.ACTOR)
-            entities = [player, vip]
+            player_inventory = Inventory(26)
+            player = Entity(0, 0, 0, "&", tcod.yellow, "Player", blocks=True,
+                            fighter=player_fighter, ai=player_ai,
+                            soul=player_soul, gnosis=player_gnosis,
+                            inventory=player_inventory,
+                            render_order=RenderOrder.ACTOR)
+            entities = [player]
             controlled_entity = player
             game_map.make_map(player, entities, **mapset)
             # set up time system
@@ -420,7 +416,7 @@ def handle_player_actions(actions, in_handle, entities, game_map, console,
         if test:  # {"test": True}
             pass
 
-    return (next_turn, curr_entity, controlled_entity, entities, player, vip,
+    return (next_turn, curr_entity, controlled_entity, entities, player,
             timeq, omnivision, render_update, want_exit, game_state,
             prev_state)
 

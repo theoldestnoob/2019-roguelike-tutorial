@@ -149,31 +149,30 @@ def get_constants():
 def get_game_variables(constants, root_console, panel_map, debug_f):
 
     # object setup
-    player_soul = Soul("@", tcod.white)
-    vip_soul = Soul("@", tcod.azure)
-    player_fighter = Fighter(hp=1, defense=0, power=0)
-    vip_fighter = Fighter(hp=100, defense=1, power=2)
+    player_soul = Soul("@", tcod.azure)
+    player_fighter = Fighter(hp=100, defense=1, power=2)
     player_ai = IdleMonster()
-    vip_ai = IdleMonster()
-    vip_inventory = Inventory(26)
-    vip_level = Level()
-    vip_equipment = Equipment()
-    vip_gnosis = Gnosis()
-    player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False,
+    player_inventory = Inventory(26)
+    player_level = Level()
+    player_equipment = Equipment()
+    player_gnosis = Gnosis()
+    '''player = Entity(0, 0, 0, "@", tcod.white, "Player", blocks=False,
                     etheric=True, soul=player_soul,
                     fighter=player_fighter, ai=player_ai,
-                    render_order=RenderOrder.ACTOR, speed=25)
-    vip = Entity(1, 0, 0, "&", tcod.yellow, "VIP", blocks=True, soul=vip_soul,
-                 fighter=vip_fighter, ai=vip_ai, inventory=vip_inventory,
-                 render_order=RenderOrder.ACTOR, level=vip_level,
-                 equipment=vip_equipment, gnosis=vip_gnosis)
-    entities = [player, vip]
+                    render_order=RenderOrder.ACTOR, speed=25)'''
+    player = Entity(0, 0, 0, "&", tcod.yellow, "Player", blocks=True,
+                    soul=player_soul, gnosis=player_gnosis,
+                    fighter=player_fighter, ai=player_ai,
+                    inventory=player_inventory,
+                    render_order=RenderOrder.ACTOR, level=player_level,
+                    equipment=player_equipment)
+    entities = [player]
     controlled_entity = player
     equippable_component = Equippable(EquipmentSlots.MAIN_HAND, power_bonus=2)
-    dagger = Entity(2, 0, 0, "-", tcod.sky, "Dagger",
+    dagger = Entity(len(entities), 0, 0, "-", tcod.sky, "Dagger",
                     equippable=equippable_component)
-    vip.inventory.add_item(dagger)
-    vip.equipment.toggle_equip(dagger)
+    player.inventory.add_item(dagger)
+    player.equipment.toggle_equip(dagger)
     game_state = GameStates.NORMAL_TURN
     prev_state = GameStates.NORMAL_TURN
 
@@ -210,6 +209,6 @@ def get_game_variables(constants, root_console, panel_map, debug_f):
     # TODO: there has to be a better way to handle targeting than this
     targeting_item = None
 
-    return (player, vip, entities, controlled_entity, curr_entity,
+    return (player, entities, controlled_entity, curr_entity,
             game_state, prev_state, message_log, game_map, timeq,
             next_turn, render_update, targeting_item)

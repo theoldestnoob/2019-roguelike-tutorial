@@ -47,7 +47,7 @@ class GameMapBSP(GameMap):
             self.make_halls_random(player, ratio_vh, ratio_hv, ratio_d)
         else:
             self.make_halls(player, ratio_vh, ratio_hv, ratio_d)
-        self.place_player_vip(player, entities[1])
+        self.place_player(player)
         for room in self.rooms:
             if room is not self.rooms[0]:
                 self.place_entities(room, entities)

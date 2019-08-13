@@ -71,7 +71,7 @@ class GameMap:
         print(room)
         self.create_room(room)
         self.rooms.append(room)
-        self.place_player_vip(player, entities[1])
+        self.place_player(player)
         self.place_entities(room, entities)
 
     def make_graph(self):
@@ -174,12 +174,10 @@ class GameMap:
                     self.create_d_tunnel(prev_x, prev_y, new_x, new_y)
                 old_room = room
 
-    def place_player_vip(self, player, vip):
+    def place_player(self, player):
         (x, y) = self.rooms[0].center()
         player.x = x
         player.y = y
-        vip.x = x + 1
-        vip.y = y
 
     def place_entities(self, room, entities):
         '''Place monsters and items randomly into a room on the map.'''
